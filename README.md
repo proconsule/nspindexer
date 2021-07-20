@@ -8,3 +8,6 @@
 Place index.php into your webserver and edit settings to match your config
 
 Hope you enjoy it!
+
+## Thanks to
+- blawar for nsp update version look suggestion

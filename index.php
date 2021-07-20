@@ -75,6 +75,7 @@ h2 small {
 .responsive-table .col-3 {
   flex-basis: 50%;
   align-self: center;
+
 }
 .responsive-table .col-4 {
   flex-basis: 10%;
@@ -117,21 +118,52 @@ IMG.displayed {
 
 .zoom {
 #  background-color: green;
-  transition: transform .2s; /* Animation */
+  
+  transition: transform .2s; 
   width: 100;
   height: 100px;
 }
 
 .zoom:hover {
-  transform: scale(2.5); /* (150% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
+  transform: scale(2.5);
+
 }
 
+.footer {
+   position: fixed;
+   left: 0;
+   bottom: 0;
+   width: 100%;
+   background-color: black;
+   color: white;
+   text-align: center;
+}
+
+.col-3 .introdiv {
+    display: none;
+	font-size: 12px;
+	position: realtive;
+	
+	
+}
+
+.linkdiv:hover {font-size:150%;}
+
+.responsive-table .col-3:hover .introdiv{
+	display: block;
+}
+
+.linkdiv{
+	
+}
 
 </style>
 
 </head>
 <body>
 <?php
+
+$scriptversion = 0.1;
 
 
 function endsWith( $haystack, $needle ) {
@@ -164,13 +196,13 @@ function gettitlesid($filearray){
 	for ($i = 0; $i < count($filearray); $i++) {
 		$listres = array();
 		preg_match('/(?<=\[)[0-9A-F].+?(?=\])/', $filearray[$i], $titleidmatches);
-		preg_match('/(?<=\[)v.+?(?=\])/', $filearray[$i], $versionmatch);
+		preg_match('/(?<=\[v).+?(?=\])/', $filearray[$i], $versionmatch);
 		preg_match('/(\bDLC)/', $filearray[$i], $DLCmatch);
 		
 		
 		$listres[] = $filearray[$i];
 		$listres[] = $titleidmatches[0];
-		if($versionmatch[0] == NULL)$versionmatch[0] = "v0";
+		if($versionmatch[0] == NULL)$versionmatch[0] = "0";
 		$listres[] = $versionmatch[0];
 		if(endsWith($titleidmatches[0],"000")){
 			$listres[] = 0;
@@ -298,13 +330,15 @@ foreach(array_keys($mygamelist) as $key){
 <li class="table-row">
 <div class="col col-1"><div class="zoom"><img class="displayed" src="<?php echo $titlesjson[$mygamelist[$key][1]]["iconUrl"] ?>" alt="" width="80" ></div></div>
 <div class="col col-2"><?php echo $mygamelist[$key][1] ?></div>
-<div class="col col-3"><a href="<?php echo $contentsurl . $mygamelist[$key][0]; ?>"><?php echo $titlesjson[$mygamelist[$key][1]]["name"] ?></a></div>
+
+<div class="col col-3"><div class="linkdiv"><a href="<?php echo $contentsurl . $mygamelist[$key][0]; ?>"><?php echo $titlesjson[$mygamelist[$key][1]]["name"] ?></a></div><div class="introdiv"><?php echo $titlesjson[$mygamelist[$key][1]]["intro"] ?></div></div>
 <div class="col col-4">
 <?php
 foreach(array_keys($mygamelist[$key][4]) as $updatekey){
 ?>
-
-<a href="<?php echo $contentsurl . $mygamelist[$key][4][$updatekey][0];?>"><?php echo $mygamelist[$key][4][$updatekey][2]; ?></a>
+<div class="linkdiv">
+<a href="<?php echo $contentsurl . $mygamelist[$key][4][$updatekey][0];?>"><?php echo intval($mygamelist[$key][4][$updatekey][2])/65536; ?></a>
+</div>
 
 
 
@@ -341,7 +375,7 @@ foreach(array_keys($mydlclist) as $key){
 
 <li class="table-row">
 <div class="col col-2"><?php echo $mydlclist[$key][1]; ?></div>
-<div class="col col-3"><a href="<?php echo $contentsurl . $mydlclist[$key][0]; ?>"><?php echo $titlesjson[$mydlclist[$key][1]]["name"]; ?></a></div>
+<div class="col col-3"><div class="linkdiv"><a href="<?php echo $contentsurl . $mydlclist[$key][0]; ?>"><?php echo $titlesjson[$mydlclist[$key][1]]["name"]; ?></a></div></div>
 <div class="col col-4"><?php echo round(($titlesjson[$mydlclist[$key][1]]["size"]/1024/1024/1024),3) . " GB"; ?></div>
 
 
@@ -355,7 +389,9 @@ foreach(array_keys($mydlclist) as $key){
 </ul>
 </div>
 
-
+<div class="footer">
+<?php echo "NSP Indexer v" . $scriptversion; ?>
+</div>
 
 </body>
 </html>
