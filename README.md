@@ -5,7 +5,7 @@
 
 # How To
 
-Place index.php into your webserver and edit settings to match your config
+Place index.php into your webserver and edit settings section to match your config
 
 Hope you enjoy it!
 
