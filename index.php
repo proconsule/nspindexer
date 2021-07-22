@@ -16,11 +16,124 @@ Settings Section
 
 
 $scriptdir = "/var/www/html/switch/"; /* Absolute Script Path */
-$gamedir = "/var/www/html/switch/data/games"; /* Absolute Files Path */
+$gamedir = "/var/www/html/switch/data/games/"; /* Absolute Files Path */
 $Host = "http://". $_SERVER['SERVER_ADDR'] ."/switch/"; /* Web Server URL */
 $contentsurl = "http://". $_SERVER['SERVER_ADDR'] ."/switch/data/games/"; /* Files URL */
 
+
 ?>
+<?php
+
+$scriptversion = 0.1;
+
+function mydirlist($path){
+  $filelist = array();
+  if (file_exists($path) && is_dir($path) ) {
+    
+      $scan_arr = scandir($path);
+      $files_arr = array_diff($scan_arr, array('.','..') );
+      foreach ($files_arr as $file) {
+        $file_path = $path.$file;
+        $file_ext = pathinfo($file_path, PATHINFO_EXTENSION);
+        if ($file_ext=="nsp" || $file_ext=="xci" || $file_ext=="nsz" || $file_ext=="xcz") {
+          $filelist[] = $file;
+        }
+        
+      }
+  }
+  return $filelist;
+}
+
+function formatSizeUnits($bytes)
+    {
+        if ($bytes >= 1073741824)
+        {
+            $bytes = number_format($bytes / 1073741824, 1) . 'G';
+        }
+        elseif ($bytes >= 1048576)
+        {
+            $bytes = number_format($bytes / 1048576, 0) . 'M';
+        }
+        elseif ($bytes >= 1024)
+        {
+            $bytes = number_format($bytes / 1024, 0) . 'K';
+        }
+        elseif ($bytes > 1)
+        {
+            $bytes = $bytes . ' bytes';
+        }
+        elseif ($bytes == 1)
+        {
+            $bytes = $bytes . ' byte';
+        }
+        else
+        {
+            $bytes = '0 bytes';
+        }
+
+        return $bytes;
+}
+
+
+function getTrueFileSize($filename) {
+    $size = filesize($filename);
+    if ($size === false) {
+        $fp = fopen($filename, 'r');
+        if (!$fp) {
+            return false;
+        }
+        $offset = PHP_INT_MAX - 1;
+        $size = (float) $offset;
+        if (!fseek($fp, $offset)) {
+            return false;
+        }
+        $chunksize = 8192;
+        while (!feof($fp)) {
+            $size += strlen(fread($fp, $chunksize));
+        }
+    } elseif ($size < 0) {
+        $size = sprintf("%u", $size);
+    }
+    return $size;
+}
+
+
+if($_GET){
+	if(isset($_GET["tinfoil"])){
+		header("Content-Type: application/json");
+	    header('Content-Disposition: filename="main.json"');
+		$tinarray = array();
+		$dirfilelist = mydirlist($gamedir);
+		asort($dirfilelist);
+        $tinarray["total"] = count($dirfilelist);
+        $tinarray["files"] = array(); 		
+		foreach ( $dirfilelist as $myfile ) {
+			$myfilefullpath = $gamedir . $myfile;
+			
+			$tinarray["files"][] = [ 'url' => $contentsurl . $myfile ."#".urlencode(str_replace('#','',$myfile)), 'size' => getTrueFileSize($gamedir . $myfile)];
+			
+		}
+		$tinarray['success'] = "NSP Indexer";
+		echo json_encode($tinarray);
+		die();
+	}
+	if(isset($_GET["DBI"])){
+		echo "<html><head><title>Index of NSP Indexer</title></head><body><h1>Index of NSP Indexer</h1><table><tbody><tr><th valign='top'><img src='/icons/blank.gif' alt='[ICO]'></th><th><a href='?C=N;O=D'>Name</a></th><th><a href='?C=M;O=A'>Last modified</a></th><th><a href='?C=S;O=A'>Size</a></th><th><a href='?C=D;O=A'>Description</a></th></tr><tr><th colspan='5'><hr></th></tr>";
+		echo "<tr><td valign='top'><img src='/icons/back.gif' alt='[PARENTDIR]'></td><td><a href=''>Parent Directory</a></td><td>&nbsp;</td><td align='right'>  - </td><td>&nbsp;</td></tr>";
+		$dirfilelist = mydirlist($gamedir);
+		asort($dirfilelist);
+		foreach ( $dirfilelist as $myfile ) {
+			echo "<tr><td valign='top'><img src='/icons/unknown.gif' alt='[   ]'></td><td><a href='".$contentsurl.$myfile."'>". str_replace($gamedir,"",$myfile). "</a></td><td>". date ("Y-d-m H:i", filemtime($gamedir . $myfile)) ."</td><td align='right'>".formatSizeUnits(getTrueFileSize($gamedir . $myfile)) ."</td><td></td>&nbsp;</tr>";
+			
+		}	
+		echo "</tbody></table><address>NSP Indexer v". $scriptversion . " on " . $_SERVER['SERVER_ADDR']. "</address></body></html>";
+		die();
+	}
+}
+
+
+?>
+
 
 
 <html>
@@ -157,38 +270,50 @@ IMG.displayed {
 	
 }
 
+.updatelink {
+  
+}
+
+.updatelink:hover {
+	
+}
+
+.updatelink .updatelinktext {
+  visibility: hidden;
+  width: 120px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  position: absolute;
+  z-index: 1;
+  margin-left: -65px;
+  margin-top: -25px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+
+
+.updatelink:hover .updatelinktext {
+  visibility: visible;
+  opacity: 1;
+}
+
+
 </style>
 
 </head>
 <body>
 <?php
 
-$scriptversion = 0.1;
+
 
 
 function endsWith( $haystack, $needle ) {
     return $needle === "" || (substr($haystack, -strlen($needle)) === $needle);
 }
 
-
-
-function mydirlist($path){
-  $filelist = array();
-  if (file_exists($path) && is_dir($path) ) {
-    
-      $scan_arr = scandir($path);
-      $files_arr = array_diff($scan_arr, array('.','..') );
-      foreach ($files_arr as $file) {
-        $file_path = $path.$file;
-        $file_ext = pathinfo($file_path, PATHINFO_EXTENSION);
-        if ($file_ext=="nsp" || $file_ext=="xci" || $file_ext=="nsz" || $file_ext=="xcz") {
-          $filelist[] = $file;
-        }
-        
-      }
-  }
-  return $filelist;
-}
 
 
 function gettitlesid($filearray){
@@ -202,8 +327,11 @@ function gettitlesid($filearray){
 		
 		$listres[] = $filearray[$i];
 		$listres[] = $titleidmatches[0];
-		if($versionmatch[0] == NULL)$versionmatch[0] = "0";
-		$listres[] = $versionmatch[0];
+		if($versionmatch == NULL){
+			$listres[] = "0";
+		}else{
+			$listres[] = $versionmatch[0];
+		}
 		if(endsWith($titleidmatches[0],"000")){
 			$listres[] = 0;
 		}else if($DLCmatch){
@@ -336,8 +464,9 @@ foreach(array_keys($mygamelist) as $key){
 <?php
 foreach(array_keys($mygamelist[$key][4]) as $updatekey){
 ?>
-<div class="linkdiv">
+<div class="updatelink">
 <a href="<?php echo $contentsurl . $mygamelist[$key][4][$updatekey][0];?>"><?php echo intval($mygamelist[$key][4][$updatekey][2])/65536; ?></a>
+<span class="updatelinktext"><?php echo "v". $mygamelist[$key][4][$updatekey][2]; ?></span>
 </div>
 
 
