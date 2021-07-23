@@ -41,10 +41,10 @@ function getFileList($path)
 function matchTitleIds($files)
 {
     $titles = [];
-    // first round, get all Base titles (0100XXXXXXXXY000, with Y being an even number)
+    // first round, get all Base TitleIds (0100XXXXXXXXY000, with Y being an even number)
     foreach ($files as $key => $file) {
 
-        // Check if we have a TitleId
+        // Check if we have a Base TitleId
         if (preg_match('/(?<=\[)0100[0-9A-F]{8}[0,2,4,6,8,A,C,E]000(?=\])/', $file, $titleIdMatches) === 1) {
             $titleId = $titleIdMatches[0];
             $titles[$titleId] = array(
@@ -56,12 +56,13 @@ function matchTitleIds($files)
         }
     }
 
-    // second round, match Updates and DLC to Base titles
+    // second round, match Updates and DLC to Base TitleIds
     foreach ($files as $key => $file) {
         if (preg_match('/(?<=\[)0100[0-9A-F]{12}(?=\])/', $file, $titleIdMatches) === 0) {
             continue;
         }
         $titleId = $titleIdMatches[0];
+
 
         // find Updates (0100XXXXXXXXX800)
         if (preg_match('/^0100[0-9A-F]{9}800$/', $titleId) === 1) {
@@ -69,21 +70,25 @@ function matchTitleIds($files)
             if (preg_match('/(?<=\[v).+?(?=\])/', $file, $versionMatches) === 1) {
                 $version = $versionMatches[0];
                 $baseTitleId = substr_replace($titleId, "000", -3);
-                $titles[$baseTitleId]['updates'][$titleId] = array(
-                    "path" => $file,
-                    "version" => $version
-                );
+                if ($titles[$baseTitleId]) {
+                    $titles[$baseTitleId]['updates'][$titleId] = array(
+                        "path" => $file,
+                        "version" => $version
+                    );
+                }
             }
 
-        // find DLC (TitleId of the Base game with the fourth bit shifted by 1)
         } else {
+            // it's DLC, so find the Base TitleId (TitleId of the Base game with the fourth bit shifted by 1)
             $dlcBaseId = substr_replace($titleId, "000", -3);
             $offsetBit = hexdec(substr($dlcBaseId, 12, 1));
             $baseTitleBit = strtoupper(dechex($offsetBit - 1));
             $baseTitleId = substr_replace($dlcBaseId, $baseTitleBit, -4, 1);
-            $titles[$baseTitleId]['dlc'][$titleId] = array(
-                "path" => $file
-            );
+            if ($titles[$baseTitleId]) {
+                $titles[$baseTitleId]['dlc'][$titleId] = array(
+                    "path" => $file
+                );
+            }
 
         }
     }
@@ -218,35 +223,34 @@ function outputJson($titlesJson, $versionsJson, $titles)
     $output = array();
     foreach ($titles as $titleId => $title) {
         $game = array(
-            "id"     => $titleId,
-            "path"   => $title["path"],
-            "name"   => $titlesJson[$titleId]["name"],
-            "thumb"  => $titlesJson[$titleId]["iconUrl"],
-            "intro"  => $titlesJson[$titleId]["intro"],
-            "latest" => ($versionsJson[strtolower($titleId)]) ? array_key_last($versionsJson[strtolower($titleId)]) : ""
+            "path" => $title["path"],
+            "name" => $titlesJson[$titleId]["name"],
+            "thumb" => $titlesJson[$titleId]["iconUrl"],
+            "intro" => $titlesJson[$titleId]["intro"],
+            "latest" => $titlesJson[substr_replace($titleId, "800", -3)]["version"],
+            "size" => $titlesJson[$titleId]["size"],
+            "size_real" => filesize($gameDir . '/' . $title["path"])
         );
         $updates = array();
         foreach ($title["updates"] as $updateId => $update) {
-            $upd = array(
-                "id"      => $updateId,
-                "path"    => $update["path"],
-                "version" => (int)$update["version"]
+            $updates[$updateId] = array(
+                "path" => $update["path"],
+                "version" => (int)$update["version"],
+                "size" => filesize($gameDir . '/' . $update["path"])
             );
-            array_push($updates, $upd);
         }
         $game['updates'] = $updates;
         $dlcs = array();
         foreach ($title["dlc"] as $dlcId => $d) {
-            $dlc = array(
-                "id"   => $dlcId,
+            $dlcs[$dlcId] = array(
                 "path" => $d["path"],
                 "name" => $titlesJson[$dlcId]["name"],
-                "size" => $titlesJson[$dlcId]["size"]
+                "size" => $titlesJson[$dlcId]["size"],
+                "size_real" => filesize($gameDir . '/' . $d["path"])
             );
-            array_push($dlcs, $dlc);
         }
         $game['dlc'] = $dlcs;
-        array_push($output, $game);
+        $output[$titleId] = $game;
     }
     return json_encode($output);
 }
@@ -306,8 +310,7 @@ $dlcList = $titlesList[1];
 if (isset($_GET["json"])) {
     header("Content-Type: application/json");
     $matchedTitles = matchTitleIds(getFileList($gameDir));
-    echo json_encode($matchedTitles);
-    //echo outputJson($titlesJson, $versionsJson, $matchedTitles);
+    echo outputJson($titlesJson, $versionsJson, $matchedTitles);
     die();
 } elseif (isset($_GET["tinfoil"])) {
     header("Content-Type: application/json");
