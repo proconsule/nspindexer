@@ -26,7 +26,7 @@ $contentsurl = "http://". $_SERVER['SERVER_ADDR'] ."/switch/data/games/"; /* Fil
 
 $scriptversion = 0.1;
 
-function mydirlist($path){
+function mydirlist($path){	
   $filelist = array();
   if (file_exists($path) && is_dir($path) ) {
     
@@ -97,6 +97,37 @@ function getTrueFileSize($filename) {
     return $size;
 }
 
+function genDirList(){
+	    global $scriptversion;
+		global $scriptdir;
+		global $gamedir; 
+		global $Host; 
+		global $contentsurl;
+		
+	    echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">\r\n";
+		echo "<html>\r\n";
+		echo " <head>\r\n";
+		echo "  <title>Index of NSP Indexer</title>\r\n";
+		echo " </head>\r\n";
+		echo " <body>\r\n";
+		echo "<h1>Index of NSP Indexer</h1>\r\n";
+		echo "  <table>\r\n";
+		echo "   <tr><th valign=\"top\"><img src=\"/icons/blank.gif\" alt=\"[ICO]\"></th><th><a href=\"?C=N;O=D\">Name</a></th><th><a href=\"?C=M;O=A\">Last modified</a></th><th><a href=\"?C=S;O=A\">Size</a></th><th><a href=\"?C=D;O=A\">Description</a></th></tr>\r\n";
+		echo "   <tr><th colspan=\"5\"><hr></th></tr>\r\n";
+		echo "<tr><td valign=\"top\"><img src=\"/icons/back.gif\" alt=\"[PARENTDIR]\"></td><td><a href=\"\">Parent Directory</a></td><td>&nbsp;</td><td align=\"right\">  - </td><td>&nbsp;</td></tr>\r\n";
+		$dirfilelist = mydirlist($gamedir);
+		asort($dirfilelist);
+		foreach ( $dirfilelist as $myfile ) {
+			echo "<tr><td valign=\"top\"><img src=\"/icons/unknown.gif\" alt=\"[   ]\"></td><td><a href=\"".str_replace($scriptdir,"",$gamedir).rawurlencode($myfile)."\">". str_replace($gamedir,"",$myfile). "</a></td><td>". date ("Y-d-m H:i", filemtime($gamedir . $myfile)) ."</td><td align=\"right\">".formatSizeUnits(getTrueFileSize($gamedir . $myfile)) ."</td><td></td>&nbsp;</tr>\r\n";
+			
+		}	
+		echo "   <tr><th colspan=\"5\"><hr></th></tr>\r\n";
+		echo "</table>\r\n";
+		echo "<address>NSP Indexer v". $scriptversion . " on " . $_SERVER['SERVER_ADDR']. "</address>\r\n</body></html>";
+		
+	
+}
+
 
 if($_GET){
 	if(isset($_GET["tinfoil"])){
@@ -117,16 +148,8 @@ if($_GET){
 		echo json_encode($tinarray);
 		die();
 	}
-	if(isset($_GET["DBI"])){
-		echo "<html><head><title>Index of NSP Indexer</title></head><body><h1>Index of NSP Indexer</h1><table><tbody><tr><th valign='top'><img src='/icons/blank.gif' alt='[ICO]'></th><th><a href='?C=N;O=D'>Name</a></th><th><a href='?C=M;O=A'>Last modified</a></th><th><a href='?C=S;O=A'>Size</a></th><th><a href='?C=D;O=A'>Description</a></th></tr><tr><th colspan='5'><hr></th></tr>";
-		echo "<tr><td valign='top'><img src='/icons/back.gif' alt='[PARENTDIR]'></td><td><a href=''>Parent Directory</a></td><td>&nbsp;</td><td align='right'>  - </td><td>&nbsp;</td></tr>";
-		$dirfilelist = mydirlist($gamedir);
-		asort($dirfilelist);
-		foreach ( $dirfilelist as $myfile ) {
-			echo "<tr><td valign='top'><img src='/icons/unknown.gif' alt='[   ]'></td><td><a href='".$contentsurl.$myfile."'>". str_replace($gamedir,"",$myfile). "</a></td><td>". date ("Y-d-m H:i", filemtime($gamedir . $myfile)) ."</td><td align='right'>".formatSizeUnits(getTrueFileSize($gamedir . $myfile)) ."</td><td></td>&nbsp;</tr>";
-			
-		}	
-		echo "</tbody></table><address>NSP Indexer v". $scriptversion . " on " . $_SERVER['SERVER_ADDR']. "</address></body></html>";
+	if(array_key_exists("DBI/",$_GET)){
+		genDirList();
 		die();
 	}
 }
@@ -184,6 +207,7 @@ h2 small {
 .responsive-table .col-2 {
   flex-basis: 20%;
   align-self: center;
+  text-align: center;
 }
 .responsive-table .col-3 {
   flex-basis: 50%;
@@ -193,10 +217,12 @@ h2 small {
 .responsive-table .col-4 {
   flex-basis: 10%;
   align-self: center;
+    text-align: center;
 }
 .responsive-table .col-5 {
   flex-basis: 10%;
   align-self: center;
+  text-align: center;
 }
 
 @media all and (max-width: 767px) {
@@ -271,7 +297,7 @@ IMG.displayed {
 }
 
 .updatelink {
-  
+  text-align: center;
 }
 
 .updatelink:hover {
@@ -296,6 +322,35 @@ IMG.displayed {
 
 
 .updatelink:hover .updatelinktext {
+  visibility: visible;
+  opacity: 1;
+}
+
+
+
+
+.newupdatediv{
+	text-align: center;
+}
+
+.newupdatediv .newupdatedivtext {
+  visibility: hidden;
+  width: 120px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  position: absolute;
+  z-index: 1;
+  margin-left: -65px;
+  margin-top: -25px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+
+
+.newupdatediv:hover .newupdatedivtext {
   visibility: visible;
   opacity: 1;
 }
@@ -471,6 +526,17 @@ foreach(array_keys($mygamelist[$key][4]) as $updatekey){
 
 
 
+
+
+<?php
+}
+?>
+<?php
+if(array_key_last($versionsjson[strtolower($mygamelist[$key][1])]) != end($mygamelist[$key][4])[2]){
+?>
+<div class="newupdatediv">Last: <?php echo array_key_last($versionsjson[strtolower($mygamelist[$key][1])])/65536;?>
+<span class="newupdatedivtext"><?php echo "v". array_key_last($versionsjson[strtolower($mygamelist[$key][1])]); ?></span>
+</div>
 
 <?php
 }
