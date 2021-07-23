@@ -162,19 +162,61 @@ function getJson($type)
     return json_decode($json, true);
 }
 
+function outputJson($titlesJson, $versionsJson) {
+    global $gameDir;
+    $fileList = getTitlesId(getFileList($gameDir));
+    $gameList = $fileList[0];
+    $dlcList = $fileList[1];
+    $output = array(
+        "games" => array(),
+        "dlc"   => array()
+    );
+    foreach (array_keys($gameList) as $gameId) {
+        $game = array(
+            "id"     => $gameId,
+            "path"   => $gameList[$gameId][0],
+            "name"   => $titlesJson[$gameId]["name"],
+            "thumb"  => $titlesJson[$gameId]["iconUrl"],
+            "intro"  => $titlesJson[$gameId]["intro"],
+            "latest" => ($versionsJson[strtolower($gameId)]) ? array_key_last($versionsJson[strtolower($gameId)]) : ""
+        );
+        $updates = array();
+        foreach ($gameList[$gameId][4] as $upd) {
+            $update = array(
+                "path"     => $upd[0],
+                "id"       => $upd[1],
+                "version"  => (int)$upd[2],
+                "foo"      => $upd[3],
+            );
+            array_push($updates, $update);
+        }
+        $game['updates'] = $updates;
+        array_push($output['games'], $game);
+    }
+    foreach (array_keys($dlcList) as $dlcId) {
+        $dlc = array(
+            "path" => $dlcList[$dlcId][0],
+            "name" => $titlesJson[$dlcId]["name"],
+            "size" => round(($titlesJson[$dlcId]["size"] / 1024 / 1024 / 1024), 3)
+        );
+        array_push($output['dlc'], $dlc);
+    }
+    return json_encode($output);
+}
+
 function outputTinfoil()
 {
     global $gameDir, $contentUrl;
-    $tinarray = array();
-    $dirfilelist = getFileList($gameDir);
-    asort($dirfilelist);
-    $tinarray["total"] = count($dirfilelist);
-    $tinarray["files"] = array();
-    foreach ($dirfilelist as $myfile) {
-        $tinarray["files"][] = ['url' => $_SERVER['REQUEST_SCHEME'] . '://' .$_SERVER['SERVER_NAME'] . $contentUrl . $myfile . "#" . urlencode(str_replace('#', '', $myfile)), 'size' => getHumanFileSize($gameDir . $myfile)];
+    $output = array();
+    $fileList = getFileList($gameDir);
+    asort($fileList);
+    $output["total"] = count($fileList);
+    $output["files"] = array();
+    foreach ($fileList as $file) {
+        $output["files"][] = ['url' => $_SERVER['REQUEST_SCHEME'] . '://' .$_SERVER['SERVER_NAME'] . $contentUrl . $file . "#" . urlencode(str_replace('#', '', $file)), 'size' => getHumanFileSize($gameDir . $file)];
     }
-    $tinarray['success'] = "NSP Indexer";
-    return json_encode($tinarray);
+    $output['success'] = "NSP Indexer";
+    return json_encode($output);
 }
 
 function outputDirIndex()
@@ -206,7 +248,6 @@ function outputDirIndex()
     echo "<address>NSP Indexer v" . $version . " on " . $_SERVER['SERVER_ADDR'] . "</address>\r\n</body></html>";
 }
 
-
 $versionsJson = getJson("versions");
 $titlesJson = getJson("titles");
 
@@ -215,7 +256,11 @@ $fileList = getTitlesId(getFileList($gameDir));
 $gameList = $fileList[0];
 $dlcList = $fileList[1];
 
-if (isset($_GET["tinfoil"])) {
+if (isset($_GET["json"])) {
+    header("Content-Type: application/json");
+    echo outputJson($titlesJson, $versionsJson);
+    die();
+} elseif (isset($_GET["tinfoil"])) {
     header("Content-Type: application/json");
     header('Content-Disposition: filename="main.json"');
     echo outputTinfoil();
