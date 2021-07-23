@@ -26,21 +26,17 @@ $scriptversion = 0.1;
 
 function mydirlist($path)
 {
-    $filelist = array();
-    if (file_exists($path) && is_dir($path)) {
-
-        $scan_arr = scandir($path);
-        $files_arr = array_diff($scan_arr, array('.', '..'));
-        foreach ($files_arr as $file) {
-            $file_path = $path . $file;
-            $file_ext = pathinfo($file_path, PATHINFO_EXTENSION);
-            if ($file_ext == "nsp" || $file_ext == "xci" || $file_ext == "nsz" || $file_ext == "xcz") {
-                $filelist[] = $file;
-            }
-
+    global $allowedExtensions;
+    $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST);
+    $arrFiles = array();
+    foreach ($files as $file) {
+        $parts = explode('.', $file);
+        if(!$file->isDir() && in_array(strtolower(array_pop($parts)), $allowedExtensions)) {
+            array_push($arrFiles, str_replace($path, '', $file->getPathname()));
         }
     }
-    return $filelist;
+    natcasesort($arrFiles);
+    return array_values($arrFiles);
 }
 
 function formatSizeUnits($bytes)
