@@ -38,6 +38,58 @@ function getFileList($path)
     return array_values($arrFiles);
 }
 
+function matchTitleIds($files)
+{
+    $titles = [];
+    // first round, get all Base titles (0100XXXXXXXXY000, with Y being an even number)
+    foreach ($files as $key => $file) {
+
+        // Check if we have a TitleId
+        if (preg_match('/(?<=\[)0100[0-9A-F]{8}[0,2,4,6,8,A,C,E]000(?=\])/', $file, $titleIdMatches) === 1) {
+            $titleId = $titleIdMatches[0];
+            $titles[$titleId] = array(
+                "path" => $file,
+                "updates" => array(),
+                "dlc" => array()
+            );
+            unset($files[$key]);
+        }
+    }
+
+    // second round, match Updates and DLC to Base titles
+    foreach ($files as $key => $file) {
+        if (preg_match('/(?<=\[)0100[0-9A-F]{12}(?=\])/', $file, $titleIdMatches) === 0) {
+            continue;
+        }
+        $titleId = $titleIdMatches[0];
+
+        // find Updates (0100XXXXXXXXX800)
+        if (preg_match('/^0100[0-9A-F]{9}800$/', $titleId) === 1) {
+
+            if (preg_match('/(?<=\[v).+?(?=\])/', $file, $versionMatches) === 1) {
+                $version = $versionMatches[0];
+                $baseTitleId = substr_replace($titleId, "000", -3);
+                $titles[$baseTitleId]['updates'][$titleId] = array(
+                    "path" => $file,
+                    "version" => $version
+                );
+            }
+
+        // find DLC (TitleId of the Base game with the fourth bit shifted by 1)
+        } else {
+            $dlcBaseId = substr_replace($titleId, "000", -3);
+            $offsetBit = hexdec(substr($dlcBaseId, 12, 1));
+            $baseTitleBit = strtoupper(dechex($offsetBit - 1));
+            $baseTitleId = substr_replace($dlcBaseId, $baseTitleBit, -4, 1);
+            $titles[$baseTitleId]['dlc'][$titleId] = array(
+                "path" => $file
+            );
+
+        }
+    }
+    return $titles;
+}
+
 function formatSizeUnits($bytes)
 {
     if ($bytes >= 1073741824) {
@@ -85,17 +137,17 @@ function endsWith($haystack, $needle)
     return $needle === "" || (substr($haystack, -strlen($needle)) === $needle);
 }
 
-function getTitlesId($filearray)
+function getTitlesId($filesList)
 {
     $titlesids = array();
-    for ($i = 0; $i < count($filearray); $i++) {
+    for ($i = 0; $i < count($filesList); $i++) {
         $listres = array();
-        preg_match('/(?<=\[)[0-9A-F].+?(?=\])/', $filearray[$i], $titleidmatches);
-        preg_match('/(?<=\[v).+?(?=\])/', $filearray[$i], $versionmatch);
-        preg_match('/(\bDLC)/', $filearray[$i], $DLCmatch);
+        preg_match('/(?<=\[)[0-9A-F].+?(?=\])/', $filesList[$i], $titleidmatches);
+        preg_match('/(?<=\[v).+?(?=\])/', $filesList[$i], $versionmatch);
+        preg_match('/(\bDLC)/', $filesList[$i], $DLCmatch);
 
 
-        $listres[] = $filearray[$i];
+        $listres[] = $filesList[$i];
         $listres[] = $titleidmatches[0];
         if ($versionmatch == NULL) {
             $listres[] = "0";
@@ -110,8 +162,6 @@ function getTitlesId($filearray)
             $listres[] = 1;
         }
         $titlesids[] = $listres;
-
-
     }
 
     $dlclist = array();
@@ -162,44 +212,41 @@ function getJson($type)
     return json_decode($json, true);
 }
 
-function outputJson($titlesJson, $versionsJson) {
+function outputJson($titlesJson, $versionsJson, $titles)
+{
     global $gameDir;
-    $fileList = getTitlesId(getFileList($gameDir));
-    $gameList = $fileList[0];
-    $dlcList = $fileList[1];
-    $output = array(
-        "games" => array(),
-        "dlc"   => array()
-    );
-    foreach (array_keys($gameList) as $gameId) {
+    $output = array();
+    foreach ($titles as $titleId => $title) {
         $game = array(
-            "id"     => $gameId,
-            "path"   => $gameList[$gameId][0],
-            "name"   => $titlesJson[$gameId]["name"],
-            "thumb"  => $titlesJson[$gameId]["iconUrl"],
-            "intro"  => $titlesJson[$gameId]["intro"],
-            "latest" => ($versionsJson[strtolower($gameId)]) ? array_key_last($versionsJson[strtolower($gameId)]) : ""
+            "id"     => $titleId,
+            "path"   => $title["path"],
+            "name"   => $titlesJson[$titleId]["name"],
+            "thumb"  => $titlesJson[$titleId]["iconUrl"],
+            "intro"  => $titlesJson[$titleId]["intro"],
+            "latest" => ($versionsJson[strtolower($titleId)]) ? array_key_last($versionsJson[strtolower($titleId)]) : ""
         );
         $updates = array();
-        foreach ($gameList[$gameId][4] as $upd) {
-            $update = array(
-                "path"     => $upd[0],
-                "id"       => $upd[1],
-                "version"  => (int)$upd[2],
-                "foo"      => $upd[3],
+        foreach ($title["updates"] as $updateId => $update) {
+            $upd = array(
+                "id"      => $updateId,
+                "path"    => $update["path"],
+                "version" => (int)$update["version"]
             );
-            array_push($updates, $update);
+            array_push($updates, $upd);
         }
         $game['updates'] = $updates;
-        array_push($output['games'], $game);
-    }
-    foreach (array_keys($dlcList) as $dlcId) {
-        $dlc = array(
-            "path" => $dlcList[$dlcId][0],
-            "name" => $titlesJson[$dlcId]["name"],
-            "size" => round(($titlesJson[$dlcId]["size"] / 1024 / 1024 / 1024), 3)
-        );
-        array_push($output['dlc'], $dlc);
+        $dlcs = array();
+        foreach ($title["dlc"] as $dlcId => $d) {
+            $dlc = array(
+                "id"   => $dlcId,
+                "path" => $d["path"],
+                "name" => $titlesJson[$dlcId]["name"],
+                "size" => $titlesJson[$dlcId]["size"]
+            );
+            array_push($dlcs, $dlc);
+        }
+        $game['dlc'] = $dlcs;
+        array_push($output, $game);
     }
     return json_encode($output);
 }
@@ -213,7 +260,7 @@ function outputTinfoil()
     $output["total"] = count($fileList);
     $output["files"] = array();
     foreach ($fileList as $file) {
-        $output["files"][] = ['url' => $_SERVER['REQUEST_SCHEME'] . '://' .$_SERVER['SERVER_NAME'] . $contentUrl . $file . "#" . urlencode(str_replace('#', '', $file)), 'size' => getHumanFileSize($gameDir . $file)];
+        $output["files"][] = ['url' => $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['SERVER_NAME'] . $contentUrl . $file . "#" . urlencode(str_replace('#', '', $file)), 'size' => getHumanFileSize($gameDir . $file)];
     }
     $output['success'] = "NSP Indexer";
     return json_encode($output);
@@ -238,10 +285,10 @@ function outputDirIndex()
     $fileList = getFileList($gameDir);
     foreach ($fileList as $file) {
         echo "<tr><td valign=\"top\"><img src=\"/icons/unknown.gif\" alt=\"[   ]\"></td>"
-        . "<td><a href=\"" . $contentUrl . rawurlencode($file) . "\">" . str_replace($gameDir, "", $file) . "</a></td>"
-        . "<td>" . date("Y-d-m H:i", filemtime($gameDir . $file)) . "</td>"
-        . "<td align=\"right\">" . formatSizeUnits(getHumanFileSize($gameDir . $file)) . "</td>"
-        . "<td>&nbsp;</td></tr>\r\n";
+            . "<td><a href=\"" . $contentUrl . rawurlencode($file) . "\">" . str_replace($gameDir, "", $file) . "</a></td>"
+            . "<td>" . date("Y-d-m H:i", filemtime($gameDir . $file)) . "</td>"
+            . "<td align=\"right\">" . formatSizeUnits(getHumanFileSize($gameDir . $file)) . "</td>"
+            . "<td>&nbsp;</td></tr>\r\n";
     }
     echo "   <tr><th colspan=\"5\"><hr></th></tr>\r\n";
     echo "</table>\r\n";
@@ -251,14 +298,16 @@ function outputDirIndex()
 $versionsJson = getJson("versions");
 $titlesJson = getJson("titles");
 
-$fileList = getTitlesId(getFileList($gameDir));
+$titlesList = getTitlesId(getFileList($gameDir));
 
-$gameList = $fileList[0];
-$dlcList = $fileList[1];
+$gameList = $titlesList[0];
+$dlcList = $titlesList[1];
 
 if (isset($_GET["json"])) {
     header("Content-Type: application/json");
-    echo outputJson($titlesJson, $versionsJson);
+    $matchedTitles = matchTitleIds(getFileList($gameDir));
+    echo json_encode($matchedTitles);
+    //echo outputJson($titlesJson, $versionsJson, $matchedTitles);
     die();
 } elseif (isset($_GET["tinfoil"])) {
     header("Content-Type: application/json");
@@ -292,7 +341,7 @@ if (isset($_GET["json"])) {
         </li>
         <?php
         foreach (array_keys($gameList) as $key) {
-        ?>
+            ?>
             <li class="table-row">
                 <div class="col col-1">
                     <div class="zoom"><img class="displayed"
@@ -310,29 +359,29 @@ if (isset($_GET["json"])) {
                 <div class="col col-4">
                     <?php
                     foreach (array_keys($gameList[$key][4]) as $updatekey) {
-                    ?>
+                        ?>
                         <div class="updatelink">
                             <a href="<?php echo $contentUrl . $gameList[$key][4][$updatekey][0]; ?>"><?php echo intval($gameList[$key][4][$updatekey][2]) / 65536; ?></a>
                             <span class="updatelinktext"><?php echo "v" . $gameList[$key][4][$updatekey][2]; ?></span>
                         </div>
-                    <?php
+                        <?php
                     }
                     ?>
                     <?php
                     if (array_key_last($versionsJson[strtolower($gameList[$key][1])]) != end($gameList[$key][4])[2]) {
-                    ?>
+                        ?>
                         <div class="newupdatediv">
                             Last: <?php echo array_key_last($versionsJson[strtolower($gameList[$key][1])]) / 65536; ?>
                             <span class="newupdatedivtext"><?php echo "v" . array_key_last($versionsJson[strtolower($gameList[$key][1])]); ?></span>
                         </div>
-                    <?php
+                        <?php
                     }
                     ?>
                 </div>
                 <div class="col col-5"><?php echo round(($titlesJson[$gameList[$key][1]]["size"] / 1024 / 1024 / 1024), 3) . " GB" ?></div>
             </li>
 
-        <?php
+            <?php
         }
         ?>
     </ul>
