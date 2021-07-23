@@ -1,7 +1,5 @@
 <?php
 
-define("CACHE_DIR", './cache');
-
 /*
 
 NSP Indexer
@@ -16,22 +14,23 @@ Settings Section
 
 */
 
+define("CACHE_DIR", './cache');
+
 require 'config.default.php';
-
-if (file_exists('config.php'))
+if (file_exists('config.php')) {
     require 'config.php';
+}
 
+$version = file_get_contents('./VERSION');
 
-$scriptversion = 0.1;
-
-function mydirlist($path)
+function getFileList($path)
 {
     global $allowedExtensions;
     $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST);
     $arrFiles = array();
     foreach ($files as $file) {
         $parts = explode('.', $file);
-        if(!$file->isDir() && in_array(strtolower(array_pop($parts)), $allowedExtensions)) {
+        if (!$file->isDir() && in_array(strtolower(array_pop($parts)), $allowedExtensions)) {
             array_push($arrFiles, str_replace($path, '', $file->getPathname()));
         }
     }
@@ -58,8 +57,7 @@ function formatSizeUnits($bytes)
     return $bytes;
 }
 
-
-function getTrueFileSize($filename)
+function getHumanFileSize($filename)
 {
     $size = filesize($filename);
     if ($size === false) {
@@ -82,87 +80,12 @@ function getTrueFileSize($filename)
     return $size;
 }
 
-function genDirList()
-{
-    global $scriptversion;
-    global $scriptdir;
-    global $gamedir;
-    global $Host;
-    global $contentsurl;
-
-    echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">\r\n";
-    echo "<html>\r\n";
-    echo " <head>\r\n";
-    echo "  <title>Index of NSP Indexer</title>\r\n";
-    echo " </head>\r\n";
-    echo " <body>\r\n";
-    echo "<h1>Index of NSP Indexer</h1>\r\n";
-    echo "  <table>\r\n";
-    echo "   <tr><th valign=\"top\"><img src=\"/icons/blank.gif\" alt=\"[ICO]\"></th><th><a href=\"?C=N;O=D\">Name</a></th><th><a href=\"?C=M;O=A\">Last modified</a></th><th><a href=\"?C=S;O=A\">Size</a></th><th><a href=\"?C=D;O=A\">Description</a></th></tr>\r\n";
-    echo "   <tr><th colspan=\"5\"><hr></th></tr>\r\n";
-    echo "<tr><td valign=\"top\"><img src=\"/icons/back.gif\" alt=\"[PARENTDIR]\"></td><td><a href=\"\">Parent Directory</a></td><td>&nbsp;</td><td align=\"right\">  - </td><td>&nbsp;</td></tr>\r\n";
-    $dirfilelist = mydirlist($gamedir);
-    asort($dirfilelist);
-    foreach ($dirfilelist as $myfile) {
-        echo "<tr><td valign=\"top\"><img src=\"/icons/unknown.gif\" alt=\"[   ]\"></td><td><a href=\"" . str_replace($scriptdir, "", $gamedir) . rawurlencode($myfile) . "\">" . str_replace($gamedir, "", $myfile) . "</a></td><td>" . date("Y-d-m H:i", filemtime($gamedir . $myfile)) . "</td><td align=\"right\">" . formatSizeUnits(getTrueFileSize($gamedir . $myfile)) . "</td><td></td>&nbsp;</tr>\r\n";
-
-    }
-    echo "   <tr><th colspan=\"5\"><hr></th></tr>\r\n";
-    echo "</table>\r\n";
-    echo "<address>NSP Indexer v" . $scriptversion . " on " . $_SERVER['SERVER_ADDR'] . "</address>\r\n</body></html>";
-
-
-}
-
-
-if ($_GET) {
-    if (isset($_GET["tinfoil"])) {
-        header("Content-Type: application/json");
-        header('Content-Disposition: filename="main.json"');
-        $tinarray = array();
-        $dirfilelist = mydirlist($gamedir);
-        asort($dirfilelist);
-        $tinarray["total"] = count($dirfilelist);
-        $tinarray["files"] = array();
-        foreach ($dirfilelist as $myfile) {
-            $myfilefullpath = $gamedir . $myfile;
-
-            $tinarray["files"][] = ['url' => $contentsurl . $myfile . "#" . urlencode(str_replace('#', '', $myfile)), 'size' => getTrueFileSize($gamedir . $myfile)];
-
-        }
-        $tinarray['success'] = "NSP Indexer";
-        echo json_encode($tinarray);
-        die();
-    }
-    if (array_key_exists("DBI/", $_GET)) {
-        genDirList();
-        die();
-    }
-}
-
-
-?>
-
-
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>NSP Indexer</title>
-    <link href="css/styles.css" rel="stylesheet">
-</head>
-</head>
-<body>
-<?php
-
 function endsWith($haystack, $needle)
 {
     return $needle === "" || (substr($haystack, -strlen($needle)) === $needle);
 }
 
-
-function gettitlesid($filearray)
+function getTitlesId($filearray)
 {
     $titlesids = array();
     for ($i = 0; $i < count($filearray); $i++) {
@@ -219,8 +142,7 @@ function gettitlesid($filearray)
     return $returnlist;
 }
 
-
-function getJsonString($type)
+function getJson($type)
 {
     if (!file_exists(CACHE_DIR)) {
         mkdir(CACHE_DIR);
@@ -240,20 +162,79 @@ function getJsonString($type)
     return json_decode($json, true);
 }
 
+function outputTinfoil()
+{
+    global $gameDir, $contentUrl;
+    $tinarray = array();
+    $dirfilelist = getFileList($gameDir);
+    asort($dirfilelist);
+    $tinarray["total"] = count($dirfilelist);
+    $tinarray["files"] = array();
+    foreach ($dirfilelist as $myfile) {
+        $tinarray["files"][] = ['url' => $_SERVER['REQUEST_SCHEME'] . '://' .$_SERVER['SERVER_NAME'] . $contentUrl . $myfile . "#" . urlencode(str_replace('#', '', $myfile)), 'size' => getHumanFileSize($gameDir . $myfile)];
+    }
+    $tinarray['success'] = "NSP Indexer";
+    return json_encode($tinarray);
+}
 
-$versionsjson = getJsonString("versions");
-$titlesjson = getJsonString("titles");
+function outputDirIndex()
+{
+    global $version;
+    global $contentUrl;
+    global $gameDir;
+    echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">\r\n";
+    echo "<html>\r\n";
+    echo " <head>\r\n";
+    echo "  <title>Index of NSP Indexer</title>\r\n";
+    echo " </head>\r\n";
+    echo " <body>\r\n";
+    echo "<h1>Index of NSP Indexer</h1>\r\n";
+    echo "  <table>\r\n";
+    echo "   <tr><th valign=\"top\"><img src=\"/icons/blank.gif\" alt=\"[ICO]\"></th><th><a href=\"?C=N;O=D\">Name</a></th><th><a href=\"?C=M;O=A\">Last modified</a></th><th><a href=\"?C=S;O=A\">Size</a></th><th><a href=\"?C=D;O=A\">Description</a></th></tr>\r\n";
+    echo "   <tr><th colspan=\"5\"><hr></th></tr>\r\n";
+    echo "<tr><td valign=\"top\"><img src=\"/icons/back.gif\" alt=\"[PARENTDIR]\"></td><td><a href=\"\">Parent Directory</a></td><td>&nbsp;</td><td align=\"right\">  - </td><td>&nbsp;</td></tr>\r\n";
+    $fileList = getFileList($gameDir);
+    foreach ($fileList as $file) {
+        echo "<tr><td valign=\"top\"><img src=\"/icons/unknown.gif\" alt=\"[   ]\"></td>"
+        . "<td><a href=\"" . $contentUrl . rawurlencode($file) . "\">" . str_replace($gameDir, "", $file) . "</a></td>"
+        . "<td>" . date("Y-d-m H:i", filemtime($gameDir . $file)) . "</td>"
+        . "<td align=\"right\">" . formatSizeUnits(getHumanFileSize($gameDir . $file)) . "</td>"
+        . "<td>&nbsp;</td></tr>\r\n";
+    }
+    echo "   <tr><th colspan=\"5\"><hr></th></tr>\r\n";
+    echo "</table>\r\n";
+    echo "<address>NSP Indexer v" . $version . " on " . $_SERVER['SERVER_ADDR'] . "</address>\r\n</body></html>";
+}
 
 
-$myfilelist = gettitlesid(mydirlist($gamedir));
+$versionsJson = getJson("versions");
+$titlesJson = getJson("titles");
 
-$mygamelist = $myfilelist[0];
-$mydlclist = $myfilelist[1];
+$fileList = getTitlesId(getFileList($gameDir));
 
+$gameList = $fileList[0];
+$dlcList = $fileList[1];
+
+if (isset($_GET["tinfoil"])) {
+    header("Content-Type: application/json");
+    header('Content-Disposition: filename="main.json"');
+    echo outputTinfoil();
+    die();
+
+} elseif (array_key_exists("DBI/", $_GET)) {
+    outputDirIndex();
+    die();
+}
 
 ?>
-
-
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>NSP Indexer</title>
+    <link href="css/styles.css" rel="stylesheet">
+</head>
 <body>
 <div class="container">
     <ul class="responsive-table">
@@ -264,62 +245,51 @@ $mydlclist = $myfilelist[1];
             <div class="col col-4">Update</div>
             <div class="col col-5">Size</div>
         </li>
-
         <?php
-
-        foreach (array_keys($mygamelist) as $key) {
-
-            ?>
-
+        foreach (array_keys($gameList) as $key) {
+        ?>
             <li class="table-row">
                 <div class="col col-1">
                     <div class="zoom"><img class="displayed"
-                                           src="<?php echo $titlesjson[$mygamelist[$key][1]]["iconUrl"] ?>" alt=""
+                                           src="<?php echo $titlesJson[$gameList[$key][1]]["iconUrl"] ?>" alt=""
                                            width="80"></div>
                 </div>
-                <div class="col col-2"><?php echo $mygamelist[$key][1] ?></div>
+                <div class="col col-2"><?php echo $gameList[$key][1] ?></div>
 
                 <div class="col col-3">
                     <div class="linkdiv"><a
-                                href="<?php echo $contentsurl . $mygamelist[$key][0]; ?>"><?php echo $titlesjson[$mygamelist[$key][1]]["name"] ?></a>
+                                href="<?php echo $contentUrl . $gameList[$key][0]; ?>"><?php echo $titlesJson[$gameList[$key][1]]["name"] ?></a>
                     </div>
-                    <div class="introdiv"><?php echo $titlesjson[$mygamelist[$key][1]]["intro"] ?></div>
+                    <div class="introdiv"><?php echo $titlesJson[$gameList[$key][1]]["intro"] ?></div>
                 </div>
                 <div class="col col-4">
                     <?php
-                    foreach (array_keys($mygamelist[$key][4]) as $updatekey) {
-                        ?>
+                    foreach (array_keys($gameList[$key][4]) as $updatekey) {
+                    ?>
                         <div class="updatelink">
-                            <a href="<?php echo $contentsurl . $mygamelist[$key][4][$updatekey][0]; ?>"><?php echo intval($mygamelist[$key][4][$updatekey][2]) / 65536; ?></a>
-                            <span class="updatelinktext"><?php echo "v" . $mygamelist[$key][4][$updatekey][2]; ?></span>
+                            <a href="<?php echo $contentUrl . $gameList[$key][4][$updatekey][0]; ?>"><?php echo intval($gameList[$key][4][$updatekey][2]) / 65536; ?></a>
+                            <span class="updatelinktext"><?php echo "v" . $gameList[$key][4][$updatekey][2]; ?></span>
                         </div>
-
-
-                        <?php
+                    <?php
                     }
                     ?>
                     <?php
-                    if (array_key_last($versionsjson[strtolower($mygamelist[$key][1])]) != end($mygamelist[$key][4])[2]) {
-                        ?>
+                    if (array_key_last($versionsJson[strtolower($gameList[$key][1])]) != end($gameList[$key][4])[2]) {
+                    ?>
                         <div class="newupdatediv">
-                            Last: <?php echo array_key_last($versionsjson[strtolower($mygamelist[$key][1])]) / 65536; ?>
-                            <span class="newupdatedivtext"><?php echo "v" . array_key_last($versionsjson[strtolower($mygamelist[$key][1])]); ?></span>
+                            Last: <?php echo array_key_last($versionsJson[strtolower($gameList[$key][1])]) / 65536; ?>
+                            <span class="newupdatedivtext"><?php echo "v" . array_key_last($versionsJson[strtolower($gameList[$key][1])]); ?></span>
                         </div>
-
-                        <?php
+                    <?php
                     }
                     ?>
                 </div>
-                <div class="col col-5"><?php echo round(($titlesjson[$mygamelist[$key][1]]["size"] / 1024 / 1024 / 1024), 3) . " GB" ?></div>
+                <div class="col col-5"><?php echo round(($titlesJson[$gameList[$key][1]]["size"] / 1024 / 1024 / 1024), 3) . " GB" ?></div>
             </li>
 
-            <?php
-
+        <?php
         }
-
         ?>
-
-
     </ul>
 </div>
 <h2>DLC</h2>
@@ -332,18 +302,18 @@ $mydlclist = $myfilelist[1];
         </li>
         <?php
 
-        foreach (array_keys($mydlclist) as $key) {
+        foreach (array_keys($dlcList) as $key) {
 
             ?>
 
             <li class="table-row">
-                <div class="col col-2"><?php echo $mydlclist[$key][1]; ?></div>
+                <div class="col col-2"><?php echo $dlcList[$key][1]; ?></div>
                 <div class="col col-3">
                     <div class="linkdiv"><a
-                                href="<?php echo $contentsurl . $mydlclist[$key][0]; ?>"><?php echo $titlesjson[$mydlclist[$key][1]]["name"]; ?></a>
+                                href="<?php echo $contentUrl . $dlcList[$key][0]; ?>"><?php echo $titlesJson[$dlcList[$key][1]]["name"]; ?></a>
                     </div>
                 </div>
-                <div class="col col-4"><?php echo round(($titlesjson[$mydlclist[$key][1]]["size"] / 1024 / 1024 / 1024), 3) . " GB"; ?></div>
+                <div class="col col-4"><?php echo round(($titlesJson[$dlcList[$key][1]]["size"] / 1024 / 1024 / 1024), 3) . " GB"; ?></div>
 
 
             </li>
@@ -357,10 +327,8 @@ $mydlclist = $myfilelist[1];
 </div>
 
 <div class="footer">
-    <?php echo "NSP Indexer v" . $scriptversion; ?>
+    <?php echo "NSP Indexer v" . $version; ?>
 </div>
 
 </body>
 </html>
-
-
