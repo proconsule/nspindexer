@@ -103,28 +103,12 @@ function genDirList(){
 		global $gamedir; 
 		global $Host; 
 		global $contentsurl;
-		
-	    echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">\r\n";
-		echo "<html>\r\n";
-		echo " <head>\r\n";
-		echo "  <title>Index of NSP Indexer</title>\r\n";
-		echo " </head>\r\n";
-		echo " <body>\r\n";
-		echo "<h1>Index of NSP Indexer</h1>\r\n";
-		echo "  <table>\r\n";
-		echo "   <tr><th valign=\"top\"><img src=\"/icons/blank.gif\" alt=\"[ICO]\"></th><th><a href=\"?C=N;O=D\">Name</a></th><th><a href=\"?C=M;O=A\">Last modified</a></th><th><a href=\"?C=S;O=A\">Size</a></th><th><a href=\"?C=D;O=A\">Description</a></th></tr>\r\n";
-		echo "   <tr><th colspan=\"5\"><hr></th></tr>\r\n";
-		echo "<tr><td valign=\"top\"><img src=\"/icons/back.gif\" alt=\"[PARENTDIR]\"></td><td><a href=\"\">Parent Directory</a></td><td>&nbsp;</td><td align=\"right\">  - </td><td>&nbsp;</td></tr>\r\n";
 		$dirfilelist = mydirlist($gamedir);
 		asort($dirfilelist);
 		foreach ( $dirfilelist as $myfile ) {
-			echo "<tr><td valign=\"top\"><img src=\"/icons/unknown.gif\" alt=\"[   ]\"></td><td><a href=\"".str_replace($scriptdir,"",$gamedir).rawurlencode($myfile)."\">". str_replace($gamedir,"",$myfile). "</a></td><td>". date ("Y-d-m H:i", filemtime($gamedir . $myfile)) ."</td><td align=\"right\">".formatSizeUnits(getTrueFileSize($gamedir . $myfile)) ."</td><td></td>&nbsp;</tr>\r\n";
-			
+			header("Content-Type: text/plain");
+			echo $contentsurl . $myfile. "\n";
 		}	
-		echo "   <tr><th colspan=\"5\"><hr></th></tr>\r\n";
-		echo "</table>\r\n";
-		echo "<address>NSP Indexer v". $scriptversion . " on " . $_SERVER['SERVER_ADDR']. "</address>\r\n</body></html>";
-		
 	
 }
 
@@ -148,7 +132,7 @@ if($_GET){
 		echo json_encode($tinarray);
 		die();
 	}
-	if(array_key_exists("DBI/",$_GET)){
+	if(array_key_exists("DBI",$_GET)){
 		genDirList();
 		die();
 	}
@@ -168,7 +152,7 @@ body {
 }
 
 .container {
-  max-width: 1000px;
+  max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
   padding-left: 10px;
@@ -360,6 +344,7 @@ IMG.displayed {
 
 </head>
 <body>
+
 <?php
 
 
@@ -532,6 +517,8 @@ foreach(array_keys($mygamelist[$key][4]) as $updatekey){
 }
 ?>
 <?php
+if(array_key_exists(strtolower($mygamelist[$key][1]),$versionsjson)){
+if($versionsjson[strtolower($mygamelist[$key][1])]!= NULL){
 if(array_key_last($versionsjson[strtolower($mygamelist[$key][1])]) != end($mygamelist[$key][4])[2]){
 ?>
 <div class="newupdatediv">Last: <?php echo array_key_last($versionsjson[strtolower($mygamelist[$key][1])])/65536;?>
@@ -539,6 +526,8 @@ if(array_key_last($versionsjson[strtolower($mygamelist[$key][1])]) != end($mygam
 </div>
 
 <?php
+}
+}
 }
 ?>
 </div>
