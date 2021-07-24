@@ -101,27 +101,10 @@ function matchTitleIds($files)
     return $titles;
 }
 
-function formatSizeUnits($bytes)
+// this is a workaround for 32bit systems and files >2GB
+function getFileSize($filename)
 {
-    if ($bytes >= 1073741824) {
-        $bytes = number_format($bytes / 1073741824, 1) . 'G';
-    } elseif ($bytes >= 1048576) {
-        $bytes = number_format($bytes / 1048576, 0) . 'M';
-    } elseif ($bytes >= 1024) {
-        $bytes = number_format($bytes / 1024, 0) . 'K';
-    } elseif ($bytes > 1) {
-        $bytes = $bytes . ' bytes';
-    } elseif ($bytes == 1) {
-        $bytes = $bytes . ' byte';
-    } else {
-        $bytes = '0 bytes';
-    }
 
-    return $bytes;
-}
-
-function getHumanFileSize($filename)
-{
     $size = filesize($filename);
     if ($size === false) {
         $fp = fopen($filename, 'r');
@@ -277,7 +260,7 @@ function outputTinfoil()
     $output["total"] = count($fileList);
     $output["files"] = array();
     foreach ($fileList as $file) {
-        $output["files"][] = ['url' => $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['SERVER_NAME'] . $contentUrl . $file . "#" . urlencode(str_replace('#', '', $file)), 'size' => getHumanFileSize($gameDir . $file)];
+        $output["files"][] = ['url' => $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['SERVER_NAME'] . $contentUrl . $file . "#" . urlencode(str_replace('#', '', $file)), 'size' => getFileSize($gameDir . $file)];
     }
     $output['success'] = "NSP Indexer";
     return json_encode($output);
