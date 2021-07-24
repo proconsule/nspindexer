@@ -15,6 +15,9 @@ Settings Section
 */
 
 define("CACHE_DIR", './cache');
+if (!file_exists(CACHE_DIR)) {
+    mkdir(CACHE_DIR);
+}
 
 require 'config.default.php';
 if (file_exists('config.php')) {
@@ -199,9 +202,6 @@ function getTitlesId($filesList)
 
 function getJson($type)
 {
-    if (!file_exists(CACHE_DIR)) {
-        mkdir(CACHE_DIR);
-    }
     if (file_exists(CACHE_DIR . "/" . $type . ".json") && (filemtime(CACHE_DIR . "/" . $type . ".json") > (time() - 60 * 60 * 24))) {
         $json = file_get_contents(CACHE_DIR . "/" . $type . ".json");
     } else {
