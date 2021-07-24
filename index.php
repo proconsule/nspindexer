@@ -44,10 +44,10 @@ function getFileList($path)
 function matchTitleIds($files)
 {
     $titles = [];
-    // first round, get all Base TitleIds (0100XXXXXXXXY000, with Y being an even number)
+    // first round, get all Base TitleIds
     foreach ($files as $key => $file) {
 
-        // Check if we have a Base TitleId
+        // check if we have a Base TitleId (0100XXXXXXXXY000, with Y being an even number)
         if (preg_match('/(?<=\[)0100[0-9A-F]{8}[0,2,4,6,8,A,C,E]000(?=\])/', $file, $titleIdMatches) === 1) {
             $titleId = $titleIdMatches[0];
             $titles[$titleId] = array(
@@ -62,6 +62,7 @@ function matchTitleIds($files)
     // second round, match Updates and DLC to Base TitleIds
     foreach ($files as $key => $file) {
         if (preg_match('/(?<=\[)0100[0-9A-F]{12}(?=\])/', $file, $titleIdMatches) === 0) {
+            // file does not have any kind of TitleId, skip further checks
             continue;
         }
         $titleId = $titleIdMatches[0];
@@ -73,6 +74,7 @@ function matchTitleIds($files)
             if (preg_match('/(?<=\[v).+?(?=\])/', $file, $versionMatches) === 1) {
                 $version = $versionMatches[0];
                 $baseTitleId = substr_replace($titleId, "000", -3);
+                // add Update only if the Base TitleId for it exists
                 if ($titles[$baseTitleId]) {
                     $titles[$baseTitleId]['updates'][$titleId] = array(
                         "path" => $file,
@@ -87,6 +89,7 @@ function matchTitleIds($files)
             $offsetBit = hexdec(substr($dlcBaseId, 12, 1));
             $baseTitleBit = strtoupper(dechex($offsetBit - 1));
             $baseTitleId = substr_replace($dlcBaseId, $baseTitleBit, -4, 1);
+            // add DLC only if the Base TitleId for it exists
             if ($titles[$baseTitleId]) {
                 $titles[$baseTitleId]['dlc'][$titleId] = array(
                     "path" => $file
