@@ -283,33 +283,14 @@ function outputTinfoil()
     return json_encode($output);
 }
 
-function outputDirIndex()
+function outputDbi()
 {
-    global $version;
     global $contentUrl;
     global $gameDir;
-    echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">\r\n";
-    echo "<html>\r\n";
-    echo " <head>\r\n";
-    echo "  <title>Index of NSP Indexer</title>\r\n";
-    echo " </head>\r\n";
-    echo " <body>\r\n";
-    echo "<h1>Index of NSP Indexer</h1>\r\n";
-    echo "  <table>\r\n";
-    echo "   <tr><th valign=\"top\"><img src=\"/icons/blank.gif\" alt=\"[ICO]\"></th><th><a href=\"?C=N;O=D\">Name</a></th><th><a href=\"?C=M;O=A\">Last modified</a></th><th><a href=\"?C=S;O=A\">Size</a></th><th><a href=\"?C=D;O=A\">Description</a></th></tr>\r\n";
-    echo "   <tr><th colspan=\"5\"><hr></th></tr>\r\n";
-    echo "<tr><td valign=\"top\"><img src=\"/icons/back.gif\" alt=\"[PARENTDIR]\"></td><td><a href=\"\">Parent Directory</a></td><td>&nbsp;</td><td align=\"right\">  - </td><td>&nbsp;</td></tr>\r\n";
     $fileList = getFileList($gameDir);
     foreach ($fileList as $file) {
-        echo "<tr><td valign=\"top\"><img src=\"/icons/unknown.gif\" alt=\"[   ]\"></td>"
-            . "<td><a href=\"" . $contentUrl . rawurlencode($file) . "\">" . str_replace($gameDir, "", $file) . "</a></td>"
-            . "<td>" . date("Y-d-m H:i", filemtime($gameDir . $file)) . "</td>"
-            . "<td align=\"right\">" . formatSizeUnits(getHumanFileSize($gameDir . $file)) . "</td>"
-            . "<td>&nbsp;</td></tr>\r\n";
+        echo $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['SERVER_NAME'] . $contentUrl . $file . "\n";
     }
-    echo "   <tr><th colspan=\"5\"><hr></th></tr>\r\n";
-    echo "</table>\r\n";
-    echo "<address>NSP Indexer v" . $version . " on " . $_SERVER['SERVER_ADDR'] . "</address>\r\n</body></html>";
 }
 
 $versionsJson = getJson("versions");
@@ -330,9 +311,9 @@ if (isset($_GET["json"])) {
     header('Content-Disposition: filename="main.json"');
     echo outputTinfoil();
     die();
-
-} elseif (array_key_exists("DBI/", $_GET)) {
-    outputDirIndex();
+} elseif (isset($_GET["DBI"])) {
+    header("Content-Type: text/plain");
+    outputDbi();
     die();
 }
 
