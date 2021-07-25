@@ -29,6 +29,22 @@ if (file_exists('config.php')) {
 
 $version = file_get_contents('./VERSION');
 
+
+function getURLSchema(){
+
+        $server_request_scheme = "http";
+		if ( (! empty($_SERVER['REQUEST_SCHEME']) && $_SERVER['REQUEST_SCHEME'] == 'https') ||
+		(! empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ||
+		(! empty($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == '443') ) {
+			$server_request_scheme = 'https';
+		} else {
+			$server_request_scheme = 'http';
+		}
+
+		return $server_request_scheme;
+}
+
+
 function getFileList($path)
 {
     global $allowedExtensions;
@@ -203,7 +219,7 @@ function outputTinfoil()
     $output["total"] = count($fileList);
     $output["files"] = array();
     foreach ($fileList as $file) {
-        $output["files"][] = ['url' => $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['SERVER_NAME'] . $contentUrl . $file . "#" . urlencode(str_replace('#', '', $file)), 'size' => getFileSize($gameDir . $file)];
+        $output["files"][] = ['url' => getURLSchema() . '://' . $_SERVER['SERVER_NAME'] . $contentUrl . $file . "#" . urlencode(str_replace('#', '', $file)), 'size' => getFileSize($gameDir . $file)];
     }
     $output['success'] = "NSP Indexer";
     return json_encode($output);
@@ -214,17 +230,8 @@ function outputDbi()
     global $contentUrl;
     global $gameDir;
     $fileList = getFileList($gameDir);
-    foreach ($fileList as $file) {
-		$server_request_scheme = "http";
-		if ( (! empty($_SERVER['REQUEST_SCHEME']) && $_SERVER['REQUEST_SCHEME'] == 'https') ||
-		(! empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ||
-		(! empty($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == '443') ) {
-			$server_request_scheme = 'https';
-		} else {
-			$server_request_scheme = 'http';
-		}
-			
-        echo $server_request_scheme . '://' . $_SERVER['SERVER_NAME'] . implode('/', array_map('rawurlencode', explode('/', $contentUrl . $file))) . "\n";
+    foreach ($fileList as $file) {			
+        echo getURLSchema() . '://' . $_SERVER['SERVER_NAME'] . implode('/', array_map('rawurlencode', explode('/', $contentUrl . $file))) . "\n";
     }
 }
 
