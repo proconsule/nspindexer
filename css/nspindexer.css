@@ -24,8 +24,7 @@ body {
     z-index: 1;
 }
 
-.titleIntro,
-.dlcItem {
+.titleIntro {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

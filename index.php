@@ -164,7 +164,7 @@ function outputJson($titlesJson, $versionsJson)
                 "latest_version" => $latestVersion,
                 "latest_date" => $versionsJson[strtolower($titleId)][$latestVersion],
                 "size" => $titlesJson[$titleId]["size"],
-                "size_real" => filesize($gameDir . $title["path"])
+                "size_real" => getFileSize($gameDir . $title["path"])
             );
             $updates = array();
             foreach ($title["updates"] as $updateId => $update) {
@@ -172,7 +172,7 @@ function outputJson($titlesJson, $versionsJson)
                     "path" => $update["path"],
                     "version" => (int)$update["version"],
                     "date" => $versionsJson[strtolower($titleId)][$update["version"]],
-                    "size" => filesize($gameDir . $update["path"])
+                    "size_real" => getFileSize($gameDir . $update["path"])
                 );
             }
             $game['updates'] = $updates;
@@ -182,7 +182,7 @@ function outputJson($titlesJson, $versionsJson)
                     "path" => $d["path"],
                     "name" => $titlesJson[$dlcId]["name"],
                     "size" => $titlesJson[$dlcId]["size"],
-                    "size_real" => filesize($gameDir . $d["path"])
+                    "size_real" => getFileSize($gameDir . $d["path"])
                 );
             }
             $game['dlc'] = $dlcs;
