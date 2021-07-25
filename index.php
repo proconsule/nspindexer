@@ -269,16 +269,26 @@ if (isset($_GET["json"])) {
 <body>
 
 <header>
-    <div class="navbar navbar-dark bg-dark shadow-sm">
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark shadow-sm">
         <div class="container">
-            <a href="#" class="navbar-brand d-flex align-items-center">
+            <a class="navbar-brand d-flex align-items-center" href="#">
                 <i class="bi-controller brandLogo "></i>&nbsp;<strong>NSP Indexer</strong>
             </a>
-            <form>
-                <input class="form-control" id="keyword" type="text" placeholder="Search" aria-label="Search">
-            </form>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarContent" aria-controls="navbarContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end mt-2 mt-md-0" id="navbarContent">
+                <form>
+                    <div class="input-group">
+                        <input class="form-control" id="keyword" type="text" placeholder="Search Titles..." aria-label="Search">
+                        <span class="input-group-text" id="keywordClear"><i class="bi-x"></i></span>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
+    </nav>
 </header>
 
 <main>
@@ -304,12 +314,12 @@ if (isset($_GET["json"])) {
 
 <script id="cardTemplate" type="text/x-template">
     <div class="row gx-2 mb-4">
-        <div class="col col-2">
+        <div class="col col-2 d-none d-md-block">
             <div class="card px-0 shadow-sm fill cardThumb">
                 <img data-src="<%=thumbUrl%>" class="img-fluid lazy"/>
             </div>
         </div>
-        <div class="col col-10">
+        <div class="col col-12 col-md-10">
             <div class="card shadow-sm">
                 <div class="cardBanner fill rounded-3">
                     <img data-src="<%=bannerUrl%>" class="img-fluid h-100 lazy">
@@ -328,11 +338,11 @@ if (isset($_GET["json"])) {
                                     <span class="badge bg-primary float-end"><%=baseSize%></span>
                                 </p>
                             </li>
-                            <li class="list-group-item">
+                            <li class="list-group-item <%=hideUpdates%>">
                                 <p class="my-1 contentListTrigger">
                                     <strong>Updates</strong>
                                     <span class="float-end">
-                                    <span class="badge <%=badgeUpdatesClass%>"><%=countUpdates%></span>
+                                    <span class="badge bg-success"><%=countUpdates%></span>
                                     <i class="listChevron bi-chevron-down text-dark"></i>
                                 </span>
                                 </p>
@@ -340,16 +350,16 @@ if (isset($_GET["json"])) {
                                     <%=listUpdates%>
                                 </ul>
                             </li>
-                            <li class="list-group-item">
+                            <li class="list-group-item <%=hideDlc%>">
                                 <p class="my-1 contentListTrigger">
                                     <strong>DLC</strong>
                                     <span class="float-end">
-                                    <span class="badge <%=badgeDlcClass%>"><%=countDlc%></span>
+                                    <span class="badge bg-success"><%=countDlc%></span>
                                     <i class="listChevron bi-chevron-down text-dark"></i>
                                 </span>
                                 </p>
                                 <ul class="list-group my-2 contentList">
-                                    <%=listUpdates%>
+                                    <%=listDlc%>
                                 </ul>
                             </li>
                         </ul>

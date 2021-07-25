@@ -24,6 +24,11 @@ $("#keyword").on('keyup', function () {
     }
 });
 
+$("#keywordClear").on('click', function () {
+    $('#keyword').val('');
+    createRows(titles);
+})
+
 function loadJson() {
     $.getJSON("index.php?json", function (data) {
         titles = data;
@@ -116,16 +121,16 @@ function createCard(id, title) {
         bannerUrl: title.banner,
         name: title.name,
         intro: title.intro,
-        latestVersion: title.latest_version,
-        latestDate: title.latest_date,
+        latestVersion: title.latest_version == null ? "?" : title.latest_version,
+        latestDate: title.latest_date == null ? "?" : title.latest_date,
         updateStatus: updateStatus,
         baseFilename: title.path.split(/\//).pop(),
         baseUrl: contentUrl + title.path,
         baseSize: bytesToHuman(title.size_real),
-        badgeUpdatesClass: ((countUpdates > 0) ? "bg-success" : "bg-secondary"),
+        hideUpdates: (countUpdates == 0) ? "d-none" : "",
         countUpdates: countUpdates,
         listUpdates: listUpdates,
-        badgeDlcClass: ((countDlc > 0) ? "bg-success" : "bg-secondary"),
+        hideDlc: (countDlc == 0) ? "d-none" : "",
         countDlc: countDlc,
         listDlc: listDlc
     });
