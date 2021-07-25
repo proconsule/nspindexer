@@ -1,10 +1,33 @@
+var titles = [];
+var keywordTimer;
+
 $(document).ready(function () {
+    $("#keyword").val("");
     loadJson()
 })
 
+$("#keyword").on('keydown', function(event) {
+    if (event.keyCode == 13) {
+        event.preventDefault();
+    }
+});
+
+$("#keyword").on('keyup', function() {
+    var keyword = $("#keyword").val().toLocaleLowerCase();
+    if(keyword.length > 2) {
+        clearInterval(keywordTimer);
+        keywordTimer = setTimeout(function() {
+            createRows(titles, keyword);
+        }, 1000);
+    } else if (keyword.length == 0) {
+        createRows(titles);
+    }
+});
+
 function loadJson() {
     $.getJSON("index.php?json", function (data) {
-        createRows(data);
+        titles = data;
+        createRows(titles);
     }).done(function () {
         var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
         var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
@@ -13,8 +36,12 @@ function loadJson() {
     })
 }
 
-function createRows(data) {
+function createRows(data, keyword = "") {
+    $('#titleList').empty();
     $.each(data, function (id, title) {
+        if (keyword.length > 0 && title.name.toLowerCase().search(keyword) == -1) {
+            return true;
+        }
         createCard(id, title);
         //return false;
     });

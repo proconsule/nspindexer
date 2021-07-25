@@ -261,6 +261,9 @@ if (isset($_GET["json"])) {
             <a href="#" class="navbar-brand d-flex align-items-center">
                 <i class="bi-controller brandLogo "></i>&nbsp;<strong>NSP Indexer</strong>
             </a>
+            <form>
+                <input class="form-control" id="keyword" type="text" placeholder="Search" aria-label="Search">
+            </form>
         </div>
     </div>
 </header>

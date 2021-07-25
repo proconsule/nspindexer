@@ -1,5 +1,5 @@
 # NSP Indexer
-> PHP Indexer for Switch NSP (XCI NSZ XCZ)
+> PHP Indexer for Switch NSP (XCI NSZ XCZ) made by proconsule and jangrewe
 
 ![Preview](docs/preview.jpg)
 
@@ -18,4 +18,5 @@ Hope you enjoy it!
 - Compatible with DBI plaintext list (if called with `index.php/?DBI`)
 
 # Thanks to
+- duckbill007 for support on DBI Installer
 - blawar for nsp update version look suggestion and all tinfoil cool stuff
