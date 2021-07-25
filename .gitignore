@@ -1,4 +1,9 @@
-data/
+data
+cache
 titles.json
 versions.json
+config.php
 
+# IntelliJ IDEA
+.idea
+*.iml

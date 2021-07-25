@@ -14,68 +14,99 @@ Settings Section
 
 */
 
-
-$scriptdir = "/var/www/html/switch/"; /* Absolute Script Path */
-$gamedir = "/var/www/html/switch/data/games/"; /* Absolute Files Path */
-$Host = "http://". $_SERVER['SERVER_ADDR'] ."/switch/"; /* Web Server URL */
-$contentsurl = "http://". $_SERVER['SERVER_ADDR'] ."/switch/data/games/"; /* Files URL */
-
-
-?>
-<?php
-
-$scriptversion = 0.1;
-
-function mydirlist($path){	
-  $filelist = array();
-  if (file_exists($path) && is_dir($path) ) {
-    
-      $scan_arr = scandir($path);
-      $files_arr = array_diff($scan_arr, array('.','..') );
-      foreach ($files_arr as $file) {
-        $file_path = $path.$file;
-        $file_ext = pathinfo($file_path, PATHINFO_EXTENSION);
-        if ($file_ext=="nsp" || $file_ext=="xci" || $file_ext=="nsz" || $file_ext=="xcz") {
-          $filelist[] = $file;
-        }
-        
-      }
-  }
-  return $filelist;
+define("CACHE_DIR", './cache');
+if (!file_exists(CACHE_DIR)) {
+    if (!@mkdir(CACHE_DIR)) {
+        echo "Could not create the cache directory '" . CACHE_DIR . "', please make sure your webserver has write permission to the local directory.";
+        die();
+    }
 }
 
-function formatSizeUnits($bytes)
-    {
-        if ($bytes >= 1073741824)
-        {
-            $bytes = number_format($bytes / 1073741824, 1) . 'G';
-        }
-        elseif ($bytes >= 1048576)
-        {
-            $bytes = number_format($bytes / 1048576, 0) . 'M';
-        }
-        elseif ($bytes >= 1024)
-        {
-            $bytes = number_format($bytes / 1024, 0) . 'K';
-        }
-        elseif ($bytes > 1)
-        {
-            $bytes = $bytes . ' bytes';
-        }
-        elseif ($bytes == 1)
-        {
-            $bytes = $bytes . ' byte';
-        }
-        else
-        {
-            $bytes = '0 bytes';
-        }
-
-        return $bytes;
+require 'config.default.php';
+if (file_exists('config.php')) {
+    require 'config.php';
 }
 
+$version = file_get_contents('./VERSION');
 
-function getTrueFileSize($filename) {
+function getFileList($path)
+{
+    global $allowedExtensions;
+    $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST);
+    $arrFiles = array();
+    foreach ($files as $file) {
+        $parts = explode('.', $file);
+        if (!$file->isDir() && in_array(strtolower(array_pop($parts)), $allowedExtensions)) {
+            array_push($arrFiles, str_replace($path, '', $file->getPathname()));
+        }
+    }
+    natcasesort($arrFiles);
+    return array_values($arrFiles);
+}
+
+function matchTitleIds($files)
+{
+    $titles = [];
+    // first round, get all Base TitleIds
+    foreach ($files as $key => $file) {
+
+        // check if we have a Base TitleId (0100XXXXXXXXY000, with Y being an even number)
+        if (preg_match('/(?<=\[)0100[0-9A-F]{8}[0,2,4,6,8,A,C,E]000(?=\])/', $file, $titleIdMatches) === 1) {
+            $titleId = $titleIdMatches[0];
+            $titles[$titleId] = array(
+                "path" => $file,
+                "updates" => array(),
+                "dlc" => array()
+            );
+            unset($files[$key]);
+        }
+    }
+
+    // second round, match Updates and DLC to Base TitleIds
+    foreach ($files as $key => $file) {
+        if (preg_match('/(?<=\[)0100[0-9A-F]{12}(?=\])/', $file, $titleIdMatches) === 0) {
+            // file does not have any kind of TitleId, skip further checks
+            continue;
+        }
+        $titleId = $titleIdMatches[0];
+
+        // find Updates (0100XXXXXXXXX800)
+        if (preg_match('/^0100[0-9A-F]{9}800$/', $titleId) === 1) {
+
+            if (preg_match('/(?<=\[v).+?(?=\])/', $file, $versionMatches) === 1) {
+                $version = $versionMatches[0];
+                $baseTitleId = substr_replace($titleId, "000", -3);
+                // add Update only if the Base TitleId for it exists
+                if ($titles[$baseTitleId]) {
+                    $titles[$baseTitleId]['updates'][$titleId] = array(
+                        "path" => $file,
+                        "version" => $version
+                    );
+                }
+            }
+
+        } else {
+            // it's DLC, so find the Base TitleId (TitleId of the Base game with the fourth bit shifted by 1)
+            $dlcBaseId = substr_replace($titleId, "000", -3);
+            $offsetBit = hexdec(substr($dlcBaseId, 12, 1));
+            $baseTitleBit = strtoupper(dechex($offsetBit - 1));
+            $baseTitleId = substr_replace($dlcBaseId, $baseTitleBit, -4, 1);
+            // add DLC only if the Base TitleId for it exists
+            if ($titles[$baseTitleId]) {
+                $titles[$baseTitleId]['dlc'][$titleId] = array(
+                    "path" => $file
+                );
+            }
+        }
+
+    }
+    return $titles;
+}
+
+// this is a workaround for 32bit systems and files >2GB
+function getFileSize($filename)
+{
+
     $size = filesize($filename);
     if ($size === false) {
         $fp = fopen($filename, 'r');
@@ -83,7 +114,7 @@ function getTrueFileSize($filename) {
             return false;
         }
         $offset = PHP_INT_MAX - 1;
-        $size = (float) $offset;
+        $size = (float)$offset;
         if (!fseek($fp, $offset)) {
             return false;
         }
@@ -97,487 +128,166 @@ function getTrueFileSize($filename) {
     return $size;
 }
 
-function genDirList(){
-	    global $scriptversion;
-		global $scriptdir;
-		global $gamedir; 
-		global $Host; 
-		global $contentsurl;
-		$dirfilelist = mydirlist($gamedir);
-		asort($dirfilelist);
-		foreach ( $dirfilelist as $myfile ) {
-			header("Content-Type: text/plain");
-			echo $contentsurl . $myfile. "\n";
-		}	
-	
+function getMetadata($type)
+{
+    if (file_exists(CACHE_DIR . "/" . $type . ".json") && (filemtime(CACHE_DIR . "/" . $type . ".json") > (time() - 60 * 60 * 24))) {
+        $json = file_get_contents(CACHE_DIR . "/" . $type . ".json");
+    } else {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://tinfoil.media/repo/db/" . $type . ".json");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ');
+        $json = curl_exec($ch);
+        curl_close($ch);
+        file_put_contents(CACHE_DIR . "/" . $type . ".json", $json);
+    }
+    return json_decode($json, true);
 }
 
-
-if($_GET){
-	if(isset($_GET["tinfoil"])){
-		header("Content-Type: application/json");
-	    header('Content-Disposition: filename="main.json"');
-		$tinarray = array();
-		$dirfilelist = mydirlist($gamedir);
-		asort($dirfilelist);
-        $tinarray["total"] = count($dirfilelist);
-        $tinarray["files"] = array(); 		
-		foreach ( $dirfilelist as $myfile ) {
-			$myfilefullpath = $gamedir . $myfile;
-			
-			$tinarray["files"][] = [ 'url' => $contentsurl . $myfile ."#".urlencode(str_replace('#','',$myfile)), 'size' => getTrueFileSize($gamedir . $myfile)];
-			
-		}
-		$tinarray['success'] = "NSP Indexer";
-		echo json_encode($tinarray);
-		die();
-	}
-	if(array_key_exists("DBI",$_GET)){
-		genDirList();
-		die();
-	}
+function outputJson($titlesJson, $versionsJson)
+{
+    if (file_exists(CACHE_DIR . "/games.json") && (filemtime(CACHE_DIR . "/games.json") > (time() - 60 * 5))) {
+        $json = file_get_contents(CACHE_DIR . "/games.json");
+    } else {
+        global $gameDir;
+        $titles = matchTitleIds(getFileList($gameDir));
+        $output = array();
+        foreach ($titles as $titleId => $title) {
+            $latestVersion = $titlesJson[substr_replace($titleId, "800", -3)]["version"];
+            $game = array(
+                "path" => $title["path"],
+                "name" => $titlesJson[$titleId]["name"],
+                "thumb" => $titlesJson[$titleId]["iconUrl"],
+                "banner" => $titlesJson[$titleId]["bannerUrl"],
+                "intro" => $titlesJson[$titleId]["intro"],
+                "latest_version" => $latestVersion,
+                "latest_date" => $versionsJson[strtolower($titleId)][$latestVersion],
+                "size" => $titlesJson[$titleId]["size"],
+                "size_real" => getFileSize($gameDir . $title["path"])
+            );
+            $updates = array();
+            foreach ($title["updates"] as $updateId => $update) {
+                $updates[$updateId] = array(
+                    "path" => $update["path"],
+                    "version" => (int)$update["version"],
+                    "date" => $versionsJson[strtolower($titleId)][$update["version"]],
+                    "size_real" => getFileSize($gameDir . $update["path"])
+                );
+            }
+            $game['updates'] = $updates;
+            $dlcs = array();
+            foreach ($title["dlc"] as $dlcId => $d) {
+                $dlcs[$dlcId] = array(
+                    "path" => $d["path"],
+                    "name" => $titlesJson[$dlcId]["name"],
+                    "size" => $titlesJson[$dlcId]["size"],
+                    "size_real" => getFileSize($gameDir . $d["path"])
+                );
+            }
+            $game['dlc'] = $dlcs;
+            $output[$titleId] = $game;
+        }
+        $json = json_encode($output);
+        file_put_contents(CACHE_DIR . "/games.json", $json);
+    }
+    return $json;
 }
 
+function outputTinfoil()
+{
+    global $gameDir, $contentUrl;
+    $output = array();
+    $fileList = getFileList($gameDir);
+    asort($fileList);
+    $output["total"] = count($fileList);
+    $output["files"] = array();
+    foreach ($fileList as $file) {
+        $output["files"][] = ['url' => $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['SERVER_NAME'] . $contentUrl . $file . "#" . urlencode(str_replace('#', '', $file)), 'size' => getFileSize($gameDir . $file)];
+    }
+    $output['success'] = "NSP Indexer";
+    return json_encode($output);
+}
+
+function outputDbi()
+{
+    global $contentUrl;
+    global $gameDir;
+    $fileList = getFileList($gameDir);
+    foreach ($fileList as $file) {
+        echo $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['SERVER_NAME'] . $contentUrl . $file . "\n";
+    }
+}
+
+$versionsJson = getMetadata("versions");
+$titlesJson = getMetadata("titles");
+
+if (isset($_GET["json"])) {
+    header("Content-Type: application/json");
+    echo outputJson($titlesJson, $versionsJson, $matchedTitles);
+    die();
+} elseif (isset($_GET["tinfoil"])) {
+    header("Content-Type: application/json");
+    header('Content-Disposition: filename="main.json"');
+    echo outputTinfoil();
+    die();
+} elseif (isset($_GET["DBI"])) {
+    header("Content-Type: text/plain");
+    outputDbi();
+    die();
+}
 
 ?>
-
-
-
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-
-<style>
-body {
-  font-family: "lato", sans-serif;
-}
-
-.container {
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 10px;
-  padding-right: 10px;
-}
-
-h2 {
-  font-size: 26px;
-  margin: 20px 0;
-  text-align: center;
-}
-h2 small {
-  font-size: 0.5em;
-}
-
-.responsive-table li {
-  border-radius: 3px;
-  padding: 25px 30px;
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 25px;
-}
-.responsive-table .table-header {
-  background-color: #95A5A6;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-.responsive-table .table-row {
-  background-color: #ffffff;
-  box-shadow: 0px 0px 9px 0px rgba(0, 0, 0, 0.1);
-}
-.responsive-table .col-1 {
-  flex-basis: 10%;
-}
-.responsive-table .col-2 {
-  flex-basis: 20%;
-  align-self: center;
-  text-align: center;
-}
-.responsive-table .col-3 {
-  flex-basis: 50%;
-  align-self: center;
-
-}
-.responsive-table .col-4 {
-  flex-basis: 10%;
-  align-self: center;
-    text-align: center;
-}
-.responsive-table .col-5 {
-  flex-basis: 10%;
-  align-self: center;
-  text-align: center;
-}
-
-@media all and (max-width: 767px) {
-  .responsive-table .table-header {
-    display: none;
-  }
-  .responsive-table li {
-    display: block;
-  }
-  .responsive-table .col {
-    flex-basis: 100%;
-  }
-  .responsive-table .col {
-    display: flex;
-    padding: 10px 0;
-  }
-  .responsive-table .col:before {
-    color: #6C7A89;
-    padding-right: 10px;
-    content: attr(data-label);
-    flex-basis: 50%;
-    text-align: right;
-  }
-}
-
-IMG.displayed {
-    position: relative;
-	top: 10%;
-    left: 10%;
-    }
-	
-
-.zoom {
-#  background-color: green;
-  
-  transition: transform .2s; 
-  width: 100;
-  height: 100px;
-}
-
-.zoom:hover {
-  transform: scale(2.5);
-
-}
-
-.footer {
-   position: fixed;
-   left: 0;
-   bottom: 0;
-   width: 100%;
-   background-color: black;
-   color: white;
-   text-align: center;
-}
-
-.col-3 .introdiv {
-    display: none;
-	font-size: 12px;
-	position: realtive;
-	
-	
-}
-
-.linkdiv:hover {font-size:150%;}
-
-.responsive-table .col-3:hover .introdiv{
-	display: block;
-}
-
-.linkdiv{
-	
-}
-
-.updatelink {
-  text-align: center;
-}
-
-.updatelink:hover {
-	
-}
-
-.updatelink .updatelinktext {
-  visibility: hidden;
-  width: 120px;
-  background-color: #555;
-  color: #fff;
-  text-align: center;
-  border-radius: 6px;
-  position: absolute;
-  z-index: 1;
-  margin-left: -65px;
-  margin-top: -25px;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-
-
-.updatelink:hover .updatelinktext {
-  visibility: visible;
-  opacity: 1;
-}
-
-
-
-
-.newupdatediv{
-	text-align: center;
-}
-
-.newupdatediv .newupdatedivtext {
-  visibility: hidden;
-  width: 120px;
-  background-color: #555;
-  color: #fff;
-  text-align: center;
-  border-radius: 6px;
-  position: absolute;
-  z-index: 1;
-  margin-left: -65px;
-  margin-top: -25px;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-
-
-.newupdatediv:hover .newupdatedivtext {
-  visibility: visible;
-  opacity: 1;
-}
-
-
-</style>
-
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>NSP Indexer</title>
+    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+    <link rel="icon" type="image/png" href="img/favicon.png">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/bootstrap-icons.css" rel="stylesheet">
+    <link href="css/nspindexer.css" rel="stylesheet">
+    <script>
+        var contentUrl = '<?=$contentUrl?>';
+    </script>
 </head>
 <body>
 
-<?php
+<header>
+    <div class="navbar navbar-dark bg-dark shadow-sm">
+        <div class="container">
+            <a href="#" class="navbar-brand d-flex align-items-center">
+                <i class="bi-controller brandLogo "></i>&nbsp;<strong>NSP Indexer</strong>
+            </a>
+            <form>
+                <input class="form-control" id="keyword" type="text" placeholder="Search" aria-label="Search">
+            </form>
+        </div>
+    </div>
+</header>
 
+<main>
+    <div class="album py-3 bg-light">
+        <div class="container" id="titleList">
+        </div>
+    </div>
+</main>
 
+<footer class="text-muted py-5">
+    <div class="container">
+        <p class="float-end mb-1">
+            <a href="#">Back to top</a>
+        </p>
+        <p class="mb-1"><?php echo "NSP Indexer v" . $version; ?></p>
+    </div>
+</footer>
 
-
-function endsWith( $haystack, $needle ) {
-    return $needle === "" || (substr($haystack, -strlen($needle)) === $needle);
-}
-
-
-
-function gettitlesid($filearray){
-	$titlesids = array();
-	for ($i = 0; $i < count($filearray); $i++) {
-		$listres = array();
-		preg_match('/(?<=\[)[0-9A-F].+?(?=\])/', $filearray[$i], $titleidmatches);
-		preg_match('/(?<=\[v).+?(?=\])/', $filearray[$i], $versionmatch);
-		preg_match('/(\bDLC)/', $filearray[$i], $DLCmatch);
-		
-		
-		$listres[] = $filearray[$i];
-		$listres[] = $titleidmatches[0];
-		if($versionmatch == NULL){
-			$listres[] = "0";
-		}else{
-			$listres[] = $versionmatch[0];
-		}
-		if(endsWith($titleidmatches[0],"000")){
-			$listres[] = 0;
-		}else if($DLCmatch){
-			$listres[] = 2;
-		}else{
-			$listres[] = 1;
-		}	
-		$titlesids[] = $listres;
-		
-		
-	}
-	
-	$dlclist = array();
-	$gamelist = array();
-    for ($i = 0; $i < count($titlesids); $i++) {
-         if($titlesids[$i][3] == 0){
-			$titlesids[$i][] = array();
-			$gamelist[$titlesids[$i][1]] = $titlesids[$i];
-         }
-		 if($titlesids[$i][3] == 2){	
-			$dlclist[$titlesids[$i][1]] = $titlesids[$i];
-		 }		 
-			 
-		 
-	}
-	for ($i = 0; $i < count($titlesids); $i++) {
-         if($titlesids[$i][3] == 1){
-			$gamelist[substr($titlesids[$i][1],0,-3)."000"][4][] = $titlesids[$i];
-         }		  
-			 
-		 
-	}
-	
-	$returnlist = array();
-	$returnlist[] = $gamelist;
-	$returnlist[] = $dlclist;
-	
-	return $returnlist;
-}
-
-
-
-$versionsjsonstring = file_get_contents("./versions.json");
-if ($versionsjsonstring === false) {
-echo "Missing versions.json consider download <a href=\"https://tinfoil.media/repo/db/versions.json\">https://tinfoil.media/repo/db/versions.json</a><br>";
-
-ob_flush();
-flush();
-
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, "https://tinfoil.media/repo/db/versions.json");
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_HEADER, 0);
-curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ');
-$out = curl_exec($ch);
-curl_close($ch);
-
-
-$versionsjsonstring = $out;
-ob_flush();
-flush();	
-}
-
-
-$titlesjsonstring = file_get_contents("./titles.json");
-if ($titlesjsonstring === false) {
-echo "Missing titles.json consider download <a href=\"https://tinfoil.media/repo/db/titles.json\">https://tinfoil.media/repo/db/titles.json</a><br>";
-
-ob_flush();
-flush();
-
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, "https://tinfoil.media/repo/db/titles.json");
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_HEADER, 0);
-curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ');
-$out = curl_exec($ch);
-curl_close($ch);
-
-
-$titlesjsonstring = $out;
-ob_flush();
-flush();	
-	
-}
-
-$versionsjson = json_decode($versionsjsonstring, true);
-if ($versionsjson === null) {
-    
-}
-
-$titlesjson = json_decode($titlesjsonstring, true);
-if ($titlesjson === null) {
-    
-}
-
-
-$myfilelist = gettitlesid(mydirlist($gamedir));
-
-$mygamelist = $myfilelist[0];
-$mydlclist = $myfilelist[1];
-
-
-?>
-
-
-<body>
-<div class="container">
-<ul class="responsive-table">
-<li class="table-header">
-<div class="col col-1"></div>
-      <div class="col col-2">ID</div>
-      <div class="col col-3">Title</div>
-      <div class="col col-4">Update</div>
-	  <div class="col col-5">Size</div>
-</li>
-
-<?php
-
-foreach(array_keys($mygamelist) as $key){
-
-?>
-
-<li class="table-row">
-<div class="col col-1"><div class="zoom"><img class="displayed" src="<?php echo $titlesjson[$mygamelist[$key][1]]["iconUrl"] ?>" alt="" width="80" ></div></div>
-<div class="col col-2"><?php echo $mygamelist[$key][1] ?></div>
-
-<div class="col col-3"><div class="linkdiv"><a href="<?php echo $contentsurl . $mygamelist[$key][0]; ?>"><?php echo $titlesjson[$mygamelist[$key][1]]["name"] ?></a></div><div class="introdiv"><?php echo $titlesjson[$mygamelist[$key][1]]["intro"] ?></div></div>
-<div class="col col-4">
-<?php
-foreach(array_keys($mygamelist[$key][4]) as $updatekey){
-?>
-<div class="updatelink">
-<a href="<?php echo $contentsurl . $mygamelist[$key][4][$updatekey][0];?>"><?php echo intval($mygamelist[$key][4][$updatekey][2])/65536; ?></a>
-<span class="updatelinktext"><?php echo "v". $mygamelist[$key][4][$updatekey][2]; ?></span>
-</div>
-
-
-
-
-
-<?php
-}
-?>
-<?php
-if(array_key_exists(strtolower($mygamelist[$key][1]),$versionsjson)){
-if($versionsjson[strtolower($mygamelist[$key][1])]!= NULL){
-if(array_key_last($versionsjson[strtolower($mygamelist[$key][1])]) != end($mygamelist[$key][4])[2]){
-?>
-<div class="newupdatediv">Last: <?php echo array_key_last($versionsjson[strtolower($mygamelist[$key][1])])/65536;?>
-<span class="newupdatedivtext"><?php echo "v". array_key_last($versionsjson[strtolower($mygamelist[$key][1])]); ?></span>
-</div>
-
-<?php
-}
-}
-}
-?>
-</div>
-<div class="col col-5"><?php echo round(($titlesjson[$mygamelist[$key][1]]["size"]/1024/1024/1024),3) . " GB" ?></div>
-</li>
-
-<?php
-
-}
-
-?>
-
-
-</ul>
-</div>
-<h2>DLC</h2>
-<div class="container">
-<ul class="responsive-table">
-<li class="table-header">
-      <div class="col col-2">ID</div>
-      <div class="col col-3">Title</div>
-	  <div class="col col-4">Size</div>
-</li>
-<?php
-
-foreach(array_keys($mydlclist) as $key){
-
-?>
-
-<li class="table-row">
-<div class="col col-2"><?php echo $mydlclist[$key][1]; ?></div>
-<div class="col col-3"><div class="linkdiv"><a href="<?php echo $contentsurl . $mydlclist[$key][0]; ?>"><?php echo $titlesjson[$mydlclist[$key][1]]["name"]; ?></a></div></div>
-<div class="col col-4"><?php echo round(($titlesjson[$mydlclist[$key][1]]["size"]/1024/1024/1024),3) . " GB"; ?></div>
-
-
-</li>
-<?php
-
-}
-
-?>
-
-</ul>
-</div>
-
-<div class="footer">
-<?php echo "NSP Indexer v" . $scriptversion; ?>
-</div>
+<script src="js/jquery-3.6.0.min.js"></script>
+<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/jquery.lazy.min.js"></script>
+<script src="js/nspindexer.js"></script>
 
 </body>
 </html>
-
-

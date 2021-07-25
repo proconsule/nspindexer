@@ -1,0 +1,49 @@
+body {
+    overflow-y: scroll;
+}
+
+.brandLogo {
+    font-size: 1.4em;
+    line-height: 32px;
+}
+
+.cardThumb img {
+    display: none;
+}
+
+.cardBody {
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.9) 120px, rgba(255, 255, 255, 0.5) 100%);
+    z-index: 2;
+}
+
+.cardBanner {
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 1;
+}
+
+.titleIntro {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fill {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden
+}
+
+.fill img {
+    flex-shrink: 0;
+    min-width: 100%;
+    min-height: 100%;
+    object-fit: cover;
+}
+
+.contentList {
+    display: none;
+}
