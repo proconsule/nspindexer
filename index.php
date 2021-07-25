@@ -302,5 +302,63 @@ if (isset($_GET["json"])) {
 <script src="js/jquery.lazy.min.js"></script>
 <script src="js/nspindexer.js"></script>
 
+<script id="cardTemplate" type="text/x-template">
+    <div class="row gx-2 mb-4">
+        <div class="col col-2">
+            <div class="card px-0 shadow-sm fill cardThumb">
+                <img data-src="<%=thumbUrl%>" class="img-fluid lazy"/>
+            </div>
+        </div>
+        <div class="col col-10">
+            <div class="card shadow-sm">
+                <div class="cardBanner fill rounded-3">
+                    <img data-src="<%=bannerUrl%>" class="img-fluid h-100 lazy">
+                </div>
+                <div class="card-body rounded cardBody">
+                    <h5 class="card-title"><strong><%=name%></strong></h5>
+                    <div class="card-text">
+                        <p class="small titleIntro"><%=intro%></p>
+                        <p class="small"><strong>Latest Version:</strong> v<%=latestVersion%> (<%=latestDate%>)
+                            <%=updateStatus%></p>
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <p class="my-1">
+                                    <strong>Base Game:</strong> <%=baseFilename%> <a href="<%=baseUrl%>"><i
+                                                class="bi-cloud-arrow-down-fill"></i></a>
+                                    <span class="badge bg-primary float-end"><%=baseSize%></span>
+                                </p>
+                            </li>
+                            <li class="list-group-item">
+                                <p class="my-1 contentListTrigger">
+                                    <strong>Updates</strong>
+                                    <span class="float-end">
+                                    <span class="badge <%=badgeUpdatesClass%>"><%=countUpdates%></span>
+                                    <i class="listChevron bi-chevron-down text-dark"></i>
+                                </span>
+                                </p>
+                                <ul class="list-group my-2 contentList">
+                                    <%=listUpdates%>
+                                </ul>
+                            </li>
+                            <li class="list-group-item">
+                                <p class="my-1 contentListTrigger">
+                                    <strong>DLC</strong>
+                                    <span class="float-end">
+                                    <span class="badge <%=badgeDlcClass%>"><%=countDlc%></span>
+                                    <i class="listChevron bi-chevron-down text-dark"></i>
+                                </span>
+                                </p>
+                                <ul class="list-group my-2 contentList">
+                                    <%=listUpdates%>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
 </body>
 </html>
