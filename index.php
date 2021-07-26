@@ -2,13 +2,12 @@
 
 /*
 
-NSP Indexer
+NSP Indexer made by proconsule and jangrewe
 
 https://github.com/proconsule/nspindexer
 
 Fell free to use and/or modify
 
-proconsule
 
 Settings Section
 
