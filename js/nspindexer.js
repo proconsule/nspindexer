@@ -181,7 +181,8 @@ function netinstallfronted(){
 	xmlhttp = new XMLHttpRequest;
 	xmlhttp.onreadystatechange=function(){
 		if (this.readyState == 4 && this.status == 200) {
-			console.log("RES: " + this.responseText);
+			var myres = JSON.parse(this.responseText);
+			console.log(myres);
 		}
 	}
 	xmlhttp.open( "POST", "netinstall.php" );
