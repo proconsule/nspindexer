@@ -1,17 +1,11 @@
 <?php
 
 /*
-
-NSP Indexer made by proconsule and jangrewe
-
-https://github.com/proconsule/nspindexer
-
-Fell free to use and/or modify
-
-
-Settings Section
-
-*/
+ *
+ * NSP Indexer, by proconsule and jangrewe
+ * https://github.com/proconsule/nspindexer
+ *
+ */
 
 define("CACHE_DIR", './cache');
 if (!file_exists(CACHE_DIR)) {
@@ -281,7 +275,8 @@ if (isset($_GET["json"])) {
             <div class="collapse navbar-collapse justify-content-end mt-2 mt-md-0" id="navbarContent">
                 <form>
                     <div class="input-group">
-                        <input class="form-control" id="keyword" type="text" placeholder="Search Titles..." aria-label="Search">
+                        <input class="form-control" id="keyword" type="text" placeholder="Search Titles..."
+                               aria-label="Search">
                         <span class="input-group-text" id="keywordClear"><i class="bi-x"></i></span>
                     </div>
                 </form>
@@ -306,6 +301,32 @@ if (isset($_GET["json"])) {
     </div>
 </footer>
 
+<div class="modal fade" id="modalNetInstall" tabindex="-1" aria-labelledby="modalNetInstallLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalNetInstallLabel">Net Install</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Switch IP</span>
+                        <input type="text" class="form-control" id="netInstalldstAddr" placeholder="x.x.x.x">
+                    </div>
+                </div>
+                <div class="row">
+                    <div id="listNetInstall"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="startNetInstall">Start</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="js/jquery-3.6.0.min.js"></script>
 <script src="js/bootstrap.bundle.min.js"></script>
 <script src="js/jquery.lazy.min.js"></script>
@@ -324,17 +345,26 @@ if (isset($_GET["json"])) {
                     <img data-src="<%=bannerUrl%>" class="img-fluid h-100 lazy">
                 </div>
                 <div class="card-body rounded cardBody">
-                    <h5 class="card-title"><strong><%=name%></strong><button type="button" class="btn btn-primary" onclick="netinstallmodal('<%=titleID%>')">Net Install</button></h5>
+                    <h5 class="card-title"><strong><%=name%></strong>
+                        <button type="button" class="btn btn-sm btn-primary float-end btnNetInstall"
+                                data-title-id="<%=titleId%>">
+                            <i class="bi-cloud-arrow-up-fill"></i>
+                        </button>
+                    </h5>
                     <div class="card-text">
-                        <p class="small titleIntro"><%=intro%></p>
+                        <p class="small noWrap"><%=intro%></p>
                         <p class="small"><strong>Latest Version:</strong> v<%=latestVersion%> (<%=latestDate%>)
                             <%=updateStatus%></p>
                         <ul class="list-group">
                             <li class="list-group-item">
                                 <p class="my-1">
-                                    <strong>Base Game:</strong> <%=baseFilename%> <a href="<%=baseUrl%>"><i
-                                                class="bi-cloud-arrow-down-fill"></i></a>
-                                    <span class="badge bg-primary float-end"><%=baseSize%></span>
+                                    <strong>Base Game:</strong> <%=fileName%>
+                                    <span class="float-end">
+                                        <span class="badge bg-secondary"><%=fileSize%></span>
+                                        <a href="<%=fileUrl%>" class="btn btn-sm bg-primary text-light">
+                                            <i class="bi-cloud-arrow-down-fill"></i>
+                                        </a>
+                                    </span>
                                 </p>
                             </li>
                             <li class="list-group-item <%=hideUpdates%>">
@@ -369,30 +399,70 @@ if (isset($_GET["json"])) {
     </div>
 </script>
 
-<!-- NETINSTALL Modal -->
-<div class="modal fade" id="NETINSTALLModal" tabindex="-1" aria-labelledby="NETINSTALLModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="NETINSTALLModalLabel">NET INSTALL</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-		<label for="netinstallswitchip" class="form-label">Switch IP</label>
-        <input type="text" class="form-control" id="netinstallswitchip">
-		<div id="netinstallnspbody">
-		
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" onclick="netinstallfronted();">Start</button>
-      </div>
+<script id="updateTemplate" type="text/x-template">
+    <li class="list-group-item"><strong>#<%=revision%> / v<%=version%>:</strong> <%=name%>
+        <span class="float-end">
+            <span class="badge bg-secondary"><%=size%></span>
+            <a href="<%=url%>" class="btn btn-sm bg-primary text-light">
+                <i class="bi-cloud-arrow-down-fill"></i>
+            </a>
+        </span>
+    </li>
+</script>
+
+<script id="dlcTemplate" type="text/x-template">
+    <li class="list-group-item"><%=name%>
+        <span class="float-end">
+            <span class="badge bg-secondary"><%=size%></span>
+            <a href="<%=url%>" class="btn btn-sm bg-primary text-light">
+                <i class="bi-cloud-arrow-down-fill"></i>
+            </a>
+        </span>
+    </li>
+</script>
+
+<script id="netInstallTemplate" type="text/x-template">
+    <ul class="list-group">
+        <li class="list-group-item">
+            <div class="row">
+                <p class="my-1">
+                    <strong>Base Game</strong>
+                </p>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input netInstallCheckbox" type="checkbox" id="netinstallbase" data-path="<%=path%>">
+                <label class="form-check-label" for="netinstallbase" class="noWrap"><%=name%></label>
+            </div>
+        </li>
+        <li class="list-group-item <%=hideUpdates%>">
+            <div class="row">
+                <p class="my-1">
+                    <strong>Updates</strong>
+                </p>
+            </div>
+            <ul class="list-group">
+                <%=listUpdates%>
+            </ul>
+        </li>
+        <li class="list-group-item <%=hideDlc%>">
+            <div class="row">
+                <p class="my-1">
+                    <strong>DLC</strong>
+                </p>
+            </div>
+            <ul class="list-group">
+                <%=listDlc%>
+            </ul>
+        </li>
+    </ul>
+</script>
+
+<script id="netInstallContentTemplate" type="text/x-template">
+    <div class="form-check">
+        <input class="form-check-input netInstallCheckbox" type="checkbox" id="netinstall<%=type%>_<%=idx%>" data-path="<%=path%>">
+        <label class="form-check-label small" for="netinstall<%=type%>_<%=idx%>" class="noWrap"><%=name%></label>
     </div>
-  </div>
-</div>
-
-
+</script>
 
 </body>
 </html>

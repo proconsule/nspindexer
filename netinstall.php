@@ -5,61 +5,34 @@ if (file_exists('config.php')) {
     require 'config.php';
 }
 
-$hostip =$_SERVER['SERVER_ADDR'];
-$hostport = $_SERVER['SERVER_PORT'];
+$srcAddr = $_SERVER['SERVER_ADDR'];
+$srcPort = $_SERVER['SERVER_PORT'];
 
-$service_port = 2000;
+$dstAddr = $_POST["dstAddr"];
+$dstPort = 2000;
 
-
-$address = $_POST["switchaddress"];
-$filelist = json_decode($_POST["urllist"]);
-
-$listpayload = "";
-
-foreach ($filelist as $myfile){
-  
-    $listpayload = $listpayload. $hostip .":". $hostport . implode('/', array_map('rawurlencode', explode('/', $contentUrl . $myfile))) . "\n";
+$strPayload = "";
+foreach ($_POST["listFiles"] as $key => $file) {
+    $strPayload .= $srcAddr . ":" . $srcPort . implode('/', array_map('rawurlencode', explode('/', $contentUrl . $file))) . "\n";
 }
 
-$listpayload = mb_convert_encoding($listpayload,'ASCII');
+$strPayload = mb_convert_encoding($strPayload, 'ASCII');
+$payload = pack("N", strlen($strPayload)) . $strPayload;
 
+$status = new stdClass;
+$status->int = -1;
 
-$finalpayload = pack("N",strlen($listpayload)).$listpayload;
-
-$resobj = new \stdClass;
-
-$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+$socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 if ($socket === false) {
-	$resobj->status = "Error Creating Socket";
-	$resobj->statusint = -1;
-    echo json_encode($resobj);
-	die();
+    $status->msg = "Error Creating Socket";
+} else if(@socket_connect($socket, $dstAddr, $dstPort) === false) {
+    $status->msg = "Error Connecting to Socket";
+} else if (@socket_write($socket, $payload, strlen($payload)) === false) {
+    $status->msg = "Error Writing to Socket";
 } else {
-  
+    $status->msg = "OK";
+    $status->int = 0;
 }
 
-$result = socket_connect($socket, $address, $service_port);
-if ($result === false) {
-	$resobj->status = "Error Connecting to Socket";
-	$resobj->statusint = -1;
-    echo json_encode($resobj);
-	die();
-} else {
-  
-}
-
-
-$sent=socket_write($socket,$finalpayload,strlen($finalpayload));
-
-if ($sent === false) {
-	$resobj->status = "Error Writing to Socket";
-	$resobj->statusint = -1;
-	echo json_encode($resobj);
-	die();
-}
-
-$resobj->status = "OK";
-$resobj->statusint = 0;
-echo json_encode($resobj);	
-
-?>
+header("Content-Type: application/json");
+echo json_encode($status);
