@@ -132,9 +132,9 @@ function getFileSize($filename)
     return $size;
 }
 
-function getMetadata($type)
+function getMetadata($type, $refresh = false)
 {
-    if (file_exists(CACHE_DIR . "/" . $type . ".json") && (filemtime(CACHE_DIR . "/" . $type . ".json") > (time() - 60 * 60 * 24))) {
+    if (!$refresh && file_exists(CACHE_DIR . "/" . $type . ".json")) {
         $json = file_get_contents(CACHE_DIR . "/" . $type . ".json");
     } else {
         $ch = curl_init();
@@ -149,12 +149,23 @@ function getMetadata($type)
     return json_decode($json, true);
 }
 
+function refreshMetadata() {
+    $refreshed = array();
+    foreach (array('versions', 'titles') as $type) {
+        if (filemtime(CACHE_DIR . "/" . $type . ".json") < (time() - 60 * 5)) {
+            getMetadata($type, true);
+            array_push($refreshed, $type);
+        }
+    }
+    return $refreshed;
+}
+
 function outputJson($titlesJson, $versionsJson)
 {
     if (file_exists(CACHE_DIR . "/games.json") && (filemtime(CACHE_DIR . "/games.json") > (time() - 60 * 5))) {
         $json = file_get_contents(CACHE_DIR . "/games.json");
     } else {
-        global $gameDir;
+        global $gameDir, $contentUrl, $version;
         $titles = matchTitleIds(getFileList($gameDir));
         $output = array();
         foreach ($titles as $titleId => $title) {
@@ -190,8 +201,10 @@ function outputJson($titlesJson, $versionsJson)
                 );
             }
             $game['dlc'] = $dlcs;
-            $output[$titleId] = $game;
+            $output['titles'][$titleId] = $game;
         }
+        $output['contentUrl'] = $contentUrl;
+        $output['version'] = $version;
         $json = json_encode($output);
         file_put_contents(CACHE_DIR . "/games.json", $json);
     }
@@ -241,228 +254,13 @@ if (isset($_GET["json"])) {
     header("Content-Type: text/plain");
     outputDbi();
     die();
+} elseif (isset($_GET['metadata'])) {
+    header("Content-Type: application/json");
+    $refreshed = refreshMetadata();
+    echo json_encode(array(
+        "msg" => "Metadata ". ((count($refreshed) > 0) ? "updated: ".join(", ", $refreshed) : "not updated")
+    ));
+    die;
 }
 
-?>
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>NSP Indexer</title>
-    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
-    <link rel="icon" type="image/png" href="img/favicon.png">
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/bootstrap-icons.css" rel="stylesheet">
-    <link href="css/nspindexer.css" rel="stylesheet">
-    <script>
-        var contentUrl = '<?=$contentUrl?>';
-    </script>
-</head>
-<body>
-
-<header>
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark shadow-sm">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="#">
-                <i class="bi-controller brandLogo "></i>&nbsp;<strong>NSP Indexer</strong>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarContent" aria-controls="navbarContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse justify-content-end mt-2 mt-md-0" id="navbarContent">
-                <form>
-                    <div class="input-group">
-                        <input class="form-control" id="keyword" type="text" placeholder="Search Titles..."
-                               aria-label="Search">
-                        <span class="input-group-text" id="keywordClear"><i class="bi-x"></i></span>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </nav>
-</header>
-
-<main>
-    <div class="album py-3 bg-light">
-        <div class="container" id="titleList">
-        </div>
-    </div>
-</main>
-
-<footer class="text-muted py-5">
-    <div class="container">
-        <p class="float-end mb-1">
-            <a href="#">Back to top</a>
-        </p>
-        <p class="mb-1"><?php echo "NSP Indexer v" . $version; ?></p>
-    </div>
-</footer>
-
-<div class="modal fade" id="modalNetInstall" tabindex="-1" aria-labelledby="modalNetInstallLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalNetInstallLabel">Net Install</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row mb-3">
-                    <div class="input-group mb-3">
-                        <span class="input-group-text">Switch IP</span>
-                        <input type="text" class="form-control" id="netInstalldstAddr" placeholder="x.x.x.x">
-                    </div>
-                </div>
-                <div class="row">
-                    <div id="listNetInstall"></div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="startNetInstall">Start</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script src="js/jquery-3.6.0.min.js"></script>
-<script src="js/bootstrap.bundle.min.js"></script>
-<script src="js/jquery.lazy.min.js"></script>
-<script src="js/nspindexer.js"></script>
-
-<script id="cardTemplate" type="text/x-template">
-    <div class="row gx-2 mb-4">
-        <div class="col col-2 d-none d-md-block">
-            <div class="card px-0 shadow-sm fill cardThumb">
-                <img data-src="<%=thumbUrl%>" class="img-fluid lazy"/>
-            </div>
-        </div>
-        <div class="col col-12 col-md-10">
-            <div class="card shadow-sm">
-                <div class="cardBanner fill rounded-3">
-                    <img data-src="<%=bannerUrl%>" class="img-fluid h-100 lazy">
-                </div>
-                <div class="card-body rounded cardBody">
-                    <h5 class="card-title"><strong><%=name%></strong>
-                        <button type="button" class="btn btn-sm btn-primary float-end btnNetInstall"
-                                data-title-id="<%=titleId%>">
-                            <i class="bi-cloud-arrow-up-fill"></i>
-                        </button>
-                    </h5>
-                    <div class="card-text">
-                        <p class="small noWrap"><%=intro%></p>
-                        <p class="small"><strong>Latest Version:</strong> v<%=latestVersion%> (<%=latestDate%>)
-                            <%=updateStatus%></p>
-                        <ul class="list-group">
-                            <li class="list-group-item">
-                                <p class="my-1">
-                                    <strong>Base Game:</strong> <%=fileName%>
-                                    <span class="float-end">
-                                        <span class="badge bg-secondary"><%=fileSize%></span>
-                                        <a href="<%=fileUrl%>" class="btn btn-sm bg-primary text-light">
-                                            <i class="bi-cloud-arrow-down-fill"></i>
-                                        </a>
-                                    </span>
-                                </p>
-                            </li>
-                            <li class="list-group-item <%=hideUpdates%>">
-                                <p class="my-1 contentListTrigger">
-                                    <strong>Updates</strong>
-                                    <span class="float-end">
-                                    <span class="badge bg-success"><%=countUpdates%></span>
-                                    <i class="listChevron bi-chevron-down text-dark"></i>
-                                </span>
-                                </p>
-                                <ul class="list-group my-2 contentList">
-                                    <%=listUpdates%>
-                                </ul>
-                            </li>
-                            <li class="list-group-item <%=hideDlc%>">
-                                <p class="my-1 contentListTrigger">
-                                    <strong>DLC</strong>
-                                    <span class="float-end">
-                                    <span class="badge bg-success"><%=countDlc%></span>
-                                    <i class="listChevron bi-chevron-down text-dark"></i>
-                                </span>
-                                </p>
-                                <ul class="list-group my-2 contentList">
-                                    <%=listDlc%>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</script>
-
-<script id="updateTemplate" type="text/x-template">
-    <li class="list-group-item"><strong>#<%=revision%> / v<%=version%>:</strong> <%=name%>
-        <span class="float-end">
-            <span class="badge bg-secondary"><%=size%></span>
-            <a href="<%=url%>" class="btn btn-sm bg-primary text-light">
-                <i class="bi-cloud-arrow-down-fill"></i>
-            </a>
-        </span>
-    </li>
-</script>
-
-<script id="dlcTemplate" type="text/x-template">
-    <li class="list-group-item"><%=name%>
-        <span class="float-end">
-            <span class="badge bg-secondary"><%=size%></span>
-            <a href="<%=url%>" class="btn btn-sm bg-primary text-light">
-                <i class="bi-cloud-arrow-down-fill"></i>
-            </a>
-        </span>
-    </li>
-</script>
-
-<script id="netInstallTemplate" type="text/x-template">
-    <ul class="list-group">
-        <li class="list-group-item">
-            <div class="row">
-                <p class="my-1">
-                    <strong>Base Game</strong>
-                </p>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input netInstallCheckbox" type="checkbox" id="netinstallbase" data-path="<%=path%>">
-                <label class="form-check-label" for="netinstallbase" class="noWrap"><%=name%></label>
-            </div>
-        </li>
-        <li class="list-group-item <%=hideUpdates%>">
-            <div class="row">
-                <p class="my-1">
-                    <strong>Updates</strong>
-                </p>
-            </div>
-            <ul class="list-group">
-                <%=listUpdates%>
-            </ul>
-        </li>
-        <li class="list-group-item <%=hideDlc%>">
-            <div class="row">
-                <p class="my-1">
-                    <strong>DLC</strong>
-                </p>
-            </div>
-            <ul class="list-group">
-                <%=listDlc%>
-            </ul>
-        </li>
-    </ul>
-</script>
-
-<script id="netInstallContentTemplate" type="text/x-template">
-    <div class="form-check">
-        <input class="form-check-input netInstallCheckbox" type="checkbox" id="netinstall<%=type%>_<%=idx%>" data-path="<%=path%>">
-        <label class="form-check-label small" for="netinstall<%=type%>_<%=idx%>" class="noWrap"><%=name%></label>
-    </div>
-</script>
-
-</body>
-</html>
+require 'page.html';

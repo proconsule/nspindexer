@@ -1,9 +1,10 @@
 var titles = [];
 var keywordTimer;
+var contentUrl;
 
 $(document).ready(function () {
     $("#keyword").val("");
-    loadJson()
+    loadJson();
 })
 
 $("#keyword").on('keydown', function (event) {
@@ -35,7 +36,9 @@ $("#startNetInstall").on('click', function () {
 
 function loadJson() {
     $.getJSON("index.php?json", function (data) {
-        titles = data;
+        titles = data.titles;
+        contentUrl = data.contentUrl;
+        $('#version').text(data.version);
         createRows(titles);
     }).done(function () {
         var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
