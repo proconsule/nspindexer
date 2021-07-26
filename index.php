@@ -325,7 +325,7 @@ if (isset($_GET["json"])) {
                     <img data-src="<%=bannerUrl%>" class="img-fluid h-100 lazy">
                 </div>
                 <div class="card-body rounded cardBody">
-                    <h5 class="card-title"><strong><%=name%></strong></h5>
+                    <h5 class="card-title"><strong><%=name%></strong><button type="button" class="btn btn-primary" onclick="netinstallmodal('<%=titleID%>')">Net Install</button></h5>
                     <div class="card-text">
                         <p class="small titleIntro"><%=intro%></p>
                         <p class="small"><strong>Latest Version:</strong> v<%=latestVersion%> (<%=latestDate%>)
@@ -369,6 +369,31 @@ if (isset($_GET["json"])) {
         </div>
     </div>
 </script>
+
+<!-- NETINSTALL Modal -->
+<div class="modal fade" id="NETINSTALLModal" tabindex="-1" aria-labelledby="NETINSTALLModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="NETINSTALLModalLabel">NET INSTALL</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+		<label for="netinstallswitchip" class="form-label">Switch IP</label>
+        <input type="text" class="form-control" id="netinstallswitchip">
+		<div id="netinstallnspbody">
+		
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="netinstallfronted();">Start</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 
 </body>
 </html>

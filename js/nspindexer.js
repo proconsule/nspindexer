@@ -32,6 +32,7 @@ $("#keywordClear").on('click', function () {
 function loadJson() {
     $.getJSON("index.php?json", function (data) {
         titles = data;
+		console.log(titles);
         createRows(titles);
     }).done(function () {
         var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
@@ -118,6 +119,7 @@ function createCard(id, title) {
     var cardTemplate = $('#cardTemplate');
     var card = tmpl(cardTemplate.html(), {
         thumbUrl: title.thumb,
+		titleID: id,
         bannerUrl: title.banner,
         name: title.name,
         intro: title.intro,
@@ -166,3 +168,52 @@ function createCard(id, title) {
         return data ? fn(data) : fn;
     };
 })();
+
+
+function netinstallfronted(){
+	var urllists = [];
+	var address = $("#netinstallswitchip").val();
+	var mychecked = $(".netcheckbox:checked");
+	for (let i=0;i<mychecked.length;i++){
+		urllists.push(mychecked[i].dataset["path"]);
+	}
+	
+	xmlhttp = new XMLHttpRequest;
+	xmlhttp.onreadystatechange=function(){
+		if (this.readyState == 4 && this.status == 200) {
+			console.log("RES: " + this.responseText);
+		}
+	}
+	xmlhttp.open( "POST", "netinstall.php" );
+	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xmlhttp.send("switchaddress="+address +"&urllist=" + JSON.stringify(urllists));
+	
+	
+}
+
+
+function netinstallmodal(titleid){
+	
+	$("#netinstallswitchip").val("");
+	$("#netinstallnspbody").empty();
+	$("#netinstallnspbody").append("<input type=\"checkbox\" data-path=\""+ encodeURI(titles[titleid]["path"]) +"\" class=\"form-check-input netcheckbox\" id=\"netinstallbasegame\"><label class=\"form-check-label\" for=\"netinstallbasegame\">"+ titles[titleid]["name"] +"</label>");
+	if(Object.keys(titles[titleid]["updates"]).length >0){
+		
+		for(let i=0;i<Object.keys(titles[titleid]["updates"]).length;i++){
+			var objkey = Object.keys(titles[titleid]["updates"])[i];
+			$("#netinstallnspbody").append("<input type=\"checkbox\" data-path=\""+ encodeURI(titles[titleid]["updates"][objkey]["path"]) + "\" class=\"form-check-input netcheckbox\" id=\"netinstallupdate"+ i +"\"><label class=\"form-check-label\" for=\"netinstallupdate"+ i +"\">v"+ titles[titleid]["updates"][objkey]["version"] +"</label>");
+		}
+		
+	}
+	if(Object.keys(titles[titleid]["dlc"]).length >0){
+		
+		for(let i=0;i<Object.keys(titles[titleid]["dlc"]).length;i++){
+			var objkey = Object.keys(titles[titleid]["dlc"])[i];
+			$("#netinstallnspbody").append("<input type=\"checkbox\" data-path=\""+ encodeURI(titles[titleid]["dlc"][objkey]["path"]) + "\" class=\"form-check-input netcheckbox\" id=\"netinstalldlc"+ i +"\"><label class=\"form-check-label\" for=\"netinstallupdate"+ i +"\">"+ titles[titleid]["dlc"][objkey]["name"] +"</label>");
+			
+		}
+		
+	}
+    $('#NETINSTALLModal').modal('show');
+	
+}
