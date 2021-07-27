@@ -119,7 +119,7 @@ function createCard(id, title) {
         listUpdates += tmpl(updateTemplate, {
             version: u.version,
             revision: u.version / 65536,
-            name: u.path.split(/\//).pop(),
+            date: u.date,
             url: contentUrl + u.path,
             size: bytesToHuman(u.size_real)
         });
@@ -127,7 +127,7 @@ function createCard(id, title) {
     var dlcTemplate = $('#dlcTemplate').html();
     $.each(title.dlc, function (i, d) {
         listDlc += tmpl(dlcTemplate, {
-            name: d.path.split(/\//).pop(),
+            name: d.name,
             url: contentUrl + d.path,
             size: bytesToHuman(d.size_real)
         });
@@ -148,7 +148,6 @@ function createCard(id, title) {
         latestVersion: title.latest_version == null ? "?" : title.latest_version,
         latestDate: title.latest_date == null ? "?" : title.latest_date,
         updateStatus: updateStatus,
-        fileName: title.path.split(/\//).pop(),
         fileUrl: contentUrl + title.path,
         fileSize: bytesToHuman(title.size_real),
         hideUpdates: (countUpdates == 0) ? "d-none" : "",
@@ -172,7 +171,7 @@ function startNetInstall() {
         dstAddr: dstAddr,
         listFiles: listFiles
     }, function (status) {
-        if(status.int === 0) {
+        if (status.int === 0) {
             $('#modalNetInstall').modal('hide');
         } else {
             alert(status.msg);
@@ -192,7 +191,7 @@ function modalNetInstall(titleId) {
         listUpdates += tmpl(contentTemplate, {
             type: 'update',
             idx: i,
-            name: u.version,
+            name: 'v' + u.version + ' <small class="text-muted">(#' + u.version / 65536 + ', ' + u.date + ')</small>',
             path: contentUrl + u.path,
         });
     });
@@ -203,15 +202,15 @@ function modalNetInstall(titleId) {
         listDlc += tmpl(contentTemplate, {
             type: 'dlc',
             idx: i,
-            name: u.path.split(/\//).pop(),
+            name: u.name,
             path: contentUrl + u.path,
         });
     });
 
     var listTemplate = $('#netInstallTemplate').html();
     var list = tmpl(listTemplate, {
-        path: encodeURI(titles[titleId]["path"]),
-        name: titles[titleId]["path"].split(/\//).pop(),
+        path: encodeURI(titles[titleId].path),
+        name: titles[titleId].name,
         hideUpdates: (countUpdates == 0) ? "d-none" : "",
         listUpdates: listUpdates,
         hideDlc: (countDlc == 0) ? "d-none" : "",

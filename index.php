@@ -149,7 +149,8 @@ function getMetadata($type, $refresh = false)
     return json_decode($json, true);
 }
 
-function refreshMetadata() {
+function refreshMetadata()
+{
     $refreshed = array();
     foreach (array('versions', 'titles') as $type) {
         if (filemtime(CACHE_DIR . "/" . $type . ".json") < (time() - 60 * 5)) {
@@ -255,10 +256,11 @@ if (isset($_GET["json"])) {
     outputDbi();
     die();
 } elseif (isset($_GET['metadata'])) {
-    header("Content-Type: application/json");
     $refreshed = refreshMetadata();
+    header("Content-Type: application/json");
     echo json_encode(array(
-        "msg" => "Metadata ". ((count($refreshed) > 0) ? "updated: ".join(", ", $refreshed) : "not updated")
+        "int" => ((count($refreshed) > 0) ? 1 : 0),
+        "msg" => "Metadata " . ((count($refreshed) > 0) ? "updated: " . join(", ", $refreshed) : "not updated")
     ));
     die;
 }

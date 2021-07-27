@@ -49,7 +49,7 @@
             <a href="#">Back to top</a>
         </p>
         <p class="mb-1">NSP Indexer v<span id="version">0</span></p>
-</div>
+    </div>
 </footer>
 
 <div class="modal fade" id="modalNetInstall" tabindex="-1" aria-labelledby="modalNetInstallLabel" aria-hidden="true">
@@ -109,7 +109,7 @@
                         <ul class="list-group">
                             <li class="list-group-item">
                                 <p class="my-1">
-                                    <strong>Base Game:</strong> <%=fileName%>
+                                    <strong>Base Game</strong>
                                     <span class="float-end">
                                         <span class="badge bg-secondary"><%=fileSize%></span>
                                         <a href="<%=fileUrl%>" class="btn btn-sm bg-primary text-light">
@@ -122,7 +122,7 @@
                                 <p class="my-1 contentListTrigger">
                                     <strong>Updates</strong>
                                     <span class="float-end">
-                                    <span class="badge bg-success"><%=countUpdates%></span>
+                                    <span class="badge bg-secondary"><%=countUpdates%></span>
                                     <i class="listChevron bi-chevron-down text-dark"></i>
                                 </span>
                                 </p>
@@ -134,7 +134,7 @@
                                 <p class="my-1 contentListTrigger">
                                     <strong>DLC</strong>
                                     <span class="float-end">
-                                    <span class="badge bg-success"><%=countDlc%></span>
+                                    <span class="badge bg-secondary"><%=countDlc%></span>
                                     <i class="listChevron bi-chevron-down text-dark"></i>
                                 </span>
                                 </p>
@@ -151,7 +151,7 @@
 </script>
 
 <script id="updateTemplate" type="text/x-template">
-    <li class="list-group-item"><strong>#<%=revision%> / v<%=version%>:</strong> <%=name%>
+    <li class="list-group-item">v<%=version%> <small class="text-muted">(#<%=revision%>, <%=date%>)</small>
         <span class="float-end">
             <span class="badge bg-secondary"><%=size%></span>
             <a href="<%=url%>" class="btn btn-sm bg-primary text-light">
@@ -175,14 +175,10 @@
 <script id="netInstallTemplate" type="text/x-template">
     <ul class="list-group">
         <li class="list-group-item">
-            <div class="row">
-                <p class="my-1">
-                    <strong>Base Game</strong>
-                </p>
-            </div>
             <div class="form-check">
-                <input class="form-check-input netInstallCheckbox" type="checkbox" id="netinstallbase" data-path="<%=path%>">
-                <label class="form-check-label" for="netinstallbase" class="noWrap"><%=name%></label>
+                <input class="form-check-input netInstallCheckbox" type="checkbox" id="netinstallbase"
+                       data-path="<%=path%>">
+                <label class="form-check-label" for="netinstallbase" class="noWrap"><strong>Base Game</strong></label>
             </div>
         </li>
         <li class="list-group-item <%=hideUpdates%>">
@@ -210,7 +206,8 @@
 
 <script id="netInstallContentTemplate" type="text/x-template">
     <div class="form-check">
-        <input class="form-check-input netInstallCheckbox" type="checkbox" id="netinstall<%=type%>_<%=idx%>" data-path="<%=path%>">
+        <input class="form-check-input netInstallCheckbox" type="checkbox" id="netinstall<%=type%>_<%=idx%>"
+               data-path="<%=path%>">
         <label class="form-check-label small" for="netinstall<%=type%>_<%=idx%>" class="noWrap"><%=name%></label>
     </div>
 </script>
