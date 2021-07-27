@@ -20,6 +20,8 @@ if (file_exists('config.php')) {
     require 'config.php';
 }
 
+require 'lib/parseNsp.php';
+
 $version = file_get_contents('./VERSION');
 
 function getURLSchema()
@@ -275,6 +277,10 @@ if (isset($_GET["config"])) {
 } elseif (isset($_GET['metadata'])) {
     header("Content-Type: application/json");
     echo refreshMetadata();
+    die();
+} elseif (!empty($_GET['parsensp'])) {
+    //header("Content-Type: application/json");
+    echo parseNsp(realpath($gameDir . rawurldecode($_GET['parsensp'])));
     die();
 }
 

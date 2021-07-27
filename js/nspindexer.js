@@ -77,10 +77,11 @@ function checkLatest(updates, version) {
 
 function lazyLoad() {
     $('.lazy').Lazy({
+        visibleOnly: true,
+        bind: 'event',
         scrollDirection: 'vertical',
         effect: 'fadeIn',
-        effectTime: 500,
-        threshold: 100
+        effectTime: 500
     });
 }
 
@@ -101,6 +102,21 @@ function enableNetInstall() {
     });
 }
 
+function enableAnalyze() {
+    $('.btnAnalyze').on('click', function () {
+        $.getJSON("index.php?parsensp=" + encodeURIComponent($(this).data('path')), function (data) {
+            console.log(data);
+            if (data.int === 0) {
+                alert("TitleId: " + data.titleId + ", Version: " + data.version);
+            } else {
+                alert(data.msg);
+            }
+        }).done(function () {
+            // foo
+        });
+    });
+}
+
 function enablePopovers() {
     $('[data-bs-toggle="tooltip"]').each(function () {
         new bootstrap.Tooltip($(this), {
@@ -113,6 +129,7 @@ function init() {
     lazyLoad();
     enableListTriggers();
     enableNetInstall();
+    enableAnalyze();
     enablePopovers();
 }
 
@@ -143,7 +160,8 @@ function createCard(id, title) {
             version: u.version,
             revision: u.version / 65536,
             date: u.date,
-            url: contentUrl + u.path,
+            url: encodeURI(contentUrl + u.path),
+            path: u.path,
             size: bytesToHuman(u.size_real)
         });
     });
@@ -151,7 +169,8 @@ function createCard(id, title) {
     $.each(title.dlc, function (i, d) {
         listDlc += tmpl(dlcTemplate, {
             name: d.name,
-            url: contentUrl + d.path,
+            url: encodeURI(contentUrl + d.path),
+            path: d.path,
             size: bytesToHuman(d.size_real)
         });
     });
@@ -172,6 +191,7 @@ function createCard(id, title) {
         latestVersion: title.latest_version == null ? "?" : title.latest_version,
         latestDate: title.latest_date == null ? "?" : title.latest_date,
         updateStatus: updateStatus,
+        filePath: encodeURI(title.path),
         fileUrl: contentUrl + title.path,
         fileSize: bytesToHuman(title.size_real),
         hideUpdates: (countUpdates == 0) ? "d-none" : "",
@@ -220,18 +240,18 @@ function modalNetInstall(titleId) {
             type: 'update',
             idx: i,
             name: 'v' + u.version + ' <small class="text-muted">(#' + u.version / 65536 + ', ' + u.date + ')</small>',
-            path: contentUrl + u.path,
+            path: u.path
         });
     });
 
     var countDlc = Object.keys(titles[titleId].dlc).length;
     var listDlc = [];
-    $.each(titles[titleId].dlc, function (i, u) {
+    $.each(titles[titleId].dlc, function (i, d) {
         listDlc += tmpl(contentTemplate, {
             type: 'dlc',
             idx: i,
-            name: u.name,
-            path: contentUrl + u.path,
+            name: d.name,
+            path: d.path
         });
     });
 

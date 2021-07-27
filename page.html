@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -87,13 +87,13 @@
     <div class="row gx-2 mb-4">
         <div class="col col-2 d-none d-md-block">
             <div class="card px-0 shadow-sm fill cardThumb">
-                <img data-src="<%=thumbUrl%>" class="img-fluid lazy"/>
+                <img data-src="<%=thumbUrl%>" class="img-fluid d-block lazy"/>
             </div>
         </div>
         <div class="col col-12 col-md-10">
             <div class="card shadow-sm">
                 <div class="cardBanner fill rounded-3">
-                    <img data-src="<%=bannerUrl%>" class="img-fluid h-100 lazy">
+                    <img data-src="<%=bannerUrl%>" class="img-fluid lazy">
                 </div>
                 <div class="card-body rounded cardBody">
                     <h5 class="card-title"><strong><%=name%></strong>
@@ -112,6 +112,9 @@
                                     <strong>Base Game</strong>
                                     <span class="float-end">
                                         <span class="badge bg-secondary"><%=fileSize%></span>
+                                        <button data-path="<%=filePath%>" title="Analyze" class="btnAnalyze btn btn-sm bg-primary text-light" data-bs-toggle="tooltip" data-bs-placement="left">
+                                            <i class="bi-file-earmark-check"></i>
+                                        </button>
                                         <a href="<%=fileUrl%>" title="Download" class="btn btn-sm bg-primary text-light" data-bs-toggle="tooltip" data-bs-placement="left">
                                             <i class="bi-cloud-arrow-down-fill"></i>
                                         </a>
@@ -154,6 +157,9 @@
     <li class="list-group-item">v<%=version%> <small class="text-muted">(#<%=revision%>, <%=date%>)</small>
         <span class="float-end">
             <span class="badge bg-secondary"><%=size%></span>
+            <button data-path="<%=path%>" title="Analyze" class="btnAnalyze btn btn-sm bg-primary text-light" data-bs-toggle="tooltip" data-bs-placement="left">
+                <i class="bi-file-earmark-check"></i>
+            </button>
             <a href="<%=url%>" title="Download" class="btn btn-sm bg-primary text-light" data-bs-toggle="tooltip" data-bs-placement="left">
                 <i class="bi-cloud-arrow-down-fill"></i>
             </a>
@@ -165,6 +171,9 @@
     <li class="list-group-item"><%=name%>
         <span class="float-end">
             <span class="badge bg-secondary"><%=size%></span>
+            <button data-path="<%=path%>" title="Analyze" class="btnAnalyze btn btn-sm bg-primary text-light" data-bs-toggle="tooltip" data-bs-placement="left">
+                <i class="bi-file-earmark-check"></i>
+            </button>
             <a href="<%=url%>" title="Download" class="btn btn-sm bg-primary text-light" data-bs-toggle="tooltip" data-bs-placement="left">
                 <i class="bi-cloud-arrow-down-fill"></i>
             </a>
