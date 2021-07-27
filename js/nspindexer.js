@@ -102,10 +102,11 @@ function enableNetInstall() {
 }
 
 function enablePopovers() {
-    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-    var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-        return new bootstrap.Popover(popoverTriggerEl)
-    });
+    $('[data-bs-toggle="tooltip"]').each(function () {
+        new bootstrap.Tooltip($(this), {
+            container: $(this).parent()
+        });
+    })
 }
 
 function init() {
