@@ -13,7 +13,7 @@ $dstPort = 2000;
 
 $strPayload = "";
 foreach ($_POST["listFiles"] as $key => $file) {
-    $strPayload .= $srcAddr . ":" . $srcPort . implode('/', array_map('rawurlencode', explode('/', $contentUrl . $file))) . "\n";
+    $strPayload .= $srcAddr . ":" . $srcPort . implode('/', array_map('rawurlencode', explode('/', $contentUrl . '/' . $file))) . "\n";
 }
 
 $strPayload = mb_convert_encoding($strPayload, 'ASCII');
@@ -25,7 +25,7 @@ $status->int = -1;
 $socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 if ($socket === false) {
     $status->msg = "Error Creating Socket";
-} else if(@socket_connect($socket, $dstAddr, $dstPort) === false) {
+} else if (@socket_connect($socket, $dstAddr, $dstPort) === false) {
     $status->msg = "Error Connecting to Socket";
 } else if (@socket_write($socket, $payload, strlen($payload)) === false) {
     $status->msg = "Error Writing to Socket";

@@ -160,7 +160,7 @@ function createCard(id, title) {
             version: u.version,
             revision: u.version / 65536,
             date: u.date,
-            url: encodeURI(contentUrl + u.path),
+            url: encodeURI(contentUrl + '/' + u.path),
             path: u.path,
             size: bytesToHuman(u.size_real)
         });
@@ -169,7 +169,7 @@ function createCard(id, title) {
     $.each(title.dlc, function (i, d) {
         listDlc += tmpl(dlcTemplate, {
             name: d.name,
-            url: encodeURI(contentUrl + d.path),
+            url: encodeURI(contentUrl + '/' + d.path),
             path: d.path,
             size: bytesToHuman(d.size_real)
         });
@@ -192,7 +192,7 @@ function createCard(id, title) {
         latestDate: title.latest_date == null ? "?" : title.latest_date,
         updateStatus: updateStatus,
         filePath: encodeURI(title.path),
-        fileUrl: contentUrl + title.path,
+        fileUrl: contentUrl + '/' + title.path,
         fileSize: bytesToHuman(title.size_real),
         hideUpdates: (countUpdates == 0) ? "d-none" : "",
         countUpdates: countUpdates,

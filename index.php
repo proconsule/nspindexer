@@ -43,7 +43,7 @@ function getFileList($path)
     foreach ($files as $file) {
         $parts = explode('.', $file);
         if (!$file->isDir() && in_array(strtolower(array_pop($parts)), $allowedExtensions)) {
-            array_push($arrFiles, str_replace($path, '', $file->getPathname()));
+            array_push($arrFiles, str_replace($path . '/', '', $file->getPathname()));
         }
     }
     natcasesort($arrFiles);
@@ -198,7 +198,7 @@ function outputTitles()
                 "latest_version" => $latestVersion,
                 "latest_date" => $versionsJson[strtolower($titleId)][$latestVersion],
                 "size" => $titlesJson[$titleId]["size"],
-                "size_real" => getFileSize($gameDir . $title["path"])
+                "size_real" => getFileSize($gameDir . "/" . $title["path"])
             );
             $updates = array();
             foreach ($title["updates"] as $updateId => $update) {
@@ -206,7 +206,7 @@ function outputTitles()
                     "path" => $update["path"],
                     "version" => (int)$update["version"],
                     "date" => $versionsJson[strtolower($titleId)][$update["version"]],
-                    "size_real" => getFileSize($gameDir . $update["path"])
+                    "size_real" => getFileSize($gameDir . "/" . $update["path"])
                 );
             }
             $game['updates'] = $updates;
@@ -216,7 +216,7 @@ function outputTitles()
                     "path" => $d["path"],
                     "name" => $titlesJson[$dlcId]["name"],
                     "size" => $titlesJson[$dlcId]["size"],
-                    "size_real" => getFileSize($gameDir . $d["path"])
+                    "size_real" => getFileSize($gameDir . "/" . $d["path"])
                 );
             }
             $game['dlc'] = $dlcs;
@@ -238,7 +238,7 @@ function outputTinfoil()
     $output["files"] = array();
     $urlSchema = getURLSchema();
     foreach ($fileList as $file) {
-        $output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . $contentUrl . $file . "#" . urlencode(str_replace('#', '', $file)), 'size' => getFileSize($gameDir . $file)];
+        $output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode('/', array_map('rawurlencode', explode('/', $contentUrl . '/' . $file))), 'size' => getFileSize($gameDir . '/' . $file)];
     }
     $output['success'] = "NSP Indexer";
     return json_encode($output);
@@ -252,7 +252,7 @@ function outputDbi()
     $fileList = getFileList($gameDir);
     $output = "";
     foreach ($fileList as $file) {
-        $output .= $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode('/', array_map('rawurlencode', explode('/', $contentUrl . $file))) . "\n";
+        $output .= $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode('/', array_map('rawurlencode', explode('/', $contentUrl . '/' . $file))) . "\n";
     }
     return $output;
 }
@@ -280,7 +280,7 @@ if (isset($_GET["config"])) {
     die();
 } elseif (!empty($_GET['parsensp'])) {
     //header("Content-Type: application/json");
-    echo parseNsp(realpath($gameDir . rawurldecode($_GET['parsensp'])));
+    echo parseNsp(realpath($gameDir . '/' . rawurldecode($_GET['parsensp'])));
     die();
 }
 
