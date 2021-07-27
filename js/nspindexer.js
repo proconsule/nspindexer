@@ -1,9 +1,10 @@
 var titles = [];
 var keywordTimer;
+var contentUrl;
 
 $(document).ready(function () {
     $("#keyword").val("");
-    loadJson()
+    loadJson();
 })
 
 $("#keyword").on('keydown', function (event) {
@@ -27,12 +28,17 @@ $("#keyword").on('keyup', function () {
 $("#keywordClear").on('click', function () {
     $('#keyword').val('');
     createRows(titles);
+});
+
+$("#startNetInstall").on('click', function () {
+    startNetInstall();
 })
 
 function loadJson() {
     $.getJSON("index.php?json", function (data) {
-        titles = data;
-		console.log(titles);
+        titles = data.titles;
+        contentUrl = data.contentUrl;
+        $('#version').text(data.version);
         createRows(titles);
     }).done(function () {
         var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
@@ -52,7 +58,7 @@ function createRows(data, keyword = "") {
         //return false;
     });
     lazyLoad();
-    enableLists();
+    activate();
 }
 
 function checkLatest(updates, version) {
@@ -73,13 +79,17 @@ function lazyLoad() {
     });
 }
 
-function enableLists() {
+function activate() {
     $('.contentListTrigger').on('click', function (event) {
         event.preventDefault();
         var target = $(this).siblings('.contentList')[0];
         $(target).slideToggle();
         var trigger = event.target;
         $(trigger).find('.listChevron').toggleClass("bi-chevron-down bi-chevron-up");
+    });
+    $('.btnNetInstall').on('click', function () {
+        var titleId = $(this).data("title-id");
+        modalNetInstall(titleId);
     });
 }
 
@@ -104,12 +114,24 @@ function bytesToHuman(bytes, si = false, dp = 1) {
 function createCard(id, title) {
     var listUpdates = [];
     var listDlc = []
+    var updateTemplate = $('#updateTemplate').html();
     $.each(title.updates, function (i, u) {
-        listUpdates += '<li class="list-group-item"><strong>#' + u.version / 65536 + ' / v' + u.version + ':</strong> ' + u.path.split(/\//).pop() + ' <a href="' + contentUrl + u.path + '"><i class="bi-cloud-arrow-down-fill"></i></a><span class="badge bg-primary float-end">' + bytesToHuman(u.size_real) + '</span></li>';
-    })
+        listUpdates += tmpl(updateTemplate, {
+            version: u.version,
+            revision: u.version / 65536,
+            date: u.date,
+            url: contentUrl + u.path,
+            size: bytesToHuman(u.size_real)
+        });
+    });
+    var dlcTemplate = $('#dlcTemplate').html();
     $.each(title.dlc, function (i, d) {
-        listDlc += '<li class="list-group-item">' + d.path.split(/\//).pop() + ' <a href="' + contentUrl + d.path + '"><i class="bi-cloud-arrow-down-fill"></i></a><span class="badge bg-primary float-end">' + bytesToHuman(d.size_real) + '</span></li>';
-    })
+        listDlc += tmpl(dlcTemplate, {
+            name: d.name,
+            url: contentUrl + d.path,
+            size: bytesToHuman(d.size_real)
+        });
+    });
     var updateStatus = '<i class="bi-x-circle-fill text-danger"></i>';
     if (checkLatest(title.updates, title.latest_version)) {
         updateStatus = '<i class="bi-check-circle-fill text-success"></i>';
@@ -119,16 +141,15 @@ function createCard(id, title) {
     var cardTemplate = $('#cardTemplate');
     var card = tmpl(cardTemplate.html(), {
         thumbUrl: title.thumb,
-		titleID: id,
+        titleId: id,
         bannerUrl: title.banner,
         name: title.name,
         intro: title.intro,
         latestVersion: title.latest_version == null ? "?" : title.latest_version,
         latestDate: title.latest_date == null ? "?" : title.latest_date,
         updateStatus: updateStatus,
-        baseFilename: title.path.split(/\//).pop(),
-        baseUrl: contentUrl + title.path,
-        baseSize: bytesToHuman(title.size_real),
+        fileUrl: contentUrl + title.path,
+        fileSize: bytesToHuman(title.size_real),
         hideUpdates: (countUpdates == 0) ? "d-none" : "",
         countUpdates: countUpdates,
         listUpdates: listUpdates,
@@ -137,6 +158,68 @@ function createCard(id, title) {
         listDlc: listDlc
     });
     $('#titleList').append(card);
+}
+
+
+function startNetInstall() {
+    var listFiles = [];
+    var dstAddr = $("#netInstalldstAddr").val();
+    $('.netInstallCheckbox:checked').each(function (i, e) {
+        listFiles.push($(this).data('path'));
+    });
+    $.post("netinstall.php", {
+        dstAddr: dstAddr,
+        listFiles: listFiles
+    }, function (status) {
+        if (status.int === 0) {
+            $('#modalNetInstall').modal('hide');
+        } else {
+            alert(status.msg);
+        }
+    });
+}
+
+
+function modalNetInstall(titleId) {
+
+    $("#listNetInstall").empty();
+    var contentTemplate = $('#netInstallContentTemplate').html();
+
+    var countUpdates = Object.keys(titles[titleId].updates).length;
+    var listUpdates = [];
+    $.each(titles[titleId].updates, function (i, u) {
+        listUpdates += tmpl(contentTemplate, {
+            type: 'update',
+            idx: i,
+            name: 'v' + u.version + ' <small class="text-muted">(#' + u.version / 65536 + ', ' + u.date + ')</small>',
+            path: contentUrl + u.path,
+        });
+    });
+
+    var countDlc = Object.keys(titles[titleId].dlc).length;
+    var listDlc = [];
+    $.each(titles[titleId].dlc, function (i, u) {
+        listDlc += tmpl(contentTemplate, {
+            type: 'dlc',
+            idx: i,
+            name: u.name,
+            path: contentUrl + u.path,
+        });
+    });
+
+    var listTemplate = $('#netInstallTemplate').html();
+    var list = tmpl(listTemplate, {
+        path: encodeURI(titles[titleId].path),
+        name: titles[titleId].name,
+        hideUpdates: (countUpdates == 0) ? "d-none" : "",
+        listUpdates: listUpdates,
+        hideDlc: (countDlc == 0) ? "d-none" : "",
+        listDlc: listDlc
+    });
+
+    $("#listNetInstall").append(list);
+    $('#modalNetInstall').modal('show');
+
 }
 
 // by John Resig, https://johnresig.com/blog/javascript-micro-templating/
@@ -168,53 +251,3 @@ function createCard(id, title) {
         return data ? fn(data) : fn;
     };
 })();
-
-
-function netinstallfronted(){
-	var urllists = [];
-	var address = $("#netinstallswitchip").val();
-	var mychecked = $(".netcheckbox:checked");
-	for (let i=0;i<mychecked.length;i++){
-		urllists.push(mychecked[i].dataset["path"]);
-	}
-	
-	xmlhttp = new XMLHttpRequest;
-	xmlhttp.onreadystatechange=function(){
-		if (this.readyState == 4 && this.status == 200) {
-			var myres = JSON.parse(this.responseText);
-			console.log(myres);
-		}
-	}
-	xmlhttp.open( "POST", "netinstall.php" );
-	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	xmlhttp.send("switchaddress="+address +"&urllist=" + JSON.stringify(urllists));
-	
-	
-}
-
-
-function netinstallmodal(titleid){
-	
-	$("#netinstallswitchip").val("");
-	$("#netinstallnspbody").empty();
-	$("#netinstallnspbody").append("<input type=\"checkbox\" data-path=\""+ encodeURI(titles[titleid]["path"]) +"\" class=\"form-check-input netcheckbox\" id=\"netinstallbasegame\"><label class=\"form-check-label\" for=\"netinstallbasegame\">"+ titles[titleid]["name"] +"</label>");
-	if(Object.keys(titles[titleid]["updates"]).length >0){
-		
-		for(let i=0;i<Object.keys(titles[titleid]["updates"]).length;i++){
-			var objkey = Object.keys(titles[titleid]["updates"])[i];
-			$("#netinstallnspbody").append("<input type=\"checkbox\" data-path=\""+ encodeURI(titles[titleid]["updates"][objkey]["path"]) + "\" class=\"form-check-input netcheckbox\" id=\"netinstallupdate"+ i +"\"><label class=\"form-check-label\" for=\"netinstallupdate"+ i +"\">v"+ titles[titleid]["updates"][objkey]["version"] +"</label>");
-		}
-		
-	}
-	if(Object.keys(titles[titleid]["dlc"]).length >0){
-		
-		for(let i=0;i<Object.keys(titles[titleid]["dlc"]).length;i++){
-			var objkey = Object.keys(titles[titleid]["dlc"])[i];
-			$("#netinstallnspbody").append("<input type=\"checkbox\" data-path=\""+ encodeURI(titles[titleid]["dlc"][objkey]["path"]) + "\" class=\"form-check-input netcheckbox\" id=\"netinstalldlc"+ i +"\"><label class=\"form-check-label\" for=\"netinstallupdate"+ i +"\">"+ titles[titleid]["dlc"][objkey]["name"] +"</label>");
-			
-		}
-		
-	}
-    $('#NETINSTALLModal').modal('show');
-	
-}

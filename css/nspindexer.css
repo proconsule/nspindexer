@@ -24,7 +24,7 @@ body {
     z-index: 1;
 }
 
-.titleIntro {
+.noWrap {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
