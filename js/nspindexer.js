@@ -1,10 +1,12 @@
 var titles = [];
 var keywordTimer;
 var contentUrl;
+var netInstallEnabled = false;
 
 $(document).ready(function () {
     $("#keyword").val("");
-    loadJson();
+    loadConfig();
+    loadTitles();
 })
 
 $("#keyword").on('keydown', function (event) {
@@ -34,18 +36,22 @@ $("#startNetInstall").on('click', function () {
     startNetInstall();
 })
 
-function loadJson() {
-    $.getJSON("index.php?json", function (data) {
-        titles = data.titles;
+function loadConfig() {
+    $.getJSON("index.php?config", function (data) {
         contentUrl = data.contentUrl;
         $('#version').text(data.version);
+        $('#switchIp').val(data.switchIp);
+        netInstallEnabled = data.enableNetInstall;
+    });
+}
+
+function loadTitles() {
+    $.getJSON("index.php?titles", function (data) {
+        titles = data.titles;
         createRows(titles);
     }).done(function () {
-        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-            return new bootstrap.Popover(popoverTriggerEl)
-        });
-    })
+        init();
+    });
 }
 
 function createRows(data, keyword = "") {
@@ -57,8 +63,7 @@ function createRows(data, keyword = "") {
         createCard(id, title);
         //return false;
     });
-    lazyLoad();
-    activate();
+
 }
 
 function checkLatest(updates, version) {
@@ -79,7 +84,7 @@ function lazyLoad() {
     });
 }
 
-function activate() {
+function enableListTriggers() {
     $('.contentListTrigger').on('click', function (event) {
         event.preventDefault();
         var target = $(this).siblings('.contentList')[0];
@@ -87,10 +92,27 @@ function activate() {
         var trigger = event.target;
         $(trigger).find('.listChevron').toggleClass("bi-chevron-down bi-chevron-up");
     });
+}
+
+function enableNetInstall() {
     $('.btnNetInstall').on('click', function () {
         var titleId = $(this).data("title-id");
         modalNetInstall(titleId);
     });
+}
+
+function enablePopovers() {
+    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+        return new bootstrap.Popover(popoverTriggerEl)
+    });
+}
+
+function init() {
+    lazyLoad();
+    enableListTriggers();
+    enableNetInstall();
+    enablePopovers();
 }
 
 // by mpen, https://stackoverflow.com/a/14919494/5218832
@@ -145,6 +167,7 @@ function createCard(id, title) {
         bannerUrl: title.banner,
         name: title.name,
         intro: title.intro,
+        enableNetInstall: (netInstallEnabled) ? "" : "d-none",
         latestVersion: title.latest_version == null ? "?" : title.latest_version,
         latestDate: title.latest_date == null ? "?" : title.latest_date,
         updateStatus: updateStatus,
@@ -163,20 +186,24 @@ function createCard(id, title) {
 
 function startNetInstall() {
     var listFiles = [];
-    var dstAddr = $("#netInstalldstAddr").val();
+    var dstAddr = $("#switchIp").val();
     $('.netInstallCheckbox:checked').each(function (i, e) {
         listFiles.push($(this).data('path'));
     });
-    $.post("netinstall.php", {
-        dstAddr: dstAddr,
-        listFiles: listFiles
-    }, function (status) {
-        if (status.int === 0) {
-            $('#modalNetInstall').modal('hide');
-        } else {
-            alert(status.msg);
-        }
-    });
+    if (listFiles.length > 0) {
+        $.post("netinstall.php", {
+            dstAddr: dstAddr,
+            listFiles: listFiles
+        }, function (status) {
+            if (status.int === 0) {
+                $('#modalNetInstall').modal('hide');
+            } else {
+                alert(status.msg);
+            }
+        });
+    } else {
+        alert("Nothing to install");
+    }
 }
 
 

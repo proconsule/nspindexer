@@ -55,7 +55,7 @@ function matchTitleIds($files)
     foreach ($files as $key => $file) {
 
         // check if we have a Base TitleId (0100XXXXXXXXY000, with Y being an even number)
-        if (preg_match('/(?<=\[)0100[0-9A-F]{8}[0,2,4,6,8,A,C,E]000(?=\])/', $file, $titleIdMatches) === 1) {
+        if (preg_match('/(?<=\[)0100[0-9A-F]{8}[02468ACE]000(?=])/', $file, $titleIdMatches) === 1) {
             $titleId = $titleIdMatches[0];
             $titles[$titleId] = array(
                 "path" => $file,
@@ -68,7 +68,7 @@ function matchTitleIds($files)
 
     // second round, match Updates and DLC to Base TitleIds
     foreach ($files as $key => $file) {
-        if (preg_match('/(?<=\[)0100[0-9A-F]{12}(?=\])/', $file, $titleIdMatches) === 0) {
+        if (preg_match('/(?<=\[)0100[0-9A-F]{12}(?=])/', $file, $titleIdMatches) === 0) {
             // file does not have any kind of TitleId, skip further checks
             continue;
         }
@@ -77,7 +77,7 @@ function matchTitleIds($files)
         // find Updates (0100XXXXXXXXX800)
         if (preg_match('/^0100[0-9A-F]{9}800$/', $titleId) === 1) {
 
-            if (preg_match('/(?<=\[v).+?(?=\])/', $file, $versionMatches) === 1) {
+            if (preg_match('/(?<=\[v).+?(?=])/', $file, $versionMatches) === 1) {
                 $version = $versionMatches[0];
                 $baseTitleId = substr_replace($titleId, "000", -3);
                 // add Update only if the Base TitleId for it exists
@@ -158,15 +158,31 @@ function refreshMetadata()
             array_push($refreshed, $type);
         }
     }
-    return $refreshed;
+    return json_encode(array(
+        "int" => count($refreshed),
+        "msg" => "Metadata " . ((count($refreshed) > 0) ? "updated: " . join(", ", $refreshed) : "not updated")
+    ));
 }
 
-function outputJson($titlesJson, $versionsJson)
+function outputConfig()
+{
+    global $contentUrl, $version, $enableNetInstall, $switchIp;
+    return json_encode(array(
+        "contentUrl" => $contentUrl,
+        "version" => $version,
+        "enableNetInstall" => $enableNetInstall,
+        "switchIp" => $switchIp
+    ));
+}
+
+function outputTitles()
 {
     if (file_exists(CACHE_DIR . "/games.json") && (filemtime(CACHE_DIR . "/games.json") > (time() - 60 * 5))) {
         $json = file_get_contents(CACHE_DIR . "/games.json");
     } else {
-        global $gameDir, $contentUrl, $version;
+        global $gameDir;
+        $versionsJson = getMetadata("versions");
+        $titlesJson = getMetadata("titles");
         $titles = matchTitleIds(getFileList($gameDir));
         $output = array();
         foreach ($titles as $titleId => $title) {
@@ -204,8 +220,6 @@ function outputJson($titlesJson, $versionsJson)
             $game['dlc'] = $dlcs;
             $output['titles'][$titleId] = $game;
         }
-        $output['contentUrl'] = $contentUrl;
-        $output['version'] = $version;
         $json = json_encode($output);
         file_put_contents(CACHE_DIR . "/games.json", $json);
     }
@@ -234,17 +248,20 @@ function outputDbi()
     global $gameDir;
     $urlSchema = getURLSchema();
     $fileList = getFileList($gameDir);
+    $output = "";
     foreach ($fileList as $file) {
-        echo $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode('/', array_map('rawurlencode', explode('/', $contentUrl . $file))) . "\n";
+        $output .= $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode('/', array_map('rawurlencode', explode('/', $contentUrl . $file))) . "\n";
     }
+    return $output;
 }
 
-$versionsJson = getMetadata("versions");
-$titlesJson = getMetadata("titles");
-
-if (isset($_GET["json"])) {
+if (isset($_GET["config"])) {
     header("Content-Type: application/json");
-    echo outputJson($titlesJson, $versionsJson, $matchedTitles);
+    echo outputConfig();
+    die();
+} elseif (isset($_GET["titles"])) {
+    header("Content-Type: application/json");
+    echo outputTitles();
     die();
 } elseif (isset($_GET["tinfoil"])) {
     header("Content-Type: application/json");
@@ -253,16 +270,12 @@ if (isset($_GET["json"])) {
     die();
 } elseif (isset($_GET["DBI"])) {
     header("Content-Type: text/plain");
-    outputDbi();
+    echo outputDbi();
     die();
 } elseif (isset($_GET['metadata'])) {
-    $refreshed = refreshMetadata();
     header("Content-Type: application/json");
-    echo json_encode(array(
-        "int" => ((count($refreshed) > 0) ? 1 : 0),
-        "msg" => "Metadata " . ((count($refreshed) > 0) ? "updated: " . join(", ", $refreshed) : "not updated")
-    ));
-    die;
+    echo refreshMetadata();
+    die();
 }
 
 require 'page.html';
