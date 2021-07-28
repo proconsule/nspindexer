@@ -17,6 +17,7 @@ Hope you enjoy it!
 - Compatible with tinfoil Custom Index JSON (if called with `index.php/?tinfoil`)
 - Compatible with DBI plaintext list (if called with `index.php/?DBI`)
 - Net Install (if TCP port 2000 of Switch is reachable by webserver)
+- NSP Internal TitleID Check
 
 # Thanks to
 - duckbill007 for support on DBI Installer
