@@ -55,8 +55,6 @@ function loadTitles() {
     $.getJSON("index.php?titles", function (data) {
         titles = data.titles;
         createRows(titles);
-    }).done(function () {
-        init();
     });
 }
 
@@ -69,6 +67,7 @@ function createRows(data, keyword = "") {
         createCard(id, title);
         //return false;
     });
+    init();
 }
 
 function lazyLoad() {
