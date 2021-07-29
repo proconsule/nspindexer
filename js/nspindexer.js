@@ -229,7 +229,7 @@ function startNetInstall() {
 
 
 function modalNetInstall(titleId) {
-
+    $('#netinstallContent').attr("style","")
     $("#listNetInstall").empty();
     var contentTemplate = $('#netInstallContentTemplate').html();
 
@@ -280,6 +280,7 @@ function modalNetInstall(titleId) {
 	  
 		})
 	})
+	$('#netinstallContent').attr("style","background-image:url("+ titles[titleId].banner +"); background-size: cover")
     $('#modalNetInstall').modal('show');
 
 }

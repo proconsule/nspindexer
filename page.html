@@ -54,12 +54,12 @@
 
 <div class="modal fade" id="modalNetInstall" tabindex="-1" aria-labelledby="modalNetInstallLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalNetInstallLabel">Net Install</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div id="netinstallContent" class="modal-content">
+            <div class="modal-header bg-dark">
+                <h5 class="modal-title text-white" id="modalNetInstallLabel">Net Install</h5>
+                <button type="button" class="btn-close bg-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div  class="modal-body">
                 <div class="row mb-3">
                     <div class="input-group mb-3">
                         <span class="input-group-text">Switch IP</span>
@@ -72,7 +72,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="startNetInstall" disabled>Start</button>
+                <button type="button" class="btn btn-success" id="startNetInstall" disabled>Start</button>
             </div>
         </div>
     </div>
