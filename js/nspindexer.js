@@ -63,19 +63,6 @@ function createRows(data, keyword = "") {
         createCard(id, title);
         //return false;
     });
-
-}
-
-function checkLatest(updates, version) {
-    if (version == 0) {
-        return true;
-    }
-    for (const update in updates) {
-        if (updates[update].version === version) {
-            return true;
-        }
-    }
-    return false;
 }
 
 function lazyLoad() {
@@ -158,10 +145,10 @@ function createCard(id, title) {
     var listUpdates = [];
     var listDlc = []
     var updateTemplate = $('#updateTemplate').html();
-    $.each(title.updates, function (i, u) {
+    $.each(title.updates, function (version, u) {
         listUpdates += tmpl(updateTemplate, {
-            version: u.version,
-            revision: u.version / 65536,
+            version: version,
+            revision: version / 65536,
             date: u.date,
             url: encodeURI(contentUrl + '/' + u.path),
             path: u.path,
@@ -178,7 +165,7 @@ function createCard(id, title) {
         });
     });
     var updateStatus = '<i class="bi-x-circle-fill text-danger"></i>';
-    if (checkLatest(title.updates, title.latest_version)) {
+    if (title.latest_version === 0 || title.latest_version in title.updates) {
         updateStatus = '<i class="bi-check-circle-fill text-success"></i>';
     }
     var countUpdates = Object.keys(title.updates).length;
@@ -238,11 +225,11 @@ function modalNetInstall(titleId) {
 
     var countUpdates = Object.keys(titles[titleId].updates).length;
     var listUpdates = [];
-    $.each(titles[titleId].updates, function (i, u) {
+    $.each(titles[titleId].updates, function (version, u) {
         listUpdates += tmpl(contentTemplate, {
+            idx: version,
             type: 'update',
-            idx: i,
-            name: 'v' + u.version + ' <small class="text-muted">(#' + u.version / 65536 + ', ' + u.date + ')</small>',
+            name: 'v' + version + ' <small class="text-muted">(#' + version / 65536 + ', ' + u.date + ')</small>',
             path: u.path,
             size_real: bytesToHuman(u.size_real)
         });

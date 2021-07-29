@@ -210,9 +210,8 @@ function outputTitles()
             );
             $updates = array();
             foreach ($title["updates"] as $updateId => $update) {
-                $updates[$updateId] = array(
+                $updates[(int)$update["version"]] = array(
                     "path" => $update["path"],
-                    "version" => (int)$update["version"],
                     "date" => $versionsJson[strtolower($titleId)][$update["version"]],
                     "size_real" => getFileSize($gameDir . "/" . $update["path"])
                 );
