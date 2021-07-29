@@ -80,8 +80,7 @@ function enableListTriggers() {
         event.preventDefault();
         var target = $(this).siblings('.contentList')[0];
         $(target).slideToggle();
-        var trigger = event.target;
-        $(trigger).find('.listChevron').toggleClass("bi-chevron-down bi-chevron-up");
+        $(event.target).parents('li').find('.listChevron').toggleClass("bi-chevron-down bi-chevron-up");
     });
 }
 
