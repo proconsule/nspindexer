@@ -47,3 +47,15 @@ body {
 .contentList {
     display: none;
 }
+
+.netinstmodalHeader {
+	opacity: 0.8;
+}
+
+.netinstallimgdisable{
+	background-blend-mode: luminosity;
+}
+
+.netinstallimgenable{
+	background-blend-mode: unset;
+}

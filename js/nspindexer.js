@@ -233,7 +233,8 @@ function startNetInstall() {
 
 function modalNetInstall(titleId) {
     $('#netinstallContent').attr("style","")
-    $("#listNetInstall").empty();
+	$("#netinstallContent").removeClass( "netinstallimgenble" ).addClass( "netinstallimgdisable" );
+	$("#listNetInstall").empty();
     var contentTemplate = $('#netInstallContentTemplate').html();
 
     var countUpdates = Object.keys(titles[titleId].updates).length;
@@ -243,7 +244,8 @@ function modalNetInstall(titleId) {
             type: 'update',
             idx: i,
             name: 'v' + u.version + ' <small class="text-muted">(#' + u.version / 65536 + ', ' + u.date + ')</small>',
-            path: u.path
+            path: u.path,
+			size_real: bytesToHuman(u.size_real)
         });
     });
 
@@ -254,7 +256,8 @@ function modalNetInstall(titleId) {
             type: 'dlc',
             idx: i,
             name: d.name,
-            path: d.path
+            path: d.path,
+			size_real: bytesToHuman(d.size_real)
         });
     });
 
@@ -265,7 +268,8 @@ function modalNetInstall(titleId) {
         hideUpdates: (countUpdates == 0) ? "d-none" : "",
         listUpdates: listUpdates,
         hideDlc: (countDlc == 0) ? "d-none" : "",
-        listDlc: listDlc
+        listDlc: listDlc,
+		size_real: bytesToHuman(titles[titleId].size_real)
     });
 
     $("#listNetInstall").append(list);
@@ -277,7 +281,9 @@ function modalNetInstall(titleId) {
 		})
 		if(tmpcheckedlist.length == 0){
 		  $("#startNetInstall").prop("disabled",true);
+		  $("#netinstallContent").removeClass( "netinstallimgenble" ).addClass( "netinstallimgdisable" );
 		}else{
+		  $("#netinstallContent").removeClass( "netinstallimgdisable" ).addClass( "netinstallimgenble" );	
 		  $("#startNetInstall").prop("disabled",false);
 		}
 	  

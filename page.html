@@ -55,9 +55,9 @@
 <div class="modal fade" id="modalNetInstall" tabindex="-1" aria-labelledby="modalNetInstallLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div id="netinstallContent" class="modal-content">
-            <div class="modal-header bg-dark">
+            <div class="modal-header netinstmodalHeader bg-dark">
                 <h5 class="modal-title text-white" id="modalNetInstallLabel">Net Install</h5>
-                <button type="button" class="btn-close bg-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div  class="modal-body">
                 <div class="row mb-3">
@@ -196,7 +196,8 @@
                 <input class="form-check-input netInstallCheckbox" type="checkbox" id="netinstallbase"
                        data-path="<%=path%>">
                 <label class="form-check-label" for="netinstallbase" class="noWrap"><strong>Base Game</strong></label>
-            </div>
+                <span class="float-end"><span class="badge bg-secondary"><%=size_real%></span></span>
+			</div>
         </li>
         <li class="list-group-item <%=hideUpdates%>">
             <div class="row">
@@ -226,7 +227,8 @@
         <input class="form-check-input netInstallCheckbox" type="checkbox" id="netinstall<%=type%>_<%=idx%>"
                data-path="<%=path%>">
         <label class="form-check-label small" for="netinstall<%=type%>_<%=idx%>" class="noWrap"><%=name%></label>
-    </div>
+        <span class="float-end"><span class="badge bg-secondary"><%=size_real%></span></span>
+	</div>
 </script>
 
 </body>
