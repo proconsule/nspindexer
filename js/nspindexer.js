@@ -266,9 +266,25 @@ function modalNetInstall(titleId) {
     });
 
     $("#listNetInstall").append(list);
+	$(".netInstallCheckbox").each(function(){
+		$(".netInstallCheckbox").click(function(){
+		var tmpcheckedlist = [];
+		$('.netInstallCheckbox:checked').each(function (i, e) {
+		  tmpcheckedlist.push("checked");
+		})
+		if(tmpcheckedlist.length == 0){
+		  $("#startNetInstall").prop("disabled",true);
+		}else{
+		  $("#startNetInstall").prop("disabled",false);
+		}
+	  
+		})
+	})
     $('#modalNetInstall').modal('show');
 
 }
+
+
 
 // by John Resig, https://johnresig.com/blog/javascript-micro-templating/
 (function () {
