@@ -134,13 +134,6 @@ function getFileSize($filename)
     return $size;
 }
 
-function intDatetoStr($intdate){
-	if($intdate == null)return null;
-	preg_match('/(\d{4})(\d{2})(\d{2})/', $intdate, $DateMatches);
-	return $DateMatches[1]."-".$DateMatches[2]."-".$DateMatches[3];
-	
-}
-
 function getMetadata($type, $refresh = false)
 {
     if (!$refresh && file_exists(CACHE_DIR . "/" . $type . ".json")) {
@@ -195,22 +188,23 @@ function outputTitles()
         $titles = matchTitleIds(getFileList($gameDir));
         $output = array();
         foreach ($titles as $titleId => $title) {
-			$latestVersion = 0;
-			if(array_key_exists(substr_replace($titleId, "800", -3),$titlesJson)){
-				$latestVersion = $titlesJson[substr_replace($titleId, "800", -3)]["version"];
-			}
-			$lastDateVersion = intDatetoStr(strval($titlesJson[$titleId]["releaseDate"]));
-			if(array_key_exists(strtolower($titleId), $versionsJson)){
-			    $lastDateVersion = $versionsJson[strtolower($titleId)][$latestVersion];
-			}
-			$game = array(
+            $latestVersion = 0;
+            $updateTitleId = substr_replace($titleId, "800", -3);
+            if (array_key_exists($updateTitleId, $titlesJson)) {
+                $latestVersion = $titlesJson[$updateTitleId]["version"];
+            }
+            $latestVersionDate = join("-", array_slice(date_parse_from_format("Ynd", $titlesJson[$titleId]["releaseDate"]), 0, 3));
+            if (array_key_exists(strtolower($titleId), $versionsJson)) {
+                $latestVersionDate = $versionsJson[strtolower($titleId)][$latestVersion];
+            }
+            $game = array(
                 "path" => $title["path"],
                 "name" => $titlesJson[$titleId]["name"],
                 "thumb" => $titlesJson[$titleId]["iconUrl"],
                 "banner" => $titlesJson[$titleId]["bannerUrl"],
                 "intro" => $titlesJson[$titleId]["intro"],
                 "latest_version" => $latestVersion,
-                "latest_date" => $lastDateVersion,
+                "latest_date" => $latestVersionDate,
                 "size" => $titlesJson[$titleId]["size"],
                 "size_real" => getFileSize($gameDir . "/" . $title["path"])
             );

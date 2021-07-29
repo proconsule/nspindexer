@@ -67,9 +67,9 @@ function createRows(data, keyword = "") {
 }
 
 function checkLatest(updates, version) {
-	if(version == 0){
-		return true;
-	}
+    if (version == 0) {
+        return true;
+    }
     for (const update in updates) {
         if (updates[update].version === version) {
             return true;
@@ -232,9 +232,8 @@ function startNetInstall() {
 
 
 function modalNetInstall(titleId) {
-    $('#netinstallContent').attr("style","")
-	$("#netinstallContent").removeClass( "netinstallimgenble" ).addClass( "netinstallimgdisable" );
-	$("#listNetInstall").empty();
+    $("#startNetInstall").attr('disabled', true);
+    $("#listNetInstall").empty();
     var contentTemplate = $('#netInstallContentTemplate').html();
 
     var countUpdates = Object.keys(titles[titleId].updates).length;
@@ -245,7 +244,7 @@ function modalNetInstall(titleId) {
             idx: i,
             name: 'v' + u.version + ' <small class="text-muted">(#' + u.version / 65536 + ', ' + u.date + ')</small>',
             path: u.path,
-			size_real: bytesToHuman(u.size_real)
+            size_real: bytesToHuman(u.size_real)
         });
     });
 
@@ -257,7 +256,7 @@ function modalNetInstall(titleId) {
             idx: i,
             name: d.name,
             path: d.path,
-			size_real: bytesToHuman(d.size_real)
+            size_real: bytesToHuman(d.size_real)
         });
     });
 
@@ -269,32 +268,23 @@ function modalNetInstall(titleId) {
         listUpdates: listUpdates,
         hideDlc: (countDlc == 0) ? "d-none" : "",
         listDlc: listDlc,
-		size_real: bytesToHuman(titles[titleId].size_real)
+        size_real: bytesToHuman(titles[titleId].size_real)
     });
 
     $("#listNetInstall").append(list);
-	$(".netInstallCheckbox").each(function(){
-		$(".netInstallCheckbox").click(function(){
-		var tmpcheckedlist = [];
-		$('.netInstallCheckbox:checked').each(function (i, e) {
-		  tmpcheckedlist.push("checked");
-		})
-		if(tmpcheckedlist.length == 0){
-		  $("#startNetInstall").prop("disabled",true);
-		  $("#netinstallContent").removeClass( "netinstallimgenble" ).addClass( "netinstallimgdisable" );
-		}else{
-		  $("#netinstallContent").removeClass( "netinstallimgdisable" ).addClass( "netinstallimgenble" );	
-		  $("#startNetInstall").prop("disabled",false);
-		}
-	  
-		})
-	})
-	$('#netinstallContent').attr("style","background-image:url("+ titles[titleId].banner +"); background-size: cover")
+    $(".netInstallCheckbox").on('click', function () {
+        var checked = $('.netInstallCheckbox:checked');
+        var btnStart = $("#startNetInstall");
+        if (checked.length > 0) {
+            btnStart.attr("disabled", false);
+        } else {
+            btnStart.attr("disabled", true);
+        }
+
+    })
     $('#modalNetInstall').modal('show');
 
 }
-
-
 
 // by John Resig, https://johnresig.com/blog/javascript-micro-templating/
 (function () {

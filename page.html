@@ -55,7 +55,7 @@
 <div class="modal fade" id="modalNetInstall" tabindex="-1" aria-labelledby="modalNetInstallLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div id="netinstallContent" class="modal-content">
-            <div class="modal-header netinstmodalHeader bg-dark">
+            <div class="modal-header bg-dark">
                 <h5 class="modal-title text-white" id="modalNetInstallLabel">Net Install</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -71,8 +71,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-success" id="startNetInstall" disabled>Start</button>
+                <button type="button" class="btn btn-success" id="startNetInstall" disabled>Install</button>
             </div>
         </div>
     </div>
@@ -193,9 +192,9 @@
     <ul class="list-group">
         <li class="list-group-item">
             <div class="form-check">
-                <input class="form-check-input netInstallCheckbox" type="checkbox" id="netinstallbase"
+                <input class="form-check-input netInstallCheckbox" type="checkbox" id="netinstall_base"
                        data-path="<%=path%>">
-                <label class="form-check-label" for="netinstallbase" class="noWrap"><strong>Base Game</strong></label>
+                <label class="form-check-label" for="netinstall_base" class="noWrap"><strong>Base Game</strong></label>
                 <span class="float-end"><span class="badge bg-secondary"><%=size_real%></span></span>
 			</div>
         </li>
@@ -224,9 +223,9 @@
 
 <script id="netInstallContentTemplate" type="text/x-template">
     <div class="form-check">
-        <input class="form-check-input netInstallCheckbox" type="checkbox" id="netinstall<%=type%>_<%=idx%>"
+        <input class="form-check-input netInstallCheckbox" type="checkbox" id="netinstall_<%=type%>_<%=idx%>"
                data-path="<%=path%>">
-        <label class="form-check-label small" for="netinstall<%=type%>_<%=idx%>" class="noWrap"><%=name%></label>
+        <label class="form-check-label small" for="netinstall_<%=type%>_<%=idx%>" class="noWrap"><%=name%></label>
         <span class="float-end"><span class="badge bg-secondary"><%=size_real%></span></span>
 	</div>
 </script>
