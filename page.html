@@ -24,6 +24,11 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse justify-content-end mt-2 mt-md-0" id="navbarContent">
+                <button class="mx-0 mx-md-3 my-2 my-md-0 btn bg-secondary text-light" id="btnMetadata" title="Update Metadata"
+                        data-bs-toggle="tooltip" data-bs-placement="left">
+                    <i class="bi-cloud-download"></i>
+                    <span class="d-inline-block d-md-none">Update Metadata</span>
+                </button>
                 <form>
                     <div class="input-group">
                         <input class="form-control" id="keyword" type="text" placeholder="Search Titles..."
@@ -57,9 +62,10 @@
         <div id="netinstallContent" class="modal-content">
             <div class="modal-header bg-dark">
                 <h5 class="modal-title text-white" id="modalNetInstallLabel">Net Install</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
             </div>
-            <div  class="modal-body">
+            <div class="modal-body">
                 <div class="row mb-3">
                     <div class="input-group mb-3">
                         <span class="input-group-text">Switch IP</span>
@@ -119,7 +125,7 @@
                                         </button>
                                         <a href="<%=fileUrl%>" title="Download" class="btn btn-sm bg-primary text-light"
                                            data-bs-toggle="tooltip" data-bs-placement="left">
-                                            <i class="bi-cloud-arrow-down-fill"></i>
+                                            <i class="bi-download"></i>
                                         </a>
                                     </span>
                                 </p>
@@ -160,13 +166,14 @@
     <li class="list-group-item">v<%=version%> <small class="text-muted">(#<%=revision%>, <%=date%>)</small>
         <span class="float-end">
             <span class="badge bg-secondary"><%=size%></span>
-            <button data-title-id="<%=titleId%>" data-version="<%=version%>"data-path="<%=path%>" title="Analyze" class="btnAnalyze btn btn-sm bg-primary text-light"
+            <button data-title-id="<%=titleId%>" data-version="<%=version%>" data-path="<%=path%>" title="Analyze"
+                    class="btnAnalyze btn btn-sm bg-primary text-light"
                     data-bs-toggle="tooltip" data-bs-placement="left">
                 <i class="bi-file-earmark-check"></i>
             </button>
             <a href="<%=url%>" title="Download" class="btn btn-sm bg-primary text-light" data-bs-toggle="tooltip"
                data-bs-placement="left">
-                <i class="bi-cloud-arrow-down-fill"></i>
+                <i class="bi-download"></i>
             </a>
         </span>
     </li>
@@ -176,13 +183,14 @@
     <li class="list-group-item"><%=name%>
         <span class="float-end">
             <span class="badge bg-secondary"><%=size%></span>
-            <button data-title-id="<%=titleId%>" data-path="<%=path%>" title="Analyze" class="btnAnalyze btn btn-sm bg-primary text-light"
+            <button data-title-id="<%=titleId%>" data-path="<%=path%>" title="Analyze"
+                    class="btnAnalyze btn btn-sm bg-primary text-light"
                     data-bs-toggle="tooltip" data-bs-placement="left">
                 <i class="bi-file-earmark-check"></i>
             </button>
             <a href="<%=url%>" title="Download" class="btn btn-sm bg-primary text-light" data-bs-toggle="tooltip"
                data-bs-placement="left">
-                <i class="bi-cloud-arrow-down-fill"></i>
+                <i class="bi-download"></i>
             </a>
         </span>
     </li>
@@ -196,7 +204,7 @@
                        data-path="<%=path%>">
                 <label class="form-check-label" for="netinstall_base" class="noWrap"><strong>Base Game</strong></label>
                 <span class="float-end"><span class="badge bg-secondary"><%=size_real%></span></span>
-			</div>
+            </div>
         </li>
         <li class="list-group-item <%=hideUpdates%>">
             <div class="row">
@@ -227,7 +235,7 @@
                data-path="<%=path%>">
         <label class="form-check-label small" for="netinstall_<%=type%>_<%=idx%>" class="noWrap"><%=name%></label>
         <span class="float-end"><span class="badge bg-secondary"><%=size_real%></span></span>
-	</div>
+    </div>
 </script>
 
 </body>

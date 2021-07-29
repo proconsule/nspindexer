@@ -27,6 +27,12 @@ $("#keyword").on('keyup', function () {
     }
 });
 
+$("#btnMetadata").on('click', function () {
+    $.getJSON("index.php?metadata", function (data) {
+        alert(data.msg);
+    });
+});
+
 $("#keywordClear").on('click', function () {
     $('#keyword').val('');
     createRows(titles);
