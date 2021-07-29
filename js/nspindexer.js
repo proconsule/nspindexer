@@ -94,10 +94,21 @@ function enableNetInstall() {
 
 function enableAnalyze() {
     $('.btnAnalyze').on('click', function () {
+        var titleId = $(this).data('title-id');
+        var version = $(this).data('version');
         $.getJSON("index.php?parsensp=" + encodeURIComponent($(this).data('path')), function (data) {
-            console.log(data);
             if (data.int === 0) {
-                alert("TitleId: " + data.titleId + ", Version: " + data.version);
+                if(titleId.toLowerCase() == data.titleId) {
+                    if (version === undefined) {
+                        alert("TitleId in filename matches internal TitleId.");
+                    } else if (version == data.version) {
+                        alert("TitleId in filename matches internal TitleId.\nVersion in filename matches internal version.");
+                    } else {
+                        alert("TitleId in filename matches internal TitleId.\nVersion in filename DOES NOT match internal version.\nFilename: v"+version+"\nInternal:  v"+data.version);
+                    }
+                } else {
+                    alert("TitleId in filename DOES NOT match internal TitleId!\nFilename: "+titleId.toLowerCase()+"\nInternal:  "+data.titleId);
+                }
             } else {
                 alert(data.msg);
             }
@@ -141,12 +152,13 @@ function bytesToHuman(bytes, si = false, dp = 1) {
     return bytes.toFixed(dp) + ' ' + units[u];
 }
 
-function createCard(id, title) {
+function createCard(titleId, title) {
     var listUpdates = [];
     var listDlc = []
     var updateTemplate = $('#updateTemplate').html();
     $.each(title.updates, function (version, u) {
         listUpdates += tmpl(updateTemplate, {
+            titleId: titleId.substr(0, 13) + '800',
             version: version,
             revision: version / 65536,
             date: u.date,
@@ -156,8 +168,9 @@ function createCard(id, title) {
         });
     });
     var dlcTemplate = $('#dlcTemplate').html();
-    $.each(title.dlc, function (i, d) {
+    $.each(title.dlc, function (dlcID, d) {
         listDlc += tmpl(dlcTemplate, {
+            titleId: dlcID,
             name: d.name,
             url: encodeURI(contentUrl + '/' + d.path),
             path: d.path,
@@ -172,8 +185,8 @@ function createCard(id, title) {
     var countDlc = Object.keys(title.dlc).length;
     var cardTemplate = $('#cardTemplate');
     var card = tmpl(cardTemplate.html(), {
+        titleId: titleId,
         thumbUrl: title.thumb,
-        titleId: id,
         bannerUrl: title.banner,
         name: title.name,
         intro: title.intro,

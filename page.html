@@ -112,7 +112,7 @@
                                     <strong>Base Game</strong>
                                     <span class="float-end">
                                         <span class="badge bg-secondary"><%=fileSize%></span>
-                                        <button data-path="<%=filePath%>" title="Analyze"
+                                        <button data-title-id="<%=titleId%>" data-path="<%=filePath%>" title="Analyze"
                                                 class="btnAnalyze btn btn-sm bg-primary text-light"
                                                 data-bs-toggle="tooltip" data-bs-placement="left">
                                             <i class="bi-file-earmark-check"></i>
@@ -160,7 +160,7 @@
     <li class="list-group-item">v<%=version%> <small class="text-muted">(#<%=revision%>, <%=date%>)</small>
         <span class="float-end">
             <span class="badge bg-secondary"><%=size%></span>
-            <button data-path="<%=path%>" title="Analyze" class="btnAnalyze btn btn-sm bg-primary text-light"
+            <button data-title-id="<%=titleId%>" data-version="<%=version%>"data-path="<%=path%>" title="Analyze" class="btnAnalyze btn btn-sm bg-primary text-light"
                     data-bs-toggle="tooltip" data-bs-placement="left">
                 <i class="bi-file-earmark-check"></i>
             </button>
@@ -176,7 +176,7 @@
     <li class="list-group-item"><%=name%>
         <span class="float-end">
             <span class="badge bg-secondary"><%=size%></span>
-            <button data-path="<%=path%>" title="Analyze" class="btnAnalyze btn btn-sm bg-primary text-light"
+            <button data-title-id="<%=titleId%>" data-path="<%=path%>" title="Analyze" class="btnAnalyze btn btn-sm bg-primary text-light"
                     data-bs-toggle="tooltip" data-bs-placement="left">
                 <i class="bi-file-earmark-check"></i>
             </button>
