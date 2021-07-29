@@ -67,6 +67,9 @@ function createRows(data, keyword = "") {
 }
 
 function checkLatest(updates, version) {
+	if(version == 0){
+		return true;
+	}
     for (const update in updates) {
         if (updates[update].version === version) {
             return true;

@@ -134,6 +134,13 @@ function getFileSize($filename)
     return $size;
 }
 
+function intDatetoStr($intdate){
+	if($intdate == null)return null;
+	preg_match('/(\d{4})(\d{2})(\d{2})/', $intdate, $DateMatches);
+	return $DateMatches[1]."-".$DateMatches[2]."-".$DateMatches[3];
+	
+}
+
 function getMetadata($type, $refresh = false)
 {
     if (!$refresh && file_exists(CACHE_DIR . "/" . $type . ".json")) {
@@ -188,15 +195,22 @@ function outputTitles()
         $titles = matchTitleIds(getFileList($gameDir));
         $output = array();
         foreach ($titles as $titleId => $title) {
-            $latestVersion = $titlesJson[substr_replace($titleId, "800", -3)]["version"];
-            $game = array(
+			$latestVersion = 0;
+			if(array_key_exists(substr_replace($titleId, "800", -3),$titlesJson)){
+				$latestVersion = $titlesJson[substr_replace($titleId, "800", -3)]["version"];
+			}
+			$lastDateVersion = intDatetoStr(strval($titlesJson[$titleId]["releaseDate"]));
+			if(array_key_exists(strtolower($titleId), $versionsJson)){
+			    $lastDateVersion = $versionsJson[strtolower($titleId)][$latestVersion];
+			}
+			$game = array(
                 "path" => $title["path"],
                 "name" => $titlesJson[$titleId]["name"],
                 "thumb" => $titlesJson[$titleId]["iconUrl"],
                 "banner" => $titlesJson[$titleId]["bannerUrl"],
                 "intro" => $titlesJson[$titleId]["intro"],
                 "latest_version" => $latestVersion,
-                "latest_date" => $versionsJson[strtolower($titleId)][$latestVersion],
+                "latest_date" => $lastDateVersion,
                 "size" => $titlesJson[$titleId]["size"],
                 "size_real" => getFileSize($gameDir . "/" . $title["path"])
             );
