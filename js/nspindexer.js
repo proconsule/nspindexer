@@ -190,9 +190,9 @@ function createCard(titleId, title) {
             size: bytesToHuman(dlc.size_real)
         });
     });
-    var updateStatus = '<i class="bi-x-circle-fill text-danger"></i>';
+    var updateClass = 'bg-danger';
     if (title.latest_version === 0 || title.latest_version in title.updates) {
-        updateStatus = '<i class="bi-check-circle-fill text-success"></i>';
+        updateClass = 'bg-success';
     }
     var countUpdates = Object.keys(title.updates).length;
     var countDlc = Object.keys(title.dlc).length;
@@ -206,7 +206,7 @@ function createCard(titleId, title) {
         enableNetInstall: (netInstallEnabled) ? "" : "d-none",
         latestVersion: title.latest_version == null ? "?" : title.latest_version,
         latestDate: title.latest_date == null ? "?" : title.latest_date,
-        updateStatus: updateStatus,
+        updateClass: updateClass,
         path: encodeURI(title.path),
         url: contentUrl + '/' + title.path,
         size: bytesToHuman(title.size_real),

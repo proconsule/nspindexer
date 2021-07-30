@@ -115,8 +115,10 @@
                     </h5>
                     <div class="card-text">
                         <p class="small noWrap"><%=intro%></p>
-                        <p class="small"><strong>Latest Version:</strong> v<%=latestVersion%> (<%=latestDate%>)
-                            <%=updateStatus%></p>
+                        <p class="small">
+                            <strong>Latest Version:</strong>
+                            <span class="badge <%=updateClass%>">v<%=latestVersion%></span> <span class="text-muted">(<%=latestDate%>)</span>
+                        </p>
                         <ul class="list-group">
                             <li class="list-group-item">
                                 <p class="my-1">
