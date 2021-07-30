@@ -177,9 +177,9 @@ function outputConfig()
     ));
 }
 
-function outputTitles()
+function outputTitles($forceUpdate = false)
 {
-    if (file_exists(CACHE_DIR . "/games.json") && (filemtime(CACHE_DIR . "/games.json") > (time() - 60 * 5))) {
+    if (!$forceUpdate && file_exists(CACHE_DIR . "/games.json") && (filemtime(CACHE_DIR . "/games.json") > (time() - 60 * 5))) {
         $json = file_get_contents(CACHE_DIR . "/games.json");
     } else {
         global $gameDir;
@@ -270,7 +270,7 @@ if (isset($_GET["config"])) {
     die();
 } elseif (isset($_GET["titles"])) {
     header("Content-Type: application/json");
-    echo outputTitles();
+    echo outputTitles(isset($_GET["force"]));
     die();
 } elseif (isset($_GET["tinfoil"])) {
     header("Content-Type: application/json");
