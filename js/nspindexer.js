@@ -160,25 +160,25 @@ function createCard(titleId, title) {
     var listUpdates = [];
     var listDlc = []
     var updateTemplate = $('#updateTemplate').html();
-    $.each(title.updates, function (version, u) {
+    $.each(title.updates, function (updateVersion, update) {
         listUpdates += tmpl(updateTemplate, {
             titleId: titleId.substr(0, 13) + '800',
-            version: version,
-            revision: version / 65536,
-            date: u.date,
-            url: encodeURI(contentUrl + '/' + u.path),
-            path: u.path,
-            size: bytesToHuman(u.size_real)
+            version: updateVersion,
+            revision: updateVersion / 65536,
+            date: update.date,
+            url: contentUrl + '/' + update.path,
+            path: encodeURI(update.path),
+            size: bytesToHuman(update.size_real)
         });
     });
     var dlcTemplate = $('#dlcTemplate').html();
-    $.each(title.dlc, function (dlcID, d) {
+    $.each(title.dlc, function (dlcId, dlc) {
         listDlc += tmpl(dlcTemplate, {
-            titleId: dlcID,
-            name: d.name,
-            url: encodeURI(contentUrl + '/' + d.path),
-            path: d.path,
-            size: bytesToHuman(d.size_real)
+            titleId: dlcId,
+            name: dlc.name,
+            url: contentUrl + '/' + dlc.path,
+            path: encodeURI(dlc.path),
+            size: bytesToHuman(dlc.size_real)
         });
     });
     var updateStatus = '<i class="bi-x-circle-fill text-danger"></i>';
@@ -198,9 +198,9 @@ function createCard(titleId, title) {
         latestVersion: title.latest_version == null ? "?" : title.latest_version,
         latestDate: title.latest_date == null ? "?" : title.latest_date,
         updateStatus: updateStatus,
-        filePath: encodeURI(title.path),
-        fileUrl: contentUrl + '/' + title.path,
-        fileSize: bytesToHuman(title.size_real),
+        path: encodeURI(title.path),
+        url: contentUrl + '/' + title.path,
+        size: bytesToHuman(title.size_real),
         hideUpdates: (countUpdates == 0) ? "d-none" : "",
         countUpdates: countUpdates,
         listUpdates: listUpdates,
@@ -242,25 +242,25 @@ function modalNetInstall(titleId) {
 
     var countUpdates = Object.keys(titles[titleId].updates).length;
     var listUpdates = [];
-    $.each(titles[titleId].updates, function (version, u) {
+    $.each(titles[titleId].updates, function (updateVersion, update) {
         listUpdates += tmpl(contentTemplate, {
-            idx: version,
             type: 'update',
-            name: 'v' + version + ' <small class="text-muted">(#' + version / 65536 + ', ' + u.date + ')</small>',
-            path: u.path,
-            size_real: bytesToHuman(u.size_real)
+            idx: updateVersion,
+            name: 'v' + updateVersion + ' <small class="text-muted">(#' + updateVersion / 65536 + ', ' + update.date + ')</small>',
+            path: encodeURI(update.path),
+            size_real: bytesToHuman(update.size_real)
         });
     });
 
     var countDlc = Object.keys(titles[titleId].dlc).length;
     var listDlc = [];
-    $.each(titles[titleId].dlc, function (i, d) {
+    $.each(titles[titleId].dlc, function (dlcId, dlc) {
         listDlc += tmpl(contentTemplate, {
             type: 'dlc',
-            idx: i,
-            name: d.name,
-            path: d.path,
-            size_real: bytesToHuman(d.size_real)
+            idx: dlcId,
+            name: dlc.name,
+            path: encodeURI(dlc.path),
+            size_real: bytesToHuman(dlc.size_real)
         });
     });
 

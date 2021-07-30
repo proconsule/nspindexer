@@ -14,7 +14,7 @@ $dstPort = 2000;
 
 $strPayload = "";
 foreach ($_POST["listFiles"] as $key => $file) {
-    $strPayload .= $netInstallSrc . implode('/', array_map('rawurlencode', explode('/', $contentUrl . '/' . $file))) . "\n";
+    $strPayload .= $netInstallSrc . $contentUrl . '/' . $file . "\n";
 }
 
 $strPayload = mb_convert_encoding($strPayload, 'ASCII');
