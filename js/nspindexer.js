@@ -6,6 +6,9 @@ var netInstallEnabled = false;
 $(document).ready(function () {
     $("#keyword").val("");
     loadConfig();
+    $('[data-bs-toggle="tooltip"]').each(function () {
+        new bootstrap.Tooltip($(this));
+    });
     loadTitles();
 })
 
@@ -27,7 +30,13 @@ $("#keyword").on('keyup', function () {
     }
 });
 
+$("#btnRefresh").on('click', function () {
+    $(this).blur();
+    createRows(titles);
+});
+
 $("#btnMetadata").on('click', function () {
+    $(this).blur();
     $.getJSON("index.php?metadata", function (data) {
         alert(data.msg);
     });
@@ -123,11 +132,11 @@ function enableAnalyze() {
 }
 
 function enablePopovers() {
-    $('[data-bs-toggle="tooltip"]').each(function () {
+    $('#titleList [data-bs-toggle="tooltip"]').each(function () {
         new bootstrap.Tooltip($(this), {
             container: $(this).parent()
         });
-    })
+    });
 }
 
 function init() {
