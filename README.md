@@ -1,5 +1,5 @@
 # NSP Indexer
-> PHP Indexer for Switch NSP (XCI NSZ XCZ) made by proconsule and jangrewe
+> PHP Indexer for Switch NSP (XCI NSZ XCZ) by proconsule and jangrewe
 
 ![Preview](docs/preview.jpg)
 
@@ -16,6 +16,8 @@ Hope you enjoy it!
 - Check For latest Update version of game file (if any)
 - Compatible with tinfoil Custom Index JSON (if called with `index.php/?tinfoil`)
 - Compatible with DBI plaintext list (if called with `index.php/?DBI`)
+- Net Install (if TCP port 2000 of Switch is reachable by webserver)
+- NSP Internal TitleID Check
 
 # Thanks to
 - duckbill007 for support on DBI Installer

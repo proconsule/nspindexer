@@ -1,9 +1,12 @@
 var titles = [];
 var keywordTimer;
+var contentUrl;
+var netInstallEnabled = false;
 
 $(document).ready(function () {
     $("#keyword").val("");
-    loadJson()
+    loadConfig();
+    loadTitles();
 })
 
 $("#keyword").on('keydown', function (event) {
@@ -24,21 +27,35 @@ $("#keyword").on('keyup', function () {
     }
 });
 
+$("#btnMetadata").on('click', function () {
+    $.getJSON("index.php?metadata", function (data) {
+        alert(data.msg);
+    });
+});
+
 $("#keywordClear").on('click', function () {
     $('#keyword').val('');
     createRows(titles);
+});
+
+$("#startNetInstall").on('click', function () {
+    startNetInstall();
 })
 
-function loadJson() {
-    $.getJSON("index.php?json", function (data) {
-        titles = data;
+function loadConfig() {
+    $.getJSON("index.php?config", function (data) {
+        contentUrl = data.contentUrl;
+        $('#version').text(data.version);
+        $('#switchIp').val(data.switchIp);
+        netInstallEnabled = data.enableNetInstall;
+    });
+}
+
+function loadTitles() {
+    $.getJSON("index.php?titles", function (data) {
+        titles = data.titles;
         createRows(titles);
-    }).done(function () {
-        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-            return new bootstrap.Popover(popoverTriggerEl)
-        });
-    })
+    });
 }
 
 function createRows(data, keyword = "") {
@@ -50,36 +67,75 @@ function createRows(data, keyword = "") {
         createCard(id, title);
         //return false;
     });
-    lazyLoad();
-    enableLists();
-}
-
-function checkLatest(updates, version) {
-    for (const update in updates) {
-        if (updates[update].version === version) {
-            return true;
-        }
-    }
-    return false;
+    init();
 }
 
 function lazyLoad() {
     $('.lazy').Lazy({
+        visibleOnly: true,
+        bind: 'event',
         scrollDirection: 'vertical',
         effect: 'fadeIn',
-        effectTime: 500,
-        threshold: 100
+        effectTime: 500
     });
 }
 
-function enableLists() {
+function enableListTriggers() {
     $('.contentListTrigger').on('click', function (event) {
         event.preventDefault();
         var target = $(this).siblings('.contentList')[0];
         $(target).slideToggle();
-        var trigger = event.target;
-        $(trigger).find('.listChevron').toggleClass("bi-chevron-down bi-chevron-up");
+        $(event.target).parents('li').find('.listChevron').toggleClass("bi-chevron-down bi-chevron-up");
     });
+}
+
+function enableNetInstall() {
+    $('.btnNetInstall').on('click', function () {
+        var titleId = $(this).data("title-id");
+        modalNetInstall(titleId);
+    });
+}
+
+function enableAnalyze() {
+    $('.btnAnalyze').on('click', function () {
+        var titleId = $(this).data('title-id');
+        var version = $(this).data('version');
+        $.getJSON("index.php?parsensp=" + encodeURIComponent($(this).data('path')), function (data) {
+            if (data.int === 0) {
+                if(titleId.toLowerCase() == data.titleId) {
+                    if (version === undefined) {
+                        alert("TitleId in filename matches internal TitleId.");
+                    } else if (version == data.version) {
+                        alert("TitleId in filename matches internal TitleId.\nVersion in filename matches internal version.");
+                    } else {
+                        alert("TitleId in filename matches internal TitleId.\nVersion in filename DOES NOT match internal version.\nFilename: v"+version+"\nInternal:  v"+data.version);
+                    }
+                } else {
+                    alert("TitleId in filename DOES NOT match internal TitleId!\nFilename: "+titleId.toLowerCase()+"\nInternal:  "+data.titleId);
+                }
+            } else {
+                alert(data.msg);
+            }
+        }).done(function () {
+            // foo
+        });
+    });
+}
+
+function enablePopovers() {
+    $('[data-bs-toggle="tooltip"]').each(function () {
+        new bootstrap.Tooltip($(this), {
+            container: $(this).parent()
+        });
+    })
+}
+
+function init() {
+    lazyLoad();
+    enableListTriggers();
+    enableNetInstall();
+    enableAnalyze();
+    enablePopovers();
 }
 
 // by mpen, https://stackoverflow.com/a/14919494/5218832
@@ -100,33 +156,51 @@ function bytesToHuman(bytes, si = false, dp = 1) {
     return bytes.toFixed(dp) + ' ' + units[u];
 }
 
-function createCard(id, title) {
+function createCard(titleId, title) {
     var listUpdates = [];
     var listDlc = []
-    $.each(title.updates, function (i, u) {
-        listUpdates += '<li class="list-group-item"><strong>#' + u.version / 65536 + ' / v' + u.version + ':</strong> ' + u.path.split(/\//).pop() + ' <a href="' + contentUrl + u.path + '"><i class="bi-cloud-arrow-down-fill"></i></a><span class="badge bg-primary float-end">' + bytesToHuman(u.size_real) + '</span></li>';
-    })
-    $.each(title.dlc, function (i, d) {
-        listDlc += '<li class="list-group-item">' + d.path.split(/\//).pop() + ' <a href="' + contentUrl + d.path + '"><i class="bi-cloud-arrow-down-fill"></i></a><span class="badge bg-primary float-end">' + bytesToHuman(d.size_real) + '</span></li>';
-    })
+    var updateTemplate = $('#updateTemplate').html();
+    $.each(title.updates, function (version, u) {
+        listUpdates += tmpl(updateTemplate, {
+            titleId: titleId.substr(0, 13) + '800',
+            version: version,
+            revision: version / 65536,
+            date: u.date,
+            url: encodeURI(contentUrl + '/' + u.path),
+            path: u.path,
+            size: bytesToHuman(u.size_real)
+        });
+    });
+    var dlcTemplate = $('#dlcTemplate').html();
+    $.each(title.dlc, function (dlcID, d) {
+        listDlc += tmpl(dlcTemplate, {
+            titleId: dlcID,
+            name: d.name,
+            url: encodeURI(contentUrl + '/' + d.path),
+            path: d.path,
+            size: bytesToHuman(d.size_real)
+        });
+    });
     var updateStatus = '<i class="bi-x-circle-fill text-danger"></i>';
-    if (checkLatest(title.updates, title.latest_version)) {
+    if (title.latest_version === 0 || title.latest_version in title.updates) {
         updateStatus = '<i class="bi-check-circle-fill text-success"></i>';
     }
     var countUpdates = Object.keys(title.updates).length;
     var countDlc = Object.keys(title.dlc).length;
     var cardTemplate = $('#cardTemplate');
     var card = tmpl(cardTemplate.html(), {
+        titleId: titleId,
         thumbUrl: title.thumb,
         bannerUrl: title.banner,
         name: title.name,
         intro: title.intro,
+        enableNetInstall: (netInstallEnabled) ? "" : "d-none",
         latestVersion: title.latest_version == null ? "?" : title.latest_version,
         latestDate: title.latest_date == null ? "?" : title.latest_date,
         updateStatus: updateStatus,
-        baseFilename: title.path.split(/\//).pop(),
-        baseUrl: contentUrl + title.path,
-        baseSize: bytesToHuman(title.size_real),
+        filePath: encodeURI(title.path),
+        fileUrl: contentUrl + '/' + title.path,
+        fileSize: bytesToHuman(title.size_real),
         hideUpdates: (countUpdates == 0) ? "d-none" : "",
         countUpdates: countUpdates,
         listUpdates: listUpdates,
@@ -135,6 +209,85 @@ function createCard(id, title) {
         listDlc: listDlc
     });
     $('#titleList').append(card);
+}
+
+
+function startNetInstall() {
+    var listFiles = [];
+    var dstAddr = $("#switchIp").val();
+    $('.netInstallCheckbox:checked').each(function (i, e) {
+        listFiles.push($(this).data('path'));
+    });
+    if (listFiles.length > 0) {
+        $.post("netinstall.php", {
+            dstAddr: dstAddr,
+            listFiles: listFiles
+        }, function (status) {
+            if (status.int === 0) {
+                $('#modalNetInstall').modal('hide');
+            } else {
+                alert(status.msg);
+            }
+        });
+    } else {
+        alert("Nothing to install");
+    }
+}
+
+
+function modalNetInstall(titleId) {
+    $("#startNetInstall").attr('disabled', true);
+    $("#listNetInstall").empty();
+    var contentTemplate = $('#netInstallContentTemplate').html();
+
+    var countUpdates = Object.keys(titles[titleId].updates).length;
+    var listUpdates = [];
+    $.each(titles[titleId].updates, function (version, u) {
+        listUpdates += tmpl(contentTemplate, {
+            idx: version,
+            type: 'update',
+            name: 'v' + version + ' <small class="text-muted">(#' + version / 65536 + ', ' + u.date + ')</small>',
+            path: u.path,
+            size_real: bytesToHuman(u.size_real)
+        });
+    });
+
+    var countDlc = Object.keys(titles[titleId].dlc).length;
+    var listDlc = [];
+    $.each(titles[titleId].dlc, function (i, d) {
+        listDlc += tmpl(contentTemplate, {
+            type: 'dlc',
+            idx: i,
+            name: d.name,
+            path: d.path,
+            size_real: bytesToHuman(d.size_real)
+        });
+    });
+
+    var listTemplate = $('#netInstallTemplate').html();
+    var list = tmpl(listTemplate, {
+        path: encodeURI(titles[titleId].path),
+        name: titles[titleId].name,
+        hideUpdates: (countUpdates == 0) ? "d-none" : "",
+        listUpdates: listUpdates,
+        hideDlc: (countDlc == 0) ? "d-none" : "",
+        listDlc: listDlc,
+        size_real: bytesToHuman(titles[titleId].size_real)
+    });
+
+    $("#listNetInstall").append(list);
+    $(".netInstallCheckbox").on('click', function () {
+        var checked = $('.netInstallCheckbox:checked');
+        var btnStart = $("#startNetInstall");
+        if (checked.length > 0) {
+            btnStart.attr("disabled", false);
+        } else {
+            btnStart.attr("disabled", true);
+        }
+
+    })
+    $('#modalNetInstall').modal('show');
+
 }
 
 // by John Resig, https://johnresig.com/blog/javascript-micro-templating/
