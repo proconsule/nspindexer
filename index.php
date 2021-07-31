@@ -7,6 +7,10 @@
  *
  */
 
+define('REGEX_TITLEID', '0100[0-9A-F]{12}');
+define('REGEX_TITLEID_BASE', '0100[0-9A-F]{8}[02468ACE]000');
+define('REGEX_TITLEID_UPDATE', '0100[0-9A-F]{9}800');
+
 define("CACHE_DIR", './cache');
 if (!file_exists(CACHE_DIR)) {
     if (!@mkdir(CACHE_DIR)) {
@@ -21,6 +25,8 @@ if (file_exists('config.php')) {
 }
 
 require 'lib/parseNsp.php';
+require 'lib/renameNsp.php';
+
 
 $version = file_get_contents('./VERSION');
 
@@ -50,6 +56,35 @@ function getFileList($path)
     return array_values($arrFiles);
 }
 
+function getTitleIdType($titleId)
+{
+    if (preg_match('/'.REGEX_TITLEID_BASE .'/', $titleId) === 1) {
+        return 'base';
+    } elseif (preg_match('/'.REGEX_TITLEID_UPDATE .'/', $titleId) === 1) {
+        return 'update';
+    } elseif (preg_match('/'.REGEX_TITLEID .'/', $titleId) === 1) {
+        return 'dlc';
+    }
+    return false;
+}
+
+function getBaseTitleId($titleId) {
+    if (getTitleIdType($titleId) == 'update') {
+        return substr_replace($titleId, "000", -3);
+    } elseif (getTitleIdType($titleId) == 'dlc') {
+        return dlcIdToBaseId($titleId);
+    }
+    return strtoupper($titleId);
+}
+
+function dlcIdToBaseId($titleId) {
+    // find the Base TitleId (TitleId of the Base game with the fourth bit shifted by 1)
+    $dlcBaseId = substr_replace($titleId, "000", -3);
+    $offsetBit = hexdec(substr($dlcBaseId, 12, 1));
+    $baseTitleBit = strtoupper(dechex($offsetBit - 1));
+    return substr_replace($dlcBaseId, $baseTitleBit, -4, 1);
+}
+
 function matchTitleIds($files)
 {
     $titles = [];
@@ -57,7 +92,7 @@ function matchTitleIds($files)
     foreach ($files as $key => $file) {
 
         // check if we have a Base TitleId (0100XXXXXXXXY000, with Y being an even number)
-        if (preg_match('/(?<=\[)0100[0-9A-F]{8}[02468ACE]000(?=])/', $file, $titleIdMatches) === 1) {
+        if (preg_match('/(?<=\[)' . REGEX_TITLEID_BASE . '(?=])/', $file, $titleIdMatches) === 1) {
             $titleId = $titleIdMatches[0];
             $titles[$titleId] = array(
                 "path" => $file,
@@ -68,20 +103,22 @@ function matchTitleIds($files)
         }
     }
 
+    $unmatched = [];
     // second round, match Updates and DLC to Base TitleIds
     foreach ($files as $key => $file) {
-        if (preg_match('/(?<=\[)0100[0-9A-F]{12}(?=])/', $file, $titleIdMatches) === 0) {
+        if (preg_match('/(?<=\[)' . REGEX_TITLEID . '(?=])/', $file, $titleIdMatches) === 0) {
             // file does not have any kind of TitleId, skip further checks
+            array_push($unmatched, $file);
             continue;
         }
         $titleId = $titleIdMatches[0];
 
         // find Updates (0100XXXXXXXXX800)
-        if (preg_match('/^0100[0-9A-F]{9}800$/', $titleId) === 1) {
+        if (preg_match('/^' . REGEX_TITLEID_UPDATE . '$/', $titleId) === 1) {
 
             if (preg_match('/(?<=\[v).+?(?=])/', $file, $versionMatches) === 1) {
                 $version = $versionMatches[0];
-                $baseTitleId = substr_replace($titleId, "000", -3);
+                $baseTitleId = getBaseTitleId($titleId);
                 // add Update only if the Base TitleId for it exists
                 if ($titles[$baseTitleId]) {
                     $titles[$baseTitleId]['updates'][$titleId] = array(
@@ -92,11 +129,7 @@ function matchTitleIds($files)
             }
 
         } else {
-            // it's DLC, so find the Base TitleId (TitleId of the Base game with the fourth bit shifted by 1)
-            $dlcBaseId = substr_replace($titleId, "000", -3);
-            $offsetBit = hexdec(substr($dlcBaseId, 12, 1));
-            $baseTitleBit = strtoupper(dechex($offsetBit - 1));
-            $baseTitleId = substr_replace($dlcBaseId, $baseTitleBit, -4, 1);
+            $baseTitleId = getBaseTitleId($titleId);
             // add DLC only if the Base TitleId for it exists
             if ($titles[$baseTitleId]) {
                 $titles[$baseTitleId]['dlc'][$titleId] = array(
@@ -106,7 +139,10 @@ function matchTitleIds($files)
         }
 
     }
-    return $titles;
+    return array(
+        'titles' => $titles,
+        'unmatched' => $unmatched
+    );
 }
 
 // this is a workaround for 32bit systems and files >2GB
@@ -187,7 +223,7 @@ function outputTitles($forceUpdate = false)
         $titlesJson = getMetadata("titles");
         $titles = matchTitleIds(getFileList($gameDir));
         $output = array();
-        foreach ($titles as $titleId => $title) {
+        foreach ($titles['titles'] as $titleId => $title) {
             $latestVersion = 0;
             $updateTitleId = substr_replace($titleId, "800", -3);
             if (array_key_exists($updateTitleId, $titlesJson)) {
@@ -227,9 +263,12 @@ function outputTitles($forceUpdate = false)
                 );
             }
             $game['dlc'] = $dlcs;
-            $output['titles'][$titleId] = $game;
+            $output[$titleId] = $game;
         }
-        $json = json_encode($output);
+        $json = json_encode(array(
+            'titles' => $output,
+            'unmatched' => $titles['unmatched']
+        ));
         file_put_contents(CACHE_DIR . "/games.json", $json);
     }
     return $json;
@@ -286,8 +325,12 @@ if (isset($_GET["config"])) {
     echo refreshMetadata();
     die();
 } elseif (!empty($_GET['parsensp'])) {
-    //header("Content-Type: application/json");
+    header("Content-Type: application/json");
     echo parseNsp(realpath($gameDir . '/' . rawurldecode($_GET['parsensp'])));
+    die();
+} elseif (!empty($_GET['rename'])) {
+    //header("Content-Type: application/json");
+    echo renameNsp(realpath($gameDir . '/' . rawurldecode($_GET['rename'])), isset($_GET['preview']));
     die();
 }
 

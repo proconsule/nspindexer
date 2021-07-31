@@ -26,12 +26,14 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse justify-content-end mt-2 mt-md-0" id="navbarContent">
-                <button class="mx-0 mx-md-1 my-2 my-md-0 btn bg-secondary text-light" id="btnRefresh" title="Refresh List"
+                <button class="mx-0 mx-md-1 my-2 my-md-0 btn bg-secondary text-light" id="btnRefresh"
+                        title="Refresh List"
                         data-bs-toggle="tooltip" data-bs-placement="left">
                     <i class="bi-arrow-repeat"></i>
                     <span class="d-inline-block d-md-none">Refresh List</span>
                 </button>
-                <button class="mx-0 mx-md-3 my-2 my-md-0 btn bg-secondary text-light" id="btnMetadata" title="Update Metadata"
+                <button class="mx-0 mx-md-3 my-2 my-md-0 btn bg-secondary text-light" id="btnMetadata"
+                        title="Update Metadata"
                         data-bs-toggle="tooltip" data-bs-placement="left">
                     <i class="bi-cloud-download"></i>
                     <span class="d-inline-block d-md-none">Update Metadata</span>
@@ -50,6 +52,14 @@
 
 <main>
     <div class="py-3 bg-light">
+        <div class="container mb-3 d-none" id="warningUnmatched">
+            <div class="card text-white bg-danger">
+                <div class="card-header">
+                    <strong>Unmatched files found!</strong>
+                </div>
+                <ul class="list-group list-group-flush" id="unmatchedList"></ul>
+            </div>
+        </div>
         <div class="container" id="titleList">
         </div>
     </div>
@@ -242,8 +252,21 @@
     <div class="form-check">
         <input class="form-check-input netInstallCheckbox" type="checkbox" id="netinstall_<%=type%>_<%=idx%>"
                data-path="<%=path%>">
-        <label class="form-check-label w-100 small" for="netinstall_<%=type%>_<%=idx%>" class="noWrap"><%=name%><span class="float-end"><span class="badge bg-secondary"><%=size_real%></span></span></label>
+        <label class="form-check-label w-100 small" for="netinstall_<%=type%>_<%=idx%>" class="noWrap"><%=name%><span
+                class="float-end"><span class="badge bg-secondary"><%=size_real%></span></span></label>
     </div>
+</script>
+
+<script id="unmatchedTemplate" type="text/x-template">
+    <li class="list-group-item">
+        <%=name%>
+        <span class="float-end">
+            <button data-path="<%=path%>" class="btnRename btn btn-sm bg-danger text-light"
+                    title="Rename" data-bs-toggle="tooltip" data-bs-placement="left">
+                <i class="bi-spellcheck"></i>
+            </button>
+        </span>
+    </li>
 </script>
 
 </body>

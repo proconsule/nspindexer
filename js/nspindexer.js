@@ -68,11 +68,40 @@ function loadTitles(forceUpdate = false) {
     if (forceUpdate) {
         force = '&force';
     }
-    $.getJSON("index.php?titles"+force, function (data) {
+    $.getJSON("index.php?titles" + force, function (data) {
         showSpinner(false);
         titles = data.titles;
+        showUnmatched(data.unmatched);
         createRows(titles);
     });
+}
+
+function showUnmatched(unmatched) {
+    var list = $('#unmatchedList');
+    var warning = $('#warningUnmatched')
+    list.empty();
+    warning.addClass('d-none');
+    if (unmatched.length > 0) {
+        var unmatchedTemplate = $('#unmatchedTemplate').html();
+        $.each(unmatched, function (i, path) {
+            var row = tmpl(unmatchedTemplate, {
+                name: path,
+                path: encodeURI(path)
+            });
+            list.append(row)
+        });
+        warning.removeClass('d-none');
+        $('.btnRename').on('click', function () {
+            var path = $(this).data('path');
+            var preview = '&preview';
+            $.getJSON("index.php?rename=" + path + preview, function (data) {
+                if(data.int === 0) {
+                    alert('preview: '+data.filename);
+                }
+                console.log(data);
+            });
+        });
+    }
 }
 
 function createRows(data, keyword = "") {
@@ -88,7 +117,7 @@ function createRows(data, keyword = "") {
 }
 
 function showSpinner(show) {
-    if(show) {
+    if (show) {
         $('#loadingSpinner').removeClass('d-none');
         $('#brandLogo').addClass('d-none');
     } else {
@@ -129,16 +158,16 @@ function enableAnalyze() {
         var version = $(this).data('version');
         $.getJSON("index.php?parsensp=" + encodeURIComponent($(this).data('path')), function (data) {
             if (data.int === 0) {
-                if(titleId.toLowerCase() == data.titleId) {
+                if (titleId.toLowerCase() == data.titleId) {
                     if (version === undefined) {
                         alert("TitleId in filename matches internal TitleId.");
                     } else if (version == data.version) {
                         alert("TitleId in filename matches internal TitleId.\nVersion in filename matches internal version.");
                     } else {
-                        alert("TitleId in filename matches internal TitleId.\nVersion in filename DOES NOT match internal version.\nFilename: v"+version+"\nInternal:  v"+data.version);
+                        alert("TitleId in filename matches internal TitleId.\nVersion in filename DOES NOT match internal version.\nFilename: v" + version + "\nInternal:  v" + data.version);
                     }
                 } else {
-                    alert("TitleId in filename DOES NOT match internal TitleId!\nFilename: "+titleId.toLowerCase()+"\nInternal:  "+data.titleId);
+                    alert("TitleId in filename DOES NOT match internal TitleId!\nFilename: " + titleId.toLowerCase() + "\nInternal:  " + data.titleId);
                 }
             } else {
                 alert(data.msg);
