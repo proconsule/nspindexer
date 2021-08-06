@@ -84,7 +84,7 @@ function matchTitleIds($files)
                 $baseTitleId = substr_replace($titleId, "000", -3);
                 // add Update only if the Base TitleId for it exists
                 if ($titles[$baseTitleId]) {
-                    $titles[$baseTitleId]['updates'][$titleId] = array(
+                    $titles[$baseTitleId]['updates'][$version] = array(
                         "path" => $file,
                         "version" => $version
                     );
