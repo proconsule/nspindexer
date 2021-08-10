@@ -121,9 +121,8 @@ function matchTitleIds($files)
                 $baseTitleId = getBaseTitleId($titleId);
                 // add Update only if the Base TitleId for it exists
                 if ($titles[$baseTitleId]) {
-                    $titles[$baseTitleId]['updates'][$titleId] = array(
-                        "path" => $file,
-                        "version" => $version
+                    $titles[$baseTitleId]['updates'][$version] = array(
+                        "path" => $file
                     );
                 }
             }
@@ -191,7 +190,7 @@ function refreshMetadata()
 {
     $refreshed = array();
     foreach (array('versions', 'titles') as $type) {
-        if (filemtime(CACHE_DIR . "/" . $type . ".json") < (time() - 60 * 5)) {
+        if (!file_exists(CACHE_DIR . "/" . $type . ".json") || filemtime(CACHE_DIR . "/" . $type . ".json") < (time() - 60 * 5)) {
             getMetadata($type, true);
             array_push($refreshed, $type);
         }
@@ -245,10 +244,10 @@ function outputTitles($forceUpdate = false)
                 "size_real" => getFileSize($gameDir . "/" . $title["path"])
             );
             $updates = array();
-            foreach ($title["updates"] as $updateId => $update) {
-                $updates[(int)$update["version"]] = array(
+            foreach ($title["updates"] as $updateVersion => $update) {
+                $updates[(int)$updateVersion] = array(
                     "path" => $update["path"],
-                    "date" => $versionsJson[strtolower($titleId)][$update["version"]],
+                    "date" => $versionsJson[strtolower($titleId)][$updateVersion],
                     "size_real" => getFileSize($gameDir . "/" . $update["path"])
                 );
             }
