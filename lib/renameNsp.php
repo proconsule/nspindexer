@@ -1,11 +1,11 @@
 <?php
 
-function renameNsp($path, $preview = true)
+function renameNsp($oldName, $preview = true)
 {
     global $gameDir;
-    $parseResult = json_decode(parseNsp($path));
+    $parseResult = json_decode(parseNsp(realpath($gameDir . '/' . $oldName)));
     $error = false;
-    $filename = "";
+    $newName = "";
     if ($parseResult->int === 0) {
         $titlesJson = getMetadata("titles");
         $titleId = strtoupper($parseResult->titleId);
@@ -31,18 +31,19 @@ function renameNsp($path, $preview = true)
                 $error = true;
             }
         }
-        $filename = $baseTitleName ." ". $dlcNameNice . $typeTag . "[" . $titleId . "][v" . $parseResult->version . "].nsp";
+        $newName = $baseTitleName . '/' . $baseTitleName . " " . $dlcNameNice . $typeTag . "[" . $titleId . "][v" . $parseResult->version . "].nsp";
 
         if (!$error && !$preview) {
             if (!file_exists($gameDir . '/' . $baseTitleName)) {
                 mkdir($gameDir . '/' . $baseTitleName);
             }
-            rename($path, $gameDir . '/' . $baseTitleName . '/' . $filename);
+            rename($gameDir .'/'. $oldName, $gameDir . '/' . $newName);
         }
     }
 
     return json_encode(array(
         "int" => $parseResult->int,
-        "filename" => $filename
+        "old" => $oldName,
+        "new" => $newName,
     ));
 }

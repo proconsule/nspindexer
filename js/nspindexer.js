@@ -76,9 +76,45 @@ function loadTitles(forceUpdate = false) {
     });
 }
 
+function confirmRename(oldName, newName) {
+    $.confirm({
+        columnClass: 'large',
+        title: 'Confirm Rename',
+        content: 'Do you want to rename <code class="small text-light bg-dark rounded p-1">' + decodeURI(oldName) + '</code> to <code class="small text-light bg-dark rounded p-1">' + newName + '</code>?',
+        buttons: {
+            cancel: {
+                text: 'No',
+                btnClass: 'btn-danger',
+                action: function (btn) {
+                    // nothing
+                }
+            },
+            confirm: {
+                text: 'Yes',
+                btnClass: 'btn-success',
+                action: function (btn) {
+                    $.getJSON("index.php?rename=" + oldName, function (data) {
+                        if (data.int === 0) {
+                            $('button[data-path="' + oldName + '"]').parent().parent().remove();
+                            if ($('#unmatchedList li').length < 1) {
+                                $('#warningUnmatched').addClass('d-none');
+                            }
+                        } else {
+                            $.alert({
+                                title: 'Error',
+                                content: 'There was a problem renaming the NSP, please check manually.',
+                            })
+                        }
+                    });
+                }
+            }
+        }
+    });
+}
+
 function showUnmatched(unmatched) {
     var list = $('#unmatchedList');
-    var warning = $('#warningUnmatched')
+    var warning = $('#warningUnmatched');
     list.empty();
     warning.addClass('d-none');
     if (unmatched.length > 0) {
@@ -95,13 +131,13 @@ function showUnmatched(unmatched) {
             var path = $(this).data('path');
             var preview = '&preview';
             $.getJSON("index.php?rename=" + path + preview, function (data) {
-                if(data.int === 0) {
-                    alert('preview: '+data.filename);
+                if (data.int === 0) {
+                    confirmRename(data.old, data.new);
                 }
-                console.log(data);
             });
         });
     }
+    console.log();
 }
 
 function createRows(data, keyword = "") {
@@ -147,6 +183,7 @@ function enableListTriggers() {
 
 function enableNetInstall() {
     $('.btnNetInstall').on('click', function () {
+        $(this).blur();
         var titleId = $(this).data("title-id");
         modalNetInstall(titleId);
     });
@@ -154,20 +191,18 @@ function enableNetInstall() {
 
 function enableAnalyze() {
     $('.btnAnalyze').on('click', function () {
+        $(this).blur();
         var titleId = $(this).data('title-id');
         var version = $(this).data('version');
-        $.getJSON("index.php?parsensp=" + encodeURIComponent($(this).data('path')), function (data) {
+        $.getJSON("index.php?rename=" + encodeURIComponent($(this).data('path')) + '&preview', function (data) {
             if (data.int === 0) {
-                if (titleId.toLowerCase() == data.titleId) {
-                    if (version === undefined) {
-                        alert("TitleId in filename matches internal TitleId.");
-                    } else if (version == data.version) {
-                        alert("TitleId in filename matches internal TitleId.\nVersion in filename matches internal version.");
-                    } else {
-                        alert("TitleId in filename matches internal TitleId.\nVersion in filename DOES NOT match internal version.\nFilename: v" + version + "\nInternal:  v" + data.version);
-                    }
+                if (data.old === data.new) {
+                    $.alert({
+                        title: 'Filename is correct',
+                        content: 'The current filename matches the expected filename.'
+                    });
                 } else {
-                    alert("TitleId in filename DOES NOT match internal TitleId!\nFilename: " + titleId.toLowerCase() + "\nInternal:  " + data.titleId);
+                    confirmRename(data.old, data.new);
                 }
             } else {
                 alert(data.msg);

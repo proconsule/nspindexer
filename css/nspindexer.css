@@ -53,3 +53,7 @@ body {
     height: 32px;
     width: 32px;
 }
+
+.jconfirm-content div {
+    overflow-y: hidden;
+}

@@ -328,8 +328,8 @@ if (isset($_GET["config"])) {
     echo parseNsp(realpath($gameDir . '/' . rawurldecode($_GET['parsensp'])));
     die();
 } elseif (!empty($_GET['rename'])) {
-    //header("Content-Type: application/json");
-    echo renameNsp(realpath($gameDir . '/' . rawurldecode($_GET['rename'])), isset($_GET['preview']));
+    header("Content-Type: application/json");
+    echo renameNsp(rawurldecode($_GET['rename']), isset($_GET['preview']));
     die();
 }
 
