@@ -24,9 +24,8 @@ if (file_exists('config.php')) {
     require 'config.php';
 }
 
-require 'lib/parseNsp.php';
+require 'lib/NSP.php';
 require 'lib/renameNsp.php';
-
 
 $version = file_get_contents('./VERSION');
 
@@ -58,17 +57,18 @@ function getFileList($path)
 
 function getTitleIdType($titleId)
 {
-    if (preg_match('/'.REGEX_TITLEID_BASE .'/', $titleId) === 1) {
+    if (preg_match('/' . REGEX_TITLEID_BASE . '/', $titleId) === 1) {
         return 'base';
-    } elseif (preg_match('/'.REGEX_TITLEID_UPDATE .'/', $titleId) === 1) {
+    } elseif (preg_match('/' . REGEX_TITLEID_UPDATE . '/', $titleId) === 1) {
         return 'update';
-    } elseif (preg_match('/'.REGEX_TITLEID .'/', $titleId) === 1) {
+    } elseif (preg_match('/' . REGEX_TITLEID . '/', $titleId) === 1) {
         return 'dlc';
     }
     return false;
 }
 
-function getBaseTitleId($titleId) {
+function getBaseTitleId($titleId)
+{
     if (getTitleIdType($titleId) == 'update') {
         return substr_replace($titleId, "000", -3);
     } elseif (getTitleIdType($titleId) == 'dlc') {
@@ -77,7 +77,8 @@ function getBaseTitleId($titleId) {
     return strtoupper($titleId);
 }
 
-function dlcIdToBaseId($titleId) {
+function dlcIdToBaseId($titleId)
+{
     // find the Base TitleId (TitleId of the Base game with the fourth bit shifted by 1)
     $dlcBaseId = substr_replace($titleId, "000", -3);
     $offsetBit = hexdec(substr($dlcBaseId, 12, 1));
@@ -322,10 +323,6 @@ if (isset($_GET["config"])) {
 } elseif (isset($_GET['metadata'])) {
     header("Content-Type: application/json");
     echo refreshMetadata();
-    die();
-} elseif (!empty($_GET['parsensp'])) {
-    header("Content-Type: application/json");
-    echo parseNsp(realpath($gameDir . '/' . rawurldecode($_GET['parsensp'])));
     die();
 } elseif (!empty($_GET['rename'])) {
     header("Content-Type: application/json");

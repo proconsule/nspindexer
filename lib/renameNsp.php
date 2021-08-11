@@ -3,12 +3,14 @@
 function renameNsp($oldName, $preview = true)
 {
     global $gameDir;
-    $parseResult = json_decode(parseNsp(realpath($gameDir . '/' . $oldName)));
+
+    $nsp = new NSP(realpath($gameDir . '/' . $oldName));
     $error = false;
     $newName = "";
-    if ($parseResult->int === 0) {
+    if ($nsp->getHeaderInfo()) {
+        $nspInfo = $nsp->getInfo();
         $titlesJson = getMetadata("titles");
-        $titleId = strtoupper($parseResult->titleId);
+        $titleId = strtoupper($nspInfo->titleId);
         $titleIdType = getTitleIdType($titleId);
         $baseTitleId = $titleId;
         $typeTag = "";
@@ -31,18 +33,22 @@ function renameNsp($oldName, $preview = true)
                 $error = true;
             }
         }
-        $newName = $baseTitleName . '/' . $baseTitleName . " " . $dlcNameNice . $typeTag . "[" . $titleId . "][v" . $parseResult->version . "].nsp";
+        $newName = $baseTitleName . '/' . $baseTitleName . " " . $dlcNameNice . $typeTag . "[" . $titleId . "][v" . $nspInfo->version . "].nsp";
 
         if (!$error && !$preview) {
             if (!file_exists($gameDir . '/' . $baseTitleName)) {
                 mkdir($gameDir . '/' . $baseTitleName);
             }
-            rename($gameDir .'/'. $oldName, $gameDir . '/' . $newName);
+            rename($gameDir . '/' . $oldName, $gameDir . '/' . $newName);
         }
+    } else {
+        $error = true;
     }
 
+    $nsp->close();
+
     return json_encode(array(
-        "int" => $parseResult->int,
+        "int" => $error ? -1 : 0,
         "old" => $oldName,
         "new" => $newName,
     ));
