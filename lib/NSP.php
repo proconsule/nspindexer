@@ -67,8 +67,7 @@ class NSP
                 $titleKey = fread($this->fh, 0x10);
                 fseek($this->fh, $this->fileBodyOffset + $dataOffset + 0x2a0);
                 $titleRightsId = fread($this->fh, 0x10);
-                fseek($this->fh, $this->fileBodyOffset + $dataOffset + 0x2a0);
-                $titleId = fread($this->fh, 8);
+                $titleId = substr($titleRightsId,0,8);
                 $this->ticket->titleKey = bin2hex($titleKey);
                 $this->ticket->titleRightsId = bin2hex($titleRightsId);
                 $this->ticket->titleId = bin2hex($titleId);
