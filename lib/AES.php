@@ -1,6 +1,6 @@
 <?php
 
-//  Based on aes128.py by SciresM ported by proconsule and jangrewe  
+#Based on aes128.py by SciresM ported by proconsule and jangrewe  
 
 
 function sxor($s1, $s2){
@@ -9,6 +9,42 @@ function sxor($s1, $s2){
 		$outxor .= chr(ord($s1[$i]) ^ ord($s2[$i]));
 	}
 	return $outxor;
+}
+
+
+class AESCTR{
+	
+	function __construct($key, $ctr) {
+		$this->aes = new AESECB($key);
+        if(strlen($ctr) != $THIS->aes->block_size){
+            return false;
+		}
+        $this->ctr = gmp_import($ctr,1,GMP_NATIVE_ENDIAN);
+	}
+	
+	function encrypt($data, $ctr=null){
+        if($ctr == null){
+            $ctr = $self->ctr;
+		}
+        
+        $out = '';
+        $ln = strlen($data);
+        while($ln){
+            $xorpad = $this->aes->encrypt_block_ecb(gmp_export($ctr,1));
+            $l = min(0x10, $ln);
+            $out .= sxor(substr($data,0,$l), substr($xorpad,0,$l));
+            $data = substr(data,$l,strlen($data)-$l);
+            $ln -= l;
+            $ctr += 1;
+		}
+        return $out;
+	}
+	
+	function decrypt($data, $ctr=null){
+		#same CTR is symmetric
+        return $this->encrypt($data, $ctr);
+	}
+	
 }
 
 
