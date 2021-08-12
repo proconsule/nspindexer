@@ -1,11 +1,18 @@
 <?php
 
+include "NCA.php";
+
 class XCI
 {
-    function __construct($path)
+    function __construct($path,$keys)
     {
+		if($keys == null){
+			return false;
+		}
         $this->path = $path;
+		$this->keys = $keys;
         $this->open();
+		
     }
 
     function open()

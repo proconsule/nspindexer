@@ -1,11 +1,19 @@
 <?php
 
+include "NCA.php";
+
 class NSP
 {
-    function __construct($path)
+    function __construct($path,$keys = null)
     {
         $this->path = $path;
         $this->open();
+		if($keys == null){
+			$this->decryption = false;
+		}else{
+			$this->decryption = true;
+			$this->keys = $keys;
+		}
     }
 
     function open()

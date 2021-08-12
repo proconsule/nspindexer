@@ -22,6 +22,8 @@ class NCA{
 
 		
 		$decHeader = $aes->decrypt($encHeader);
+		$this->rsa1 = substr($decHeader,0,0x100);
+		$this->rsa2 = substr($decHeader,0x100,0x100);
 		$this->magic = substr($decHeader,0x200,4);
 		$this->dtype = substr($decHeader,0x204,1);
 		$this->ctype = substr($decHeader,0x205,1);
