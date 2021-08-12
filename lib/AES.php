@@ -3,29 +3,6 @@
 //  Based on aes128.py by SciresM ported by proconsule and jangrewe  
 
 
-function gmp_binaryToInteger($operand)
-{
-    $result = '0';
-    while (strlen($operand)) {
-        $ord = ord(substr($operand, 0, 1));
-        $result = gmp_add(gmp_mul($result, 256), $ord);
-        $operand = substr($operand, 1);
-    }
-    return gmp_strval($result);
-}
-
-function bigintval($value) {
-  $value = trim($value);
-  if (ctype_digit($value)) {
-    return $value;
-  }
-  $value = preg_replace("/[^0-9](.*)$/", '', $value);
-  if (ctype_digit($value)) {
-    return $value;
-  }
-  return 0;
-}
-
 function sxor($s1, $s2){
 	$outxor = '';
 	for($i=0;$i<strlen($s1);$i++){
