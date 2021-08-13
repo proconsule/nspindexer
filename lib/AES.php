@@ -16,7 +16,7 @@ class AESCTR{
 	
 	function __construct($key, $ctr) {
 		$this->aes = new AESECB($key);
-        if(strlen($ctr) != $THIS->aes->block_size){
+        if(strlen($ctr) != $this->aes->block_size){
             return false;
 		}
         $this->ctr = gmp_import($ctr,1,GMP_NATIVE_ENDIAN);
@@ -246,7 +246,7 @@ class AESECB{
 		}
         $out = '';
 		while($data){
-            $out .= self.decrypt_block_ecb(substr($data,0,0x10));
+            $out .= $this->decrypt_block_ecb(substr($data,0,0x10));
             $data = substr($data,0x10,strlen($data)-0x10);
 		}
         return $out;
