@@ -19,6 +19,7 @@ Hope you enjoy it!
 - Net Install (if TCP port 2000 of Switch is reachable by webserver)
 - NSP Internal TitleID Check
 - XCI Internal TitleID Check (if keys supplied)
+- NCA Control File Decryption (very slow for now)
 - File Rename Based on TitleID & Version
 
 # Thanks to

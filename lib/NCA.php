@@ -1,15 +1,8 @@
 <?php
 
 include "AES.php";
-
-abstract class ContentType {
-	const Program = 0;
-	const Meta = 1;
-	const Control = 2;
-	const Manual = 3;
-    const Data = 4;
-    const PublicData = 5;
-}
+include "ROMFS.php";
+include "IVFC.php";
 
 
 class NCA{
@@ -32,8 +25,8 @@ class NCA{
 
 		
 		$decHeader = $aes->decrypt($encHeader);
-		$this->rsa1 = substr($decHeader,0,0x100);
-		$this->rsa2 = substr($decHeader,0x100,0x100);
+		$this->rsa1 = bin2hex(substr($decHeader,0,0x100));
+		$this->rsa2 = bin2hex(substr($decHeader,0x100,0x100));
 		$this->magic = substr($decHeader,0x200,4);
 		$this->distributionType  = ord(substr($decHeader,0x204,1));
 		$this->contentType = ord(substr($decHeader,0x205,1));
@@ -94,14 +87,6 @@ class NCA{
 			$this->deckeyArea[] = bin2hex(substr($deckeyArea,0+($i*0x10),0x10));
 		}
 		
-		
-		
-		
-		
-		//$this->test = substr($decHeader,0x400,0x210);
-		//echo $this->test;
-		
-		
 		$this->fsEntrys = array();
 		for($i=0;$i<4;$i++){
 			$tmpFsEntry = new stdClass();
@@ -114,27 +99,53 @@ class NCA{
 		
 		$this->fsHeaders = array();
 		for($i=0;$i<4;$i++){
+			if($this->fsEntrys[$i]->startOffset == 0)continue;
 			$tmpFsHeaderEntry = new stdClass();
 			$entrystartOffset = 0x400+($i*0x200);
 			$tmpFsHeaderEntry->version = unpack("v", substr($decHeader,$entrystartOffset,2))[1];
 			$tmpFsHeaderEntry->fsType = ord(substr($decHeader,$entrystartOffset+0x02,1));
 			$tmpFsHeaderEntry->hashType = ord(substr($decHeader,$entrystartOffset+0x03,1));
 			$tmpFsHeaderEntry->encryptionType =  ord(substr($decHeader,$entrystartOffset+0x04,1));
+			$tmpFsHeaderEntry->superBlock = substr($decHeader,$entrystartOffset+0x08,0x138);
+			if($tmpFsHeaderEntry->hashType == 3){
+			$tmpFsHeaderEntry->superBlockHash = bin2hex(substr($tmpFsHeaderEntry->superBlock,0xc0,0x20));
 			
-			$tmpFsHeaderEntry->ctrLow = bin2hex(substr($decHeader,$entrystartOffset+0x140,4));
-			$tmpFsHeaderEntry->ctrHig = bin2hex(substr($decHeader,$entrystartOffset+0x144,4));
+			}
+			
+			$tmpFsHeaderEntry->section_ctr = substr($decHeader,$entrystartOffset+0x140,0x08);
 			
 			
+			$ofs = $this->fsEntrys[$i]->startOffset >> 4;
+			$tmpFsHeaderEntry->ctr = "0000000000000000";
+            for ($j = 0; $j < 0x8; $j++) {
+                $tmpFsHeaderEntry->ctr[$j] = $tmpFsHeaderEntry->section_ctr[0x8-$j-1];
+                $tmpFsHeaderEntry->ctr[0x10-$j-1] = chr(($ofs & 0xFF));
+                $ofs >>= 8;
+            }
+			
+			$tmpFsHeaderEntry->ctr = bin2hex($tmpFsHeaderEntry->ctr);
 			$this->fsHeaders[] = $tmpFsHeaderEntry;
 		}
 		
+		for($i=0;$i<4;$i++){
+			if($this->fsEntrys[$i]->startOffset == 0)continue;
+			   $ivfc = new IVFC($this->fsHeaders[$i]->superBlock);
+			   $this->fsEntrys[$i]->romfsoffset = $this->fsEntrys[$i]->startOffset+$ivfc->sboffset;
+			   fseek($this->fh,$this->fsEntrys[$i]->startOffset+$this->fileOffset);
+			   $this->fsEntrys[$i]->encData = fread($this->fh,$this->fsEntrys[$i]->endOffset-$this->fsEntrys[$i]->startOffset);
+			   
+		}
 		
 	}
 	
+	function getRomfs($idx){
+		$this->romfs = new ROMFS($this->fsEntrys[$idx]->encData,$this->deckeyArea[2],$this->fsHeaders[$idx]->ctr);
+		$this->romfs->decData = substr($this->romfs->decData,$this->fsEntrys[$idx]->romfsoffset-$this->fsEntrys[$idx]->startOffset,$this->fsEntrys[$idx]->endOffset);
+		$this->romfs->getHeader();
+	}
 	
 	
 }
-
 
 
 /* Debug Example

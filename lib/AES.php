@@ -11,6 +11,32 @@ function sxor($s1, $s2){
 	return $outxor;
 }
 
+#UGLY class for override the PHP limitation on very long integer (i know is not built for this)
+class CTRCOUNTER{
+	function __construct($ctr) {
+	     $this->ctr = $ctr; 
+	}
+	
+	function incrementnext($i,$num){
+		
+		$newnum = ord($this->ctr[$i])+$num;
+		if($newnum > 255 && $i != 0){
+			$newnum = $newnum - 256;
+			$this->ctr[$i] = chr($newnum);
+			$this->incrementnext($i-1,1);
+		}else{
+			$this->ctr[$i] = chr($newnum);
+		}
+		chr(ord($this->ctr[$i])+$i);
+		
+	}
+	
+	function add($num){
+		     $this->incrementnext(strlen($this->ctr)-1,$num);
+	}
+	
+}
+
 
 class AESCTR{
 	
@@ -19,23 +45,24 @@ class AESCTR{
         if(strlen($ctr) != $this->aes->block_size){
             return false;
 		}
-        $this->ctr = gmp_import($ctr,1,GMP_NATIVE_ENDIAN);
+		$this->ctr = new CTRCOUNTER($ctr);
+		
 	}
 	
 	function encrypt($data, $ctr=null){
         if($ctr == null){
-            $ctr = $self->ctr;
+            $ctr = $this->ctr;
 		}
         
         $out = '';
         $ln = strlen($data);
         while($ln){
-            $xorpad = $this->aes->encrypt_block_ecb(gmp_export($ctr,1));
-            $l = min(0x10, $ln);
+			$xorpad = $this->aes->encrypt_block_ecb($ctr->ctr);
+			$l = min(0x10, $ln);
             $out .= sxor(substr($data,0,$l), substr($xorpad,0,$l));
-            $data = substr(data,$l,strlen($data)-$l);
-            $ln -= l;
-            $ctr += 1;
+            $data = substr($data,$l,strlen($data)-$l);
+            $ln -= $l;
+			$ctr->add(1);
 		}
         return $out;
 	}

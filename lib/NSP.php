@@ -63,6 +63,18 @@ class NSP
             $file->size = $dataSize;
             $file->offset = $dataOffset;
             $this->filesList[] = $file;
+			if($this->decryption){
+				if ($parts[1] == "nca"){
+					fseek($this->fh, $this->fileBodyOffset + $dataOffset);
+					$ncafile = new NCA($this->fh,$this->fileBodyOffset+$dataOffset,$dataSize,$this->keys);
+					$ncafile->readHeader();
+					if($ncafile->contentType == 2){
+						echo "Control NCA\n";
+						$ncafile->getRomfs(0);
+						$this->ncafile = $ncafile;
+					}
+				}
+			}
             if ($parts[1] . "." . $parts[2] == "cnmt.xml") {
                 $this->nspHasXmlFile = true;
                 fseek($this->fh, $this->fileBodyOffset + $dataOffset);
@@ -89,7 +101,13 @@ class NSP
 
     function getInfo()
     {
-        if ($this->nspHasXmlFile) {
+		if ($this->decryption){
+			$this->title = $this->ncafile->romfs->nacp->title;
+			$this->publisher = $this->ncafile->romfs->nacp->publisher;
+			$this->humanversion = $this->ncafile->romfs->nacp->version;
+			$this->titleId = $this->ncafile->programId;
+			
+		}elseif ($this->nspHasXmlFile) {
             $xml = simplexml_load_string($this->xmlFile);
             $this->src = 'xml';
             $this->titleId = substr($xml->Id, 2);
@@ -97,7 +115,7 @@ class NSP
         } elseif ($this->nspHasTicketFile) {
             $this->src = 'tik';
             $this->titleId = $this->ticket->titleId;
-            $this->version = 'NOTFOUND';
+            $this->version = 'NOTFOUND';			
         } else {
             return false;
         }
@@ -105,3 +123,5 @@ class NSP
     }
 
 }
+
+
