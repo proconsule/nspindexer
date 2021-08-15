@@ -148,10 +148,11 @@ $nsp->getHeaderInfo();
 
 
 
-var_dump($nsp->ncafile->programId);
+var_dump($nsp->cnmtncafile->pfs0->cnmt->id);
 var_dump($nsp->ncafile->romfs->nacp->title);
 var_dump($nsp->ncafile->romfs->nacp->publisher);
 var_dump($nsp->ncafile->romfs->nacp->version);
 var_dump($nsp->cnmtncafile->pfs0->cnmt->version);
+var_dump(bin2hex($nsp->cnmtncafile->pfs0->cnmt->mediaType));
+var_dump($nsp->cnmtncafile->pfs0->cnmt->otherId);
 */
-

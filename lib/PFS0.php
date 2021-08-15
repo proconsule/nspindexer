@@ -49,12 +49,15 @@ class PFS0{
 	
 }
 
+#mediaType 0x80	Application (Base Game), 0x81 Patch Update , 0x82 AddOnContent (DLC)
 
 class CNMT{
 	function __construct($data,$dataSize){
 		$data;
-		$this->id = bin2hex(substr($data,0,0x8));
+		$this->id = bin2hex(strrev(substr($data,0,0x8)));
 		$this->version = unpack("V",(substr($data,0x08,0x4)));
+		$this->mediaType = substr($data,0x0c,0x1);
+		$this->otherId = bin2hex(strrev(substr($data,0x20,0x08)));
 	}
 	
 }
