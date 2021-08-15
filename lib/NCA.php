@@ -3,6 +3,7 @@
 include "AES.php";
 include "ROMFS.php";
 include "IVFC.php";
+include "PFS0.php";
 
 
 class NCA{
@@ -141,6 +142,20 @@ class NCA{
 			   $this->fsEntrys[$i]->romfsoffset = $this->fsEntrys[$i]->startOffset+$ivfc->sboffset;
 			   fseek($this->fh,$this->fsEntrys[$i]->startOffset+$this->fileOffset);
 			   $this->fsEntrys[$i]->encData = fread($this->fh,$this->fsEntrys[$i]->endOffset-$this->fsEntrys[$i]->startOffset);
+			}
+			if($this->fsHeaders[$i]->hashType  == 2){
+				$shahash = substr($this->fsHeaders[$i]->superBlock,0,0x20)[1];
+				$blocksize = unpack("V", substr($this->fsHeaders[$i]->superBlock,0x20,4))[1];
+				$pfs0offset = unpack("Q", substr($this->fsHeaders[$i]->superBlock,0x38,8))[1];
+				$pfs0size = unpack("Q", substr($this->fsHeaders[$i]->superBlock,0x40,8))[1];
+				$this->fsEntrys[$i]->pfs0offset = $this->fsEntrys[$i]->startOffset+$pfs0offset;
+				fseek($this->fh,$this->fsEntrys[$i]->startOffset+$this->fileOffset);
+				$this->fsEntrys[$i]->encData = fread($this->fh,$this->fsEntrys[$i]->endOffset-$this->fsEntrys[$i]->startOffset);
+			    $aesctr = new AESCTR(hex2bin(strtoupper($this->deckeyArea[2])),hex2bin(strtoupper($this->fsHeaders[$i]->ctr)),true);
+				$this->fsEntrys[$i]->decData = $aesctr->decrypt($this->fsEntrys[$i]->encData);
+				$pfs0 = new PFS0($this->fsEntrys[$i]->decData,$pfs0offset,$pfs0size);
+				$pfs0->getHeader();
+				$this->pfs0 = $pfs0;
 			}
 		}
 		

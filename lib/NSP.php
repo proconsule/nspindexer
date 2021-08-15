@@ -64,10 +64,22 @@ class NSP
             $file->offset = $dataOffset;
             $this->filesList[] = $file;
 			if($this->decryption){
+				
+				
+				
 				if ($parts[count($parts)-1] == "nca"){
 					fseek($this->fh, $this->fileBodyOffset + $dataOffset);
 					$ncafile = new NCA($this->fh,$this->fileBodyOffset+$dataOffset,$dataSize,$this->keys);
 					$ncafile->readHeader();
+					
+					if ($parts[count($parts)-2] == "cnmt" && $parts[count($parts)-1] == "nca"){
+						$cnmtncafile = new NCA($this->fh,$this->fileBodyOffset+$dataOffset,$dataSize,$this->keys);
+						$cnmtncafile->readHeader();
+						$cnmtncafile->getFs();
+						$this->cnmtncafile = $cnmtncafile;
+				    }
+					
+					
 					if($ncafile->contentType == 2){
 						$ncafile->getFs();
 						$ncafile->getRomfs(0);
@@ -104,6 +116,7 @@ class NSP
 		if ($this->decryption){
 			$this->title = $this->ncafile->romfs->nacp->title;
 			$this->publisher = $this->ncafile->romfs->nacp->publisher;
+			$this->version = $this->cnmtncafile->pfs0->cnmt->version;
 			$this->humanversion = $this->ncafile->romfs->nacp->version;
 			$this->titleId = $this->ncafile->programId;
 			
@@ -133,10 +146,12 @@ $mykeys = parse_ini_file("/root/.switch/prod.keys");
 $nsp = new NSP($argv[1],$mykeys);
 $nsp->getHeaderInfo();
 
+
+
+var_dump($nsp->ncafile->programId);
 var_dump($nsp->ncafile->romfs->nacp->title);
 var_dump($nsp->ncafile->romfs->nacp->publisher);
 var_dump($nsp->ncafile->romfs->nacp->version);
-var_dump($nsp->ncafile->programId);
+var_dump($nsp->cnmtncafile->pfs0->cnmt->version);
 */
-
 

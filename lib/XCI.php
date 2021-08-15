@@ -54,6 +54,14 @@ class XCI
 		$parts = explode('.', strtolower($this->securepartition->filenames[$i]));
 		$ncafile = new NCA($this->fh,$this->securepartition->rawdataoffset + $this->securepartition->file_array[$i]->fileoffset,$this->securepartition->file_array[$i]->filesize,$this->keys);
 		$ncafile->readHeader();
+		
+		if ($parts[count($parts)-2] == "cnmt" && $parts[count($parts)-1] == "nca"){
+			$cnmtncafile = new NCA($this->fh,$this->securepartition->rawdataoffset + $this->securepartition->file_array[$i]->fileoffset,$this->securepartition->file_array[$i]->filesize,$this->keys);
+			$cnmtncafile->readHeader();
+			$cnmtncafile->getFs();
+			$this->cnmtncafile = $cnmtncafile;
+		}
+		
 		if($ncafile->contentType == 2){
 			$ncafile->getFs();
 			$ncafile->getRomfs(0);
@@ -125,8 +133,9 @@ $xci = new XCI($argv[1],$mykeys);
 $xci->getMasterPartitions();
 $xci->getSecurePartition();
 	
+var_dump($xci->ncafile->programId);
 var_dump($xci->ncafile->romfs->nacp->title);
 var_dump($xci->ncafile->romfs->nacp->publisher);
 var_dump($xci->ncafile->romfs->nacp->version);
-var_dump($xci->ncafile->programId);
+var_dump($xci->cnmtncafile->pfs0->cnmt->version);
 */
