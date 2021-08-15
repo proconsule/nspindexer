@@ -281,6 +281,7 @@ function createCard(titleId, title) {
     var cardTemplate = $('#cardTemplate');
     var card = tmpl(cardTemplate.html(), {
         titleId: titleId,
+		fileType: title.fileType,
         thumbUrl: title.thumb,
         bannerUrl: title.banner,
         name: title.name,

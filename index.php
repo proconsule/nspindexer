@@ -26,19 +26,9 @@ if (file_exists('config.php')) {
 
 require 'lib/NSP.php';
 require 'lib/renameNsp.php';
+require 'lib/Utils.php';
 
 $version = file_get_contents('./VERSION');
-
-function getURLSchema()
-{
-    $server_request_scheme = "http";
-    if ((!empty($_SERVER['REQUEST_SCHEME']) && $_SERVER['REQUEST_SCHEME'] == 'https') ||
-        (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ||
-        (!empty($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == '443')) {
-        $server_request_scheme = 'https';
-    }
-    return $server_request_scheme;
-}
 
 function getFileList($path)
 {
@@ -145,31 +135,6 @@ function matchTitleIds($files)
     );
 }
 
-// this is a workaround for 32bit systems and files >2GB
-function getFileSize($filename)
-{
-
-    $size = filesize($filename);
-    if ($size === false) {
-        $fp = fopen($filename, 'r');
-        if (!$fp) {
-            return false;
-        }
-        $offset = PHP_INT_MAX - 1;
-        $size = (float)$offset;
-        if (!fseek($fp, $offset)) {
-            return false;
-        }
-        $chunksize = 8192;
-        while (!feof($fp)) {
-            $size += strlen(fread($fp, $chunksize));
-        }
-    } elseif ($size < 0) {
-        $size = sprintf("%u", $size);
-    }
-    return $size;
-}
-
 function getMetadata($type, $refresh = false)
 {
     if (!$refresh && file_exists(CACHE_DIR . "/" . $type . ".json")) {
@@ -235,6 +200,7 @@ function outputTitles($forceUpdate = false)
             }
             $game = array(
                 "path" => $title["path"],
+				"fileType" => guessFileType($gameDir . "/" . $title["path"]),
                 "name" => $titlesJson[$titleId]["name"],
                 "thumb" => $titlesJson[$titleId]["iconUrl"],
                 "banner" => $titlesJson[$titleId]["bannerUrl"],

@@ -105,7 +105,7 @@
 <script src="js/bootstrap.bundle.min.js"></script>
 <script src="js/jquery.lazy.min.js"></script>
 <script src="js/jquery-confirm.min.js"></script>
-<script src="js/nspindexer.js"></script>
+<script src="js/nspindexer.js?random=<?= uniqid() ?>"></script>
 
 <script id="cardTemplate" type="text/x-template">
     <div class="row gx-2 mb-4">
@@ -137,6 +137,7 @@
                             <li class="list-group-item">
                                 <p class="my-1">
                                     <strong>Base Game</strong>
+									<span class="badge bg-success"><%=fileType%></span>
                                     <span class="float-end">
                                         <span class="badge bg-secondary"><%=size%></span>
                                         <button data-title-id="<%=titleId%>" data-path="<%=path%>"

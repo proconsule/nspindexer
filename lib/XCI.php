@@ -12,7 +12,6 @@ class XCI
         $this->path = $path;
 		$this->keys = $keys;
         $this->open();
-		
     }
 
     function open()
@@ -29,10 +28,8 @@ class XCI
     {
         fseek($this->fh, 0x100);
         $this->fileSignature = fread($this->fh, 4);
-
         if ($this->fileSignature != "HEAD") {
-
-            return false;
+			return false;
         }
         fseek($this->fh, 0x130);
         $this->hfs0offset = unpack("Q", fread($this->fh, 8))[1];
@@ -44,30 +41,30 @@ class XCI
     function getSecurePartition()
     {
         if (!in_array("secure", $this->masterpartition->filenames)) {
-            return false;
+			return false;
         }
         $this->secure_index = array_search('secure', $this->masterpartition->filenames);
         $this->securepartition = new HFS0($this->fh, $this->masterpartition->rawdataoffset + $this->masterpartition->file_array[$this->secure_index]->fileoffset, $this->masterpartition->file_array[$this->secure_index]->filesize);
         $this->securepartition->getHeaderInfo();
 		
 		for($i=0;$i<count($this->securepartition->filenames);$i++){
-		$parts = explode('.', strtolower($this->securepartition->filenames[$i]));
-		$ncafile = new NCA($this->fh,$this->securepartition->rawdataoffset + $this->securepartition->file_array[$i]->fileoffset,$this->securepartition->file_array[$i]->filesize,$this->keys);
-		$ncafile->readHeader();
+			$parts = explode('.', strtolower($this->securepartition->filenames[$i]));
+			$ncafile = new NCA($this->fh,$this->securepartition->rawdataoffset + $this->securepartition->file_array[$i]->fileoffset,$this->securepartition->file_array[$i]->filesize,$this->keys);
+			$ncafile->readHeader();
 		
-		if ($parts[count($parts)-2] == "cnmt" && $parts[count($parts)-1] == "nca"){
-			$cnmtncafile = new NCA($this->fh,$this->securepartition->rawdataoffset + $this->securepartition->file_array[$i]->fileoffset,$this->securepartition->file_array[$i]->filesize,$this->keys);
-			$cnmtncafile->readHeader();
-			$cnmtncafile->getFs();
-			$this->cnmtncafile = $cnmtncafile;
-		}
+			if ($parts[count($parts)-2] == "cnmt" && $parts[count($parts)-1] == "nca"){
+				$cnmtncafile = new NCA($this->fh,$this->securepartition->rawdataoffset + $this->securepartition->file_array[$i]->fileoffset,$this->securepartition->file_array[$i]->filesize,$this->keys);
+				$cnmtncafile->readHeader();
+				$cnmtncafile->getFs();
+				$this->cnmtncafile = $cnmtncafile;
+			}
 		
-		if($ncafile->contentType == 2){
-			$ncafile->getFs();
-			$ncafile->getRomfs(0);
-			$this->ncafile = $ncafile;
+			if($ncafile->contentType == 2){
+				$ncafile->getFs();
+				$ncafile->getRomfs(0);
+				$this->ncafile = $ncafile;
+			}
 		}
-	}
 		
     }
 
