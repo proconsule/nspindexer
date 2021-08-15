@@ -49,6 +49,18 @@ class XCI
         $this->secure_index = array_search('secure', $this->masterpartition->filenames);
         $this->securepartition = new HFS0($this->fh, $this->masterpartition->rawdataoffset + $this->masterpartition->file_array[$this->secure_index]->fileoffset, $this->masterpartition->file_array[$this->secure_index]->filesize);
         $this->securepartition->getHeaderInfo();
+		
+		for($i=0;$i<count($this->securepartition->filenames);$i++){
+		$parts = explode('.', strtolower($this->securepartition->filenames[$i]));
+		$ncafile = new NCA($this->fh,$this->securepartition->rawdataoffset + $this->securepartition->file_array[$i]->fileoffset,$this->securepartition->file_array[$i]->filesize,$this->keys);
+		$ncafile->readHeader();
+		if($ncafile->contentType == 2){
+			$ncafile->getFs();
+			$ncafile->getRomfs(0);
+			$this->ncafile = $ncafile;
+		}
+	}
+		
     }
 
 }
@@ -99,3 +111,22 @@ class HFS0
     }
 
 }
+
+
+
+#Debug Example
+#use php XCI.php filepath;
+
+/*
+$mykeys = parse_ini_file("/root/.switch/prod.keys");
+
+
+$xci = new XCI($argv[1],$mykeys);
+$xci->getMasterPartitions();
+$xci->getSecurePartition();
+	
+var_dump($xci->ncafile->romfs->nacp->title);
+var_dump($xci->ncafile->romfs->nacp->publisher);
+var_dump($xci->ncafile->romfs->nacp->version);
+var_dump($xci->ncafile->programId);
+*/

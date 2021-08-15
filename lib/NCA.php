@@ -25,6 +25,7 @@ class NCA{
 
 		
 		$decHeader = $aes->decrypt($encHeader);
+		$this->decHeader = $decHeader;
 		$this->rsa1 = bin2hex(substr($decHeader,0,0x100));
 		$this->rsa2 = bin2hex(substr($decHeader,0x100,0x100));
 		$this->magic = substr($decHeader,0x200,4);
@@ -87,6 +88,12 @@ class NCA{
 			$this->deckeyArea[] = bin2hex(substr($deckeyArea,0+($i*0x10),0x10));
 		}
 		
+		
+		
+	}
+	
+	function getFs(){
+		$decHeader = $this->decHeader;
 		$this->fsEntrys = array();
 		for($i=0;$i<4;$i++){
 			$tmpFsEntry = new stdClass();
@@ -129,11 +136,12 @@ class NCA{
 		
 		for($i=0;$i<4;$i++){
 			if($this->fsEntrys[$i]->startOffset == 0)continue;
+			if($this->fsHeaders[$i]->hashType  == 3){
 			   $ivfc = new IVFC($this->fsHeaders[$i]->superBlock);
 			   $this->fsEntrys[$i]->romfsoffset = $this->fsEntrys[$i]->startOffset+$ivfc->sboffset;
 			   fseek($this->fh,$this->fsEntrys[$i]->startOffset+$this->fileOffset);
 			   $this->fsEntrys[$i]->encData = fread($this->fh,$this->fsEntrys[$i]->endOffset-$this->fsEntrys[$i]->startOffset);
-			   
+			}
 		}
 		
 	}
@@ -146,17 +154,3 @@ class NCA{
 	
 	
 }
-
-
-/* Debug Example
-
-$fh = fopen("pathtocryptednca.nca","r");
-$mykeys = parse_ini_file("pathto prod.keys");
-
-$test = new NCA($fh,0,1,$mykeys);
-$test->readHeader();
-
-
-var_dump($test);
-
-*/

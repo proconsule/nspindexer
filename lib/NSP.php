@@ -64,24 +64,24 @@ class NSP
             $file->offset = $dataOffset;
             $this->filesList[] = $file;
 			if($this->decryption){
-				if ($parts[1] == "nca"){
+				if ($parts[count($parts)-1] == "nca"){
 					fseek($this->fh, $this->fileBodyOffset + $dataOffset);
 					$ncafile = new NCA($this->fh,$this->fileBodyOffset+$dataOffset,$dataSize,$this->keys);
 					$ncafile->readHeader();
 					if($ncafile->contentType == 2){
-						echo "Control NCA\n";
+						$ncafile->getFs();
 						$ncafile->getRomfs(0);
 						$this->ncafile = $ncafile;
 					}
 				}
 			}
-            if ($parts[1] . "." . $parts[2] == "cnmt.xml") {
+            if ($parts[count($parts)-2] . "." . $parts[count($parts)-1] == "cnmt.xml") {
                 $this->nspHasXmlFile = true;
                 fseek($this->fh, $this->fileBodyOffset + $dataOffset);
                 $this->xmlFile = fread($this->fh, $dataSize);
             }
 
-            if ($parts[1] == "tik") {
+            if ($parts[count($parts)-1] == "tik") {
                 $this->nspHasTicketFile = true;
                 fseek($this->fh, $this->fileBodyOffset + $dataOffset + 0x180);
                 $titleKey = fread($this->fh, 0x10);
@@ -123,5 +123,20 @@ class NSP
     }
 
 }
+
+
+#Debug Example
+#use php NSP.php filepath;
+
+/*
+$mykeys = parse_ini_file("/root/.switch/prod.keys");
+$nsp = new NSP($argv[1],$mykeys);
+$nsp->getHeaderInfo();
+
+var_dump($nsp->ncafile->romfs->nacp->title);
+var_dump($nsp->ncafile->romfs->nacp->publisher);
+var_dump($nsp->ncafile->romfs->nacp->version);
+var_dump($nsp->ncafile->programId);
+*/
 
 

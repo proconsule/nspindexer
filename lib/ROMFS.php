@@ -4,7 +4,7 @@
 
 class ROMFS{
 	function __construct($encData,$key,$ctr){
-		$aesctr = new AESCTR(hex2bin(strtoupper($key)),hex2bin(strtoupper($ctr)));
+		$aesctr = new AESCTR(hex2bin(strtoupper($key)),hex2bin(strtoupper($ctr)),true);
 	    $this->decData =  $aesctr->decrypt($encData);
 	}
     function getHeader(){
@@ -40,7 +40,6 @@ class ROMFS{
 		for($i=0;$i<count($this->Files);$i++){
 			$parts = explode('.', $this->Files[$i]->name);
 			if($parts[1] == "nacp"){
-				echo "CONTROL\n";
 				$this->nacp = new NACP($this->getFile($i));
 			}
 		}

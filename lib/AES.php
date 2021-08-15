@@ -40,13 +40,18 @@ class CTRCOUNTER{
 
 class AESCTR{
 	
-	function __construct($key, $ctr) {
-		$this->aes = new AESECB($key);
-        if(strlen($ctr) != $this->aes->block_size){
-            return false;
+	function __construct($key, $ctr,$ssl=false) {
+		$this->ssl = $ssl;
+		if($ssl== true){
+			$this->ctr = new CTRCOUNTER($ctr);
+			$this->key = $key;
+		}else{
+		    $this->aes = new AESECB($key);
+            if(strlen($ctr) != $this->aes->block_size){
+              return false;
+		    }
+		    $this->ctr = new CTRCOUNTER($ctr);
 		}
-		$this->ctr = new CTRCOUNTER($ctr);
-		
 	}
 	
 	function encrypt($data, $ctr=null){
@@ -68,8 +73,18 @@ class AESCTR{
 	}
 	
 	function decrypt($data, $ctr=null){
-		#same CTR is symmetric
-        return $this->encrypt($data, $ctr);
+		if($this->ssl){
+			if($ctr == null){
+               $ctr = $this->ctr;
+		    }
+        
+            $out = openssl_decrypt($data, 'AES-128-CTR', $this->key, OPENSSL_RAW_DATA, $ctr->ctr);
+            return $out;
+			
+		}else{
+		   #same CTR is symmetric
+           return $this->encrypt($data, $ctr);
+		}
 	}
 	
 }
