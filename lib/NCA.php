@@ -20,11 +20,7 @@ class NCA{
 		$encHeader = fread($this->fh,0xc00);
 		$k1 = substr($this->keys["header_key"],0,0x20);
 		$k2 = substr($this->keys["header_key"],0x20,0x20);
-		
-		
 		$aes = new AESXTSN([hex2bin($k1),hex2bin($k2)]);
-
-		
 		$decHeader = $aes->decrypt($encHeader);
 		$this->decHeader = $decHeader;
 		$this->rsa1 = bin2hex(substr($decHeader,0,0x100));
@@ -37,24 +33,17 @@ class NCA{
 		$this->contentSize = unpack("Q", substr($decHeader,0x208,8))[1];
 		$this->programId = bin2hex(strrev(substr($decHeader,0x210,0x08)));
 		$this->contentIndex = unpack("V", substr($decHeader,0x218,4))[1];
-		
 		$sdkRevision = ord(substr($decHeader,0x21c,1));
 		$sdkMicro = ord(substr($decHeader,0x21c+1,1));
 		$sdkMinor = ord(substr($decHeader,0x21c+2,1));
 		$sdkMajor = ord(substr($decHeader,0x21c+3,1));
-		
 		$this->keyGeneration = ord(substr($decHeader,0x220,1));
 		$this->rightsId = bin2hex(strrev(substr($decHeader,0x230,0x10)));
-		
 		$this->sdkArray = array();
-		
 		$this->sdkArray[] = $sdkRevision;
 		$this->sdkArray[] = $sdkMicro;
 		$this->sdkArray[] = $sdkMinor;
 		$this->sdkArray[] = $sdkMajor;
-		
-		
-		
 		$this->crypto_type = $this->keyGenerationOld;
 		
 		if ($this->keyGeneration > $this->crypto_type){
@@ -63,8 +52,6 @@ class NCA{
         if ($this->crypto_type){
           $this->crypto_type--; 
 		}
-		
-		
 		$keyAreakeyidxstring = "key_area_key_";
         if($this->keyAreaEncryptionKeyIndex == 0){
 			$keyAreakeyidxstring .= "application_";
@@ -75,22 +62,16 @@ class NCA{
 			
 		}
 		$keyAreakeyidxstring .= sprintf('%02x', $this->crypto_type);
-		
 		$this->keyAreakeyidxstring = $keyAreakeyidxstring;
 		$enckeyArea = substr($decHeader,0x300,0x40);
-		
         $keyareaAes = new AESECB(hex2bin($this->keys[$keyAreakeyidxstring]));
         $deckeyArea = $keyareaAes->decrypt($enckeyArea); 
-		
 		$this->enckeyArea = array();
 		$this->deckeyArea = array();
 		for($i=0;$i<4;$i++){
 			$this->enckeyArea[] = bin2hex(substr($enckeyArea,0+($i*0x10),0x10));
 			$this->deckeyArea[] = bin2hex(substr($deckeyArea,0+($i*0x10),0x10));
 		}
-		
-		
-		
 	}
 	
 	function getFs(){
@@ -101,10 +82,8 @@ class NCA{
 			$entrystartOffset = 0x240+($i*0x10);
             $tmpFsEntry->startOffset = unpack("V", substr($decHeader,$entrystartOffset,4))[1]*0x200;
 			$tmpFsEntry->endOffset = unpack("V", substr($decHeader,$entrystartOffset+0x04,4))[1]*0x200;
-			$this->fsEntrys[] = $tmpFsEntry;
-			
+			$this->fsEntrys[] = $tmpFsEntry;	
 		}
-		
 		$this->fsHeaders = array();
 		for($i=0;$i<4;$i++){
 			if($this->fsEntrys[$i]->startOffset == 0)continue;
@@ -116,13 +95,9 @@ class NCA{
 			$tmpFsHeaderEntry->encryptionType =  ord(substr($decHeader,$entrystartOffset+0x04,1));
 			$tmpFsHeaderEntry->superBlock = substr($decHeader,$entrystartOffset+0x08,0x138);
 			if($tmpFsHeaderEntry->hashType == 3){
-			$tmpFsHeaderEntry->superBlockHash = bin2hex(substr($tmpFsHeaderEntry->superBlock,0xc0,0x20));
-			
+				$tmpFsHeaderEntry->superBlockHash = bin2hex(substr($tmpFsHeaderEntry->superBlock,0xc0,0x20));
 			}
-			
 			$tmpFsHeaderEntry->section_ctr = substr($decHeader,$entrystartOffset+0x140,0x08);
-			
-			
 			$ofs = $this->fsEntrys[$i]->startOffset >> 4;
 			$tmpFsHeaderEntry->ctr = "0000000000000000";
             for ($j = 0; $j < 0x8; $j++) {
@@ -130,7 +105,6 @@ class NCA{
                 $tmpFsHeaderEntry->ctr[0x10-$j-1] = chr(($ofs & 0xFF));
                 $ofs >>= 8;
             }
-			
 			$tmpFsHeaderEntry->ctr = bin2hex($tmpFsHeaderEntry->ctr);
 			$this->fsHeaders[] = $tmpFsHeaderEntry;
 		}
@@ -158,7 +132,6 @@ class NCA{
 				$this->pfs0 = $pfs0;
 			}
 		}
-		
 	}
 	
 	function getRomfs($idx){
@@ -166,6 +139,4 @@ class NCA{
 		$this->romfs->decData = substr($this->romfs->decData,$this->fsEntrys[$idx]->romfsoffset-$this->fsEntrys[$idx]->startOffset,$this->fsEntrys[$idx]->endOffset);
 		$this->romfs->getHeader();
 	}
-	
-	
 }
