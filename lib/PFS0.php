@@ -58,6 +58,8 @@ class CNMT{
 		$this->version = unpack("V",(substr($data,0x08,0x4)))[1];
 		$this->mediaType = substr($data,0x0c,0x1);
 		$this->otherId = bin2hex(strrev(substr($data,0x20,0x08)));
+		$this->reqsysversion = bin2hex(substr($data,0x28,0x04));
+		
 	}
 	
 }

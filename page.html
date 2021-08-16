@@ -87,7 +87,6 @@
                 <div id="modalRomInfoBody"></div>
 				</div>
             <div class="modal-footer">
-                
             </div>
         </div>
     </div>
@@ -257,14 +256,24 @@
 
 <script id="romInfoTemplate" type="text/x-template">
     <div id="modalrominfoContainer" class="container">
-	<div>All data are taken from internal rom decryption (image also)</div>
-		<div>ID: <%=titleId%></div>
-		<div>Title: <%=titlename%></div>
-		<div>Publisher: <%=publisher%></div>
-		<div>Version: <%=humanVersion%></div>
-		<div>Int Version: <%=intVersion%></div>
-		<div>Rom Type: <%=mediaType%></div>
-		<img src="<%=imgData%>" />
+	<dl class="row">
+		<dt class="col-sm-3">ID</dt>
+		<dd class="col-sm-9"><%=titleId%></dd>
+		<dt class="col-sm-3">Title</dt>
+		<dd class="col-sm-9"><%=titlename%></dd>
+		<dt class="col-sm-3">Publisher</dt>
+		<dd class="col-sm-9"><%=publisher%></dd>
+		<dt class="col-sm-3">Version</dt>
+		<dd class="col-sm-9"><%=humanVersion%></dd>
+		<dt class="col-sm-3">Int Version</dt>
+		<dd class="col-sm-9">v<%=intVersion%></dd>
+		<dt class="col-sm-3">Rom Type</dt>
+		<dd class="col-sm-9"><%=mediaType%></dd>
+		<dt class="col-sm-3">SDK</dt>
+		<dd class="col-sm-9"><%=sdk%></dd>
+		<img src="<%=imgData%>" class="img-thumbnail" />
+		<div>All data and image comes from on the fly internal rom decryption</div>
+	</dl>
     </div>
 </script>
 

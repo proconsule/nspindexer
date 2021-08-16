@@ -358,6 +358,7 @@ function modalRomInfo(romData){
 		humanVersion: romData.humanVersion,
 		intVersion: romData.version,
 		mediaType: myType,
+		sdk: romData.sdk,
 		imgData: "data:image/jpeg;base64,"+romData.gameIcon
 	})
 	$("#modalRomInfoBody").append(romtmpl);
