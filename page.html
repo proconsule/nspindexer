@@ -75,6 +75,26 @@
     </div>
 </footer>
 
+<div class="modal fade" id="modalRomInfo" tabindex="-1" aria-labelledby="modalRomInfoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div id="modalRomInfoContent" class="modal-content">
+            <div class="modal-header bg-dark">
+                <h5 class="modal-title text-white" id="modalRomInfoLabel">Rom Info</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modalRomInfoBody"></div>
+				</div>
+            <div class="modal-footer">
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 <div class="modal fade" id="modalNetInstall" tabindex="-1" aria-labelledby="modalNetInstallLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div id="netinstallContent" class="modal-content">
@@ -140,6 +160,12 @@
 									<span class="badge bg-success"><%=fileType%></span>
                                     <span class="float-end">
                                         <span class="badge bg-secondary"><%=size%></span>
+										<button data-title-id="<%=titleId%>" data-path="<%=path%>"
+                                                title="Rom Info"
+                                                class="btnRomInfo btn btn-sm bg-primary text-light <%=enableDecryption%>"
+                                                data-bs-toggle="tooltip" data-bs-placement="left">
+                                            <i class="bi-file-earmark-binary"></i>
+                                        </button>
                                         <button data-title-id="<%=titleId%>" data-path="<%=path%>"
                                                 title="Check Filename"
                                                 class="btnAnalyze btn btn-sm bg-primary text-light"
@@ -189,7 +215,12 @@
     <li class="list-group-item">v<%=version%> <small class="text-muted">(#<%=revision%>, <%=date%>)</small>
         <span class="float-end">
             <span class="badge bg-secondary"><%=size%></span>
-            <button data-title-id="<%=titleId%>" data-version="<%=version%>" data-path="<%=path%>" title="Check Filename"
+            <button data-title-id="<%=titleId%>" data-version="<%=version%>" data-path="<%=path%>" title="Rom Info"
+                    class="btnRomInfo btn btn-sm bg-primary text-light"
+                    data-bs-toggle="tooltip" data-bs-placement="left">
+                <i class="bi-file-earmark-binary"></i>
+            </button>
+			<button data-title-id="<%=titleId%>" data-version="<%=version%>" data-path="<%=path%>" title="Check Filename"
                     class="btnAnalyze btn btn-sm bg-primary text-light"
                     data-bs-toggle="tooltip" data-bs-placement="left">
                 <i class="bi-file-earmark-check"></i>
@@ -206,6 +237,11 @@
     <li class="list-group-item"><%=name%>
         <span class="float-end">
             <span class="badge bg-secondary"><%=size%></span>
+			<button data-title-id="<%=titleId%>" data-path="<%=path%>" title="Rom Info"
+                    class="btnRomInfo btn btn-sm bg-primary text-light"
+                    data-bs-toggle="tooltip" data-bs-placement="left">
+                <i class="bi-file-earmark-binary"></i>
+            </button>
             <button data-title-id="<%=titleId%>" data-path="<%=path%>" title="Check Filename"
                     class="btnAnalyze btn btn-sm bg-primary text-light"
                     data-bs-toggle="tooltip" data-bs-placement="left">
@@ -217,6 +253,19 @@
             </a>
         </span>
     </li>
+</script>
+
+<script id="romInfoTemplate" type="text/x-template">
+    <div id="modalrominfoContainer" class="container">
+	<div>All data are taken from internal rom decryption (image also)</div>
+		<div>ID: <%=titleId%></div>
+		<div>Title: <%=titlename%></div>
+		<div>Publisher: <%=publisher%></div>
+		<div>Version: <%=humanVersion%></div>
+		<div>Int Version: <%=intVersion%></div>
+		<div>Rom Type: <%=mediaType%></div>
+		<img src="<%=imgData%>" />
+    </div>
 </script>
 
 <script id="netInstallTemplate" type="text/x-template">

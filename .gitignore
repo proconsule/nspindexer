@@ -3,6 +3,7 @@ cache
 titles.json
 versions.json
 config.php
+prod.keys
 
 # IntelliJ IDEA
 .idea

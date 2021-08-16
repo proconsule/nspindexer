@@ -67,6 +67,18 @@ class XCI
 		}
 		
     }
+	
+	function getInfo(){
+		$infoobj = new stdClass();
+		$infoobj->title = $this->ncafile->romfs->nacp->title;
+		$infoobj->publisher = $this->ncafile->romfs->nacp->publisher;
+		$infoobj->version = $this->cnmtncafile->pfs0->cnmt->version;
+		$infoobj->humanversion = $this->ncafile->romfs->nacp->version;
+		$infoobj->titleId = $this->ncafile->programId;
+		$infoobj->mediaType = $this->cnmtncafile->pfs0->cnmt->mediaType;
+		$infoobj->otherId = $this->cnmtncafile->pfs0->cnmt->otherId;
+		return $infoobj;
+	}
 
 }
 
@@ -129,13 +141,6 @@ $mykeys = parse_ini_file("/root/.switch/prod.keys");
 $xci = new XCI($argv[1],$mykeys);
 $xci->getMasterPartitions();
 $xci->getSecurePartition();
-	
-var_dump($xci->cnmtncafile->pfs0->cnmt->id);
-var_dump($xci->ncafile->romfs->nacp->title);
-var_dump($xci->ncafile->romfs->nacp->publisher);
-var_dump($xci->ncafile->romfs->nacp->version);
-var_dump($xci->cnmtncafile->pfs0->cnmt->version);
-var_dump(bin2hex($xci->cnmtncafile->pfs0->cnmt->mediaType));
-var_dump($xci->cnmtncafile->pfs0->cnmt->otherId);
 
+var_dump($xci->getInfo());
 */

@@ -42,6 +42,9 @@ class ROMFS{
 			if($parts[1] == "nacp"){
 				$this->nacp = new NACP($this->getFile($i));
 			}
+			if($this->Files[$i]->name == "icon_AmericanEnglish.dat"){
+				$this->gameIcon = base64_encode($this->getFile($i));
+			}
 		}
 		//$this->getFile(0);
 		

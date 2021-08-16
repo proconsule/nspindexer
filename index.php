@@ -19,7 +19,7 @@ if (!file_exists(CACHE_DIR)) {
     }
 }
 
-require 'config.default.php';
+//require 'config.default.php';
 if (file_exists('config.php')) {
     require 'config.php';
 }
@@ -29,6 +29,24 @@ require 'lib/renameNsp.php';
 require 'lib/Utils.php';
 
 $version = file_get_contents('./VERSION');
+
+if($useKeyFile){
+	$keylist = parse_ini_file($keyfile);
+}
+
+function romInfo($path){
+	global $gameDir;
+	global $keylist;
+	$filePath = realpath($gameDir . '/' . $path);
+	$fileType = guessFileType($filePath,true);
+	if($fileType == "NSP" ){
+		$nsp = new NSP($filePath,$keylist);
+		$nsp->getHeaderInfo();
+		$ret = $nsp->getInfo();
+		$ret->fileType = $fileType;
+		return json_encode($ret);
+	}
+}
 
 function getFileList($path)
 {
@@ -169,11 +187,12 @@ function refreshMetadata()
 
 function outputConfig()
 {
-    global $contentUrl, $version, $enableNetInstall, $switchIp;
+    global $contentUrl, $version, $enableNetInstall, $switchIp ,$useKeyFile;
     return json_encode(array(
         "contentUrl" => $contentUrl,
         "version" => $version,
         "enableNetInstall" => $enableNetInstall,
+		"enableDecryption" => $useKeyFile,
         "switchIp" => $switchIp
     ));
 }
@@ -293,6 +312,10 @@ if (isset($_GET["config"])) {
 } elseif (!empty($_GET['rename'])) {
     header("Content-Type: application/json");
     echo renameNsp(rawurldecode($_GET['rename']), isset($_GET['preview']));
+    die();
+} elseif (!empty($_GET['rominfo'])) {
+    header("Content-Type: application/json");
+    echo romInfo(rawurldecode($_GET['rominfo']));
     die();
 }
 

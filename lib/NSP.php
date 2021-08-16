@@ -113,26 +113,32 @@ class NSP
 
     function getInfo()
     {
+		$infoobj = new stdClass();
 		if ($this->decryption){
-			$this->title = $this->ncafile->romfs->nacp->title;
-			$this->publisher = $this->ncafile->romfs->nacp->publisher;
-			$this->version = $this->cnmtncafile->pfs0->cnmt->version;
-			$this->humanversion = $this->ncafile->romfs->nacp->version;
-			$this->titleId = $this->ncafile->programId;
+			$infoobj->title = $this->ncafile->romfs->nacp->title;
+			$infoobj->publisher = $this->ncafile->romfs->nacp->publisher;
+			$infoobj->version = (int)$this->cnmtncafile->pfs0->cnmt->version;
+			$infoobj->humanVersion = $this->ncafile->romfs->nacp->version;
+			$infoobj->titleId = $this->cnmtncafile->pfs0->cnmt->id;
+			$infoobj->mediaType = ord($this->cnmtncafile->pfs0->cnmt->mediaType);
+			$infoobj->otherId = $this->cnmtncafile->pfs0->cnmt->otherId;
+			$infoobj->gameIcon = $this->ncafile->romfs->gameIcon;
+			
 			
 		}elseif ($this->nspHasXmlFile) {
             $xml = simplexml_load_string($this->xmlFile);
-            $this->src = 'xml';
-            $this->titleId = substr($xml->Id, 2);
-            $this->version = (int)$xml->Version;
+            $infoobj->src = 'xml';
+            $infoobj->titleId = substr($xml->Id, 2);
+            $infoobj->version = (int)$xml->Version;
         } elseif ($this->nspHasTicketFile) {
-            $this->src = 'tik';
-            $this->titleId = $this->ticket->titleId;
-            $this->version = 'NOTFOUND';			
+            $infoobj->src = 'tik';
+            $infoobj->titleId = $this->ticket->titleId;
+            $infoobj->version = 'NOTFOUND';		
+            
         } else {
             return false;
         }
-        return $this;
+        return $infoobj;
     }
 
 }
@@ -146,13 +152,5 @@ $mykeys = parse_ini_file("/root/.switch/prod.keys");
 $nsp = new NSP($argv[1],$mykeys);
 $nsp->getHeaderInfo();
 
-
-
-var_dump($nsp->cnmtncafile->pfs0->cnmt->id);
-var_dump($nsp->ncafile->romfs->nacp->title);
-var_dump($nsp->ncafile->romfs->nacp->publisher);
-var_dump($nsp->ncafile->romfs->nacp->version);
-var_dump($nsp->cnmtncafile->pfs0->cnmt->version);
-var_dump(bin2hex($nsp->cnmtncafile->pfs0->cnmt->mediaType));
-var_dump($nsp->cnmtncafile->pfs0->cnmt->otherId);
+var_dump($nsp->getInfo());
 */

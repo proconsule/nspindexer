@@ -2,6 +2,7 @@ var titles = [];
 var keywordTimer;
 var contentUrl;
 var netInstallEnabled = false;
+var enableDecryption = false;
 
 $(document).ready(function () {
     $("#keyword").val("");
@@ -59,6 +60,7 @@ function loadConfig() {
         contentUrl = data.contentUrl;
         $('#version').text(data.version);
         $('#switchIp').val(data.switchIp);
+		enableDecryption = data.enableDecryption;
         netInstallEnabled = data.enableNetInstall;
     });
 }
@@ -189,6 +191,16 @@ function enableNetInstall() {
     });
 }
 
+function enableRomInfo() {
+    $('.btnRomInfo').on('click', function () {
+            var path = $(this).data('path');
+            $.getJSON("index.php?rominfo=" + encodeURIComponent(path), function (data) {
+				modalRomInfo(data);                
+        });
+    });
+}
+
+
 function enableAnalyze() {
     $('.btnAnalyze').on('click', function () {
         $(this).blur();
@@ -225,6 +237,7 @@ function init() {
     lazyLoad();
     enableListTriggers();
     enableNetInstall();
+	enableRomInfo();
     enableAnalyze();
     enablePopovers();
 }
@@ -287,6 +300,7 @@ function createCard(titleId, title) {
         name: title.name,
         intro: title.intro,
         enableNetInstall: (netInstallEnabled) ? "" : "d-none",
+		enableDecryption: (enableDecryption) ? "": "d-none",
         latestVersion: title.latest_version == null ? "?" : title.latest_version,
         latestDate: title.latest_date == null ? "?" : title.latest_date,
         updateClass: updateClass,
@@ -326,12 +340,35 @@ function startNetInstall() {
     }
 }
 
+function modalRomInfo(romData){
+	$("#modalRomInfoBody").empty();
+    var contentTemplate = $("#romInfoTemplate").html();
+	var myType = "";
+	if(romData.mediaType == 128){
+		myType = "Base Game";
+	}else if(romData.mediaType == 129){
+		myType = "Update";
+	}else if(romData.mediaType == 130){
+		myType = "DLC";
+	}
+	var romtmpl = tmpl(contentTemplate, {
+		titlename: romData.title,
+		publisher: romData.publisher,
+		titleId: romData.titleId.toUpperCase(),
+		humanVersion: romData.humanVersion,
+		intVersion: romData.version,
+		mediaType: myType,
+		imgData: "data:image/jpeg;base64,"+romData.gameIcon
+	})
+	$("#modalRomInfoBody").append(romtmpl);
+	$('#modalRomInfo').modal('show');
+	
+}
 
 function modalNetInstall(titleId) {
     $("#startNetInstall").attr('disabled', true);
     $("#listNetInstall").empty();
     var contentTemplate = $('#netInstallContentTemplate').html();
-
     var countUpdates = Object.keys(titles[titleId].updates).length;
     var listUpdates = [];
     $.each(titles[titleId].updates, function (updateVersion, update) {
@@ -388,6 +425,7 @@ function modalNetInstall(titleId) {
     this.tmpl = function tmpl(str, data) {
         // Figure out if we're getting a template, or if we need to
         // load the template - and be sure to cache the result.
+		console.log(!/\W/.test(str));
         var fn = !/\W/.test(str) ?
             cache[str] = cache[str] ||
                 tmpl(document.getElementById(str).innerHTML) :
