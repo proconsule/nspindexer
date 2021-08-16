@@ -14,6 +14,7 @@ $netInstallSrc = false; /* Set to e.g. '192.168.0.1:80' to override source addre
  * Advanced Section (use only if you know what you are doing
  */
 
+/* Decryption need php-gmp it will comes via atp-get or similar depending on distro */
 $useKeyFile = false; /* Set to true to use NCA Decryption , it enables advanced features */
 $keyfile = ""; /* Path to a prod.keys must be readable by webserver php but KEEP IT SECURE via .htaccess or similar */
 

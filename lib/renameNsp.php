@@ -2,9 +2,13 @@
 
 function renameNsp($oldName, $preview = true)
 {
-    global $gameDir;
-
-    $nsp = new NSP(realpath($gameDir . '/' . $oldName));
+    global $gameDir,$useKeyFile,$keylist;
+    $nsp = "";
+	if($useKeyFile){
+		$nsp = new NSP(realpath($gameDir . '/' . $oldName),$keylist);
+	}else{
+		$nsp = new NSP(realpath($gameDir . '/' . $oldName));
+	}
     $error = false;
     $newName = "";
     if ($nsp->getHeaderInfo()) {

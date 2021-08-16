@@ -24,15 +24,16 @@ if (file_exists('config.php')) {
     require 'config.php';
 }
 
+if($useKeyFile){
+	$keylist = parse_ini_file($keyfile);
+}
+
 require 'lib/NSP.php';
 require 'lib/renameNsp.php';
 require 'lib/Utils.php';
 
 $version = file_get_contents('./VERSION');
 
-if($useKeyFile){
-	$keylist = parse_ini_file($keyfile);
-}
 
 function romInfo($path){
 	global $gameDir;
