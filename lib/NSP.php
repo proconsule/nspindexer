@@ -124,6 +124,11 @@ class NSP
 			$infoobj->otherId = $this->cnmtncafile->pfs0->cnmt->otherId;
 			$infoobj->sdk = $this->ncafile->sdkArray[3]. "." . $this->ncafile->sdkArray[2].".".$this->ncafile->sdkArray[1];
 			$infoobj->gameIcon = $this->ncafile->romfs->gameIcon;
+			if($this->nspHasTicketFile){
+				$infoobj->titleKey = strtoupper($this->ticket->titleKey);
+			}else{
+				$infoobj->titleKey = "No TIK File found";
+			}
 			
 			
 		}elseif ($this->nspHasXmlFile) {

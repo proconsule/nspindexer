@@ -130,7 +130,7 @@
     <div class="row gx-2 mb-4">
         <div class="col col-2 d-none d-md-block">
             <div class="card px-0 shadow-sm fill cardThumb">
-                <img data-src="<%=thumbUrl%>" class="img-fluid d-block lazy"/>
+                <img data-src="<%=thumbUrl%>" class="img-fluid rounded d-block lazy"/>
             </div>
         </div>
         <div class="col col-12 col-md-10">
@@ -167,7 +167,7 @@
                                         </button>
                                         <button data-title-id="<%=titleId%>" data-path="<%=path%>"
                                                 title="Check Filename"
-                                                class="btnAnalyze btn btn-sm bg-primary text-light"
+                                                class="btnAnalyze btn btn-sm bg-primary text-light <%=enableRename%>"
                                                 data-bs-toggle="tooltip" data-bs-placement="left">
                                             <i class="bi-file-earmark-check"></i>
                                         </button>
@@ -271,8 +271,10 @@
 		<dd class="col-sm-9"><%=mediaType%></dd>
 		<dt class="col-sm-3">SDK</dt>
 		<dd class="col-sm-9"><%=sdk%></dd>
+		<dt class="col-sm-3">Title Key</dt>
+		<dd class="col-sm-9"><%=titleKey%></dd>
 		<img src="<%=imgData%>" class="img-thumbnail" />
-		<div>All data and image comes from on the fly internal rom decryption</div>
+		<div class="small">All data and image comes from on the fly internal rom decryption</div>
 	</dl>
     </div>
 </script>

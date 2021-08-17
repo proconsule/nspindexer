@@ -34,6 +34,31 @@ class CTRCOUNTER{
 	}
 }
 
+class BINSTRNUM{
+	function __construct($binstr) {
+	     $this->binstr = $binstr;	 
+	}
+	function multinc($i,$num,$inc = 0){
+		$newnum = ord($this->ctr[$i])*$num;
+		if($newnum > 255 && $i != 0){
+			$newnum = $newnum - 256;
+			$this->binstr[$i] = chr($newnum);
+			$this->multinc($i-1,$num,1);
+		}elseif ($newnum > 255 && $i == 0){
+			$newnum = $newnum - 256;
+			$this->binstr[$i] = chr($newnum);
+			$this->binstr = chr(1).$this->binstr;
+		}else{
+			$this->binstr[$i] = chr($newnum);
+		}
+	}
+	
+	function mult($num){
+		$this->multinc(strlen($this->binstr)-1,$num);
+	}
+	
+}
+
 
 class AESCTR{
 	

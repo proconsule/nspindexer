@@ -62,6 +62,7 @@ function loadConfig() {
         $('#switchIp').val(data.switchIp);
 		enableDecryption = data.enableDecryption;
         netInstallEnabled = data.enableNetInstall;
+		renameEnabled = data.enableRename;
     });
 }
 
@@ -300,6 +301,7 @@ function createCard(titleId, title) {
         name: title.name,
         intro: title.intro,
         enableNetInstall: (netInstallEnabled) ? "" : "d-none",
+		enableRename: (renameEnabled) ? "" : "d-none",
 		enableDecryption: (enableDecryption) ? "": "d-none",
         latestVersion: title.latest_version == null ? "?" : title.latest_version,
         latestDate: title.latest_date == null ? "?" : title.latest_date,
@@ -359,6 +361,7 @@ function modalRomInfo(romData){
 		intVersion: romData.version,
 		mediaType: myType,
 		sdk: romData.sdk,
+		titleKey: romData.titleKey,
 		imgData: "data:image/jpeg;base64,"+romData.gameIcon
 	})
 	$("#modalRomInfoBody").append(romtmpl);

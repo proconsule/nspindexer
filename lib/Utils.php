@@ -59,3 +59,5 @@ function getURLSchema()
     return $server_request_scheme;
 }
 
+?>
+

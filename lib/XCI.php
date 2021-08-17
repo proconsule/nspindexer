@@ -72,11 +72,13 @@ class XCI
 		$infoobj = new stdClass();
 		$infoobj->title = $this->ncafile->romfs->nacp->title;
 		$infoobj->publisher = $this->ncafile->romfs->nacp->publisher;
-		$infoobj->version = $this->cnmtncafile->pfs0->cnmt->version;
-		$infoobj->humanversion = $this->ncafile->romfs->nacp->version;
-		$infoobj->titleId = $this->ncafile->programId;
-		$infoobj->mediaType = $this->cnmtncafile->pfs0->cnmt->mediaType;
+		$infoobj->version = (int)$this->cnmtncafile->pfs0->cnmt->version;
+		$infoobj->humanVersion = $this->ncafile->romfs->nacp->version;
+		$infoobj->titleId = $this->cnmtncafile->pfs0->cnmt->id;
+		$infoobj->mediaType = ord($this->cnmtncafile->pfs0->cnmt->mediaType);
 		$infoobj->otherId = $this->cnmtncafile->pfs0->cnmt->otherId;
+		$infoobj->sdk = $this->ncafile->sdkArray[3]. "." . $this->ncafile->sdkArray[2].".".$this->ncafile->sdkArray[1];
+		$infoobj->gameIcon = $this->ncafile->romfs->gameIcon;	
 		return $infoobj;
 	}
 

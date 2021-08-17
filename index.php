@@ -188,11 +188,12 @@ function refreshMetadata()
 
 function outputConfig()
 {
-    global $contentUrl, $version, $enableNetInstall, $switchIp ,$useKeyFile;
+    global $contentUrl, $version, $enableNetInstall, $switchIp ,$useKeyFile,$enableRename;
     return json_encode(array(
         "contentUrl" => $contentUrl,
         "version" => $version,
         "enableNetInstall" => $enableNetInstall,
+		"enableRename" => $enableRename,
 		"enableDecryption" => $useKeyFile,
         "switchIp" => $switchIp
     ));
@@ -214,8 +215,9 @@ function outputTitles($forceUpdate = false)
             if (array_key_exists($updateTitleId, $titlesJson)) {
                 $latestVersion = $titlesJson[$updateTitleId]["version"];
             }
-            $latestVersionDate = join("-", array_slice(date_parse_from_format("Ynd", $titlesJson[$titleId]["releaseDate"]), 0, 3));
-            if (array_key_exists(strtolower($titleId), $versionsJson)) {
+			$realeaseDate = DateTime::createFromFormat('Ynd', $titlesJson[$titleId]["releaseDate"]);
+            $latestVersionDate = $realeaseDate->format('Y-m-d'); 
+			if (array_key_exists(strtolower($titleId), $versionsJson)) {
                 $latestVersionDate = $versionsJson[strtolower($titleId)][$latestVersion];
             }
             $game = array(
