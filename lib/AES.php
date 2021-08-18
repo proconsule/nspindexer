@@ -34,22 +34,27 @@ class CTRCOUNTER{
 	}
 }
 
+#Ugly class to deal with very long binary string integer (just to remove php-gmp deps)
 class BINSTRNUM{
 	function __construct($binstr) {
 	     $this->binstr = $binstr;	 
 	}
 	function multinc($i,$num,$inc = 0){
-		$newnum = ord($this->ctr[$i])*$num;
+		$newnum = ord($this->binstr[$i])*$num;
 		if($newnum > 255 && $i != 0){
 			$newnum = $newnum - 256;
-			$this->binstr[$i] = chr($newnum);
+			$this->binstr[$i] = chr($newnum+$inc);
 			$this->multinc($i-1,$num,1);
 		}elseif ($newnum > 255 && $i == 0){
 			$newnum = $newnum - 256;
-			$this->binstr[$i] = chr($newnum);
+			$this->binstr[$i] = chr($newnum+$inc);
 			$this->binstr = chr(1).$this->binstr;
-		}else{
-			$this->binstr[$i] = chr($newnum);
+		}elseif ($i <= 0){
+			$this->binstr[$i] = chr($newnum+$inc);
+		}
+		else{
+			$this->binstr[$i] = chr($newnum+$inc);
+			$this->multinc($i-1,$num,0);
 		}
 	}
 	
@@ -167,13 +172,41 @@ class AESXTSN{
         $out = '';
         while($data){
             $tweak = $this->get_tweak($sector);
-            $out .= $this->decrypt_sector(substr($data,0,$this->sector_size), $tweak);
+            $out .= $this->decrypt_sector2(substr($data,0,$this->sector_size), $tweak);
             $data = substr($data,$this->sector_size,strlen($data)-$this->sector_size);
             $sector += 1;
 		}
         return $out;
 	}
 	
+	function decrypt_sector2($data, $tweak){
+        if (strlen($data) % $this->block_size){
+			return false;
+		}
+        $out = '';
+        $tweak = $this->K2->encrypt(hex2bin(sprintf('%032x', $tweak)));
+        while($data){
+            $out .= sxor($tweak, $this->K1->decrypt_block_ecb(sxor(substr($data,0,0x10), $tweak)));
+			$t = new BINSTRNUM(strrev($tweak));
+			//$_t = gmp_import(strrev($tweak),1,GMP_NATIVE_ENDIAN);
+			$t->mult(2);
+			//$_t = gmp_mul($_t,gmp_pow(2,1));
+			
+			//$checkbits = gmp_and($_t,gmp_init("340282366920938463463374607431768211456",10));
+            //if(gmp_strval($checkbits)){
+			if(strlen($t->binstr) > 16){
+				//echo bin2hex($tweak);
+				//$_t = gmp_xor($_t,gmp_init("340282366920938463463374607431768211591",10));
+				$t->binstr = sxor($t->binstr,hex2bin("0100000000000000000000000000000087"));
+				$t->binstr = substr($t->binstr, 1, strlen($t->binstr)-1);
+			
+			}
+			$tweak = strrev($t->binstr);
+            $data = substr($data,0x10,strlen($data)-0x10);	
+		}
+        return $out;
+	}
+	/*
 	function decrypt_sector($data, $tweak){
         if (strlen($data) % $this->block_size){
 			return false;
@@ -194,6 +227,7 @@ class AESXTSN{
 		}
         return $out;
 	}
+	*/
 	
 	function get_tweak($sector=null){
         if ($sector == null){
@@ -409,4 +443,3 @@ class AESECB{
         return $block;
 	}
 }
-
