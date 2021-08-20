@@ -85,14 +85,10 @@
             </div>
             <div class="modal-body">
                 <div id="modalRomInfoBody"></div>
-				</div>
-            <div class="modal-footer">
             </div>
         </div>
     </div>
 </div>
-
-
 
 <div class="modal fade" id="modalNetInstall" tabindex="-1" aria-labelledby="modalNetInstallLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -156,7 +152,7 @@
                             <li class="list-group-item">
                                 <p class="my-1">
                                     <strong>Base Game</strong>
-									<span class="badge bg-success"><%=fileType%></span>
+                                    <span class="badge bg-success"><%=fileType%></span>
                                     <span class="float-end">
                                         <span class="badge bg-secondary"><%=size%></span>
 										<button data-title-id="<%=titleId%>" data-path="<%=path%>"
@@ -219,7 +215,8 @@
                     data-bs-toggle="tooltip" data-bs-placement="left">
                 <i class="bi-file-earmark-binary"></i>
             </button>
-			<button data-title-id="<%=titleId%>" data-version="<%=version%>" data-path="<%=path%>" title="Check Filename"
+			<button data-title-id="<%=titleId%>" data-version="<%=version%>" data-path="<%=path%>"
+                    title="Check Filename"
                     class="btnAnalyze btn btn-sm bg-primary text-light <%=enableRename%>"
                     data-bs-toggle="tooltip" data-bs-placement="left">
                 <i class="bi-file-earmark-check"></i>
@@ -256,26 +253,25 @@
 
 <script id="romInfoTemplate" type="text/x-template">
     <div id="modalrominfoContainer" class="container">
-	<dl class="row">
-		<dt class="col-sm-3">ID</dt>
-		<dd class="col-sm-9"><%=titleId%></dd>
-		<dt class="col-sm-3">Title</dt>
-		<dd class="col-sm-9"><%=titlename%></dd>
-		<dt class="col-sm-3">Publisher</dt>
-		<dd class="col-sm-9"><%=publisher%></dd>
-		<dt class="col-sm-3">Version</dt>
-		<dd class="col-sm-9"><%=humanVersion%></dd>
-		<dt class="col-sm-3">Int Version</dt>
-		<dd class="col-sm-9">v<%=intVersion%></dd>
-		<dt class="col-sm-3">Rom Type</dt>
-		<dd class="col-sm-9"><%=mediaType%></dd>
-		<dt class="col-sm-3">SDK</dt>
-		<dd class="col-sm-9"><%=sdk%></dd>
-		<dt class="col-sm-3">Title Key</dt>
-		<dd class="col-sm-9"><%=titleKey%></dd>
-		<img src="<%=imgData%>" class="img-thumbnail" />
-		<div class="small">All data and image comes from on the fly internal rom decryption</div>
-	</dl>
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9"><%=titleId%></dd>
+            <dt class="col-sm-3">Title</dt>
+            <dd class="col-sm-9"><%=titlename%></dd>
+            <dt class="col-sm-3">Publisher</dt>
+            <dd class="col-sm-9"><%=publisher%></dd>
+            <dt class="col-sm-3">Version</dt>
+            <dd class="col-sm-9"><%=humanVersion%></dd>
+            <dt class="col-sm-3">Int Version</dt>
+            <dd class="col-sm-9">v<%=intVersion%></dd>
+            <dt class="col-sm-3">ROM Type</dt>
+            <dd class="col-sm-9"><%=mediaType%></dd>
+            <dt class="col-sm-3">SDK</dt>
+            <dd class="col-sm-9"><%=sdk%></dd>
+            <dt class="col-sm-3">Title Key</dt>
+            <dd class="col-sm-9"><%=titleKey%></dd>
+            <img src="<%=imgData%>" class="img-thumbnail <%=showThumb%>"/>
+        </dl>
     </div>
 </script>
 

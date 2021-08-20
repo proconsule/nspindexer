@@ -375,6 +375,7 @@ function modalRomInfo(romData){
 		mediaType: myType,
 		sdk: romData.sdk,
 		titleKey: romData.titleKey,
+        showThumb: (romData.mediaType == 130) ? "d-none" : "",
 		imgData: "data:image/jpeg;base64,"+romData.gameIcon
 	})
 	$("#modalRomInfoBody").append(romtmpl);
