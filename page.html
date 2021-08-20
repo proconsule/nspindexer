@@ -79,7 +79,7 @@
     <div class="modal-dialog">
         <div id="modalRomInfoContent" class="modal-content">
             <div class="modal-header bg-dark">
-                <h5 class="modal-title text-white" id="modalRomInfoLabel">Rom Info</h5>
+                <h5 class="modal-title text-white" id="modalRomInfoLabel">ROM Info</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
             </div>
@@ -160,8 +160,8 @@
                                     <span class="float-end">
                                         <span class="badge bg-secondary"><%=size%></span>
 										<button data-title-id="<%=titleId%>" data-path="<%=path%>"
-                                                title="Rom Info"
-                                                class="btnRomInfo btn btn-sm bg-primary text-light <%=enableDecryption%>"
+                                                title="ROM Info"
+                                                class="btnRomInfo btn btn-sm bg-primary text-light <%=enableRomInfo%>"
                                                 data-bs-toggle="tooltip" data-bs-placement="left">
                                             <i class="bi-file-earmark-binary"></i>
                                         </button>
@@ -214,13 +214,13 @@
     <li class="list-group-item">v<%=version%> <small class="text-muted">(#<%=revision%>, <%=date%>)</small>
         <span class="float-end">
             <span class="badge bg-secondary"><%=size%></span>
-            <button data-title-id="<%=titleId%>" data-version="<%=version%>" data-path="<%=path%>" title="Rom Info"
-                    class="btnRomInfo btn btn-sm bg-primary text-light"
+            <button data-title-id="<%=titleId%>" data-version="<%=version%>" data-path="<%=path%>" title="ROM Info"
+                    class="btnRomInfo btn btn-sm bg-primary text-light <%=enableRomInfo%>"
                     data-bs-toggle="tooltip" data-bs-placement="left">
                 <i class="bi-file-earmark-binary"></i>
             </button>
 			<button data-title-id="<%=titleId%>" data-version="<%=version%>" data-path="<%=path%>" title="Check Filename"
-                    class="btnAnalyze btn btn-sm bg-primary text-light"
+                    class="btnAnalyze btn btn-sm bg-primary text-light <%=enableRename%>"
                     data-bs-toggle="tooltip" data-bs-placement="left">
                 <i class="bi-file-earmark-check"></i>
             </button>
@@ -236,13 +236,13 @@
     <li class="list-group-item"><%=name%>
         <span class="float-end">
             <span class="badge bg-secondary"><%=size%></span>
-			<button data-title-id="<%=titleId%>" data-path="<%=path%>" title="Rom Info"
-                    class="btnRomInfo btn btn-sm bg-primary text-light"
+			<button data-title-id="<%=titleId%>" data-path="<%=path%>" title="ROM Info"
+                    class="btnRomInfo btn btn-sm bg-primary text-light <%=enableRomInfo%>"
                     data-bs-toggle="tooltip" data-bs-placement="left">
                 <i class="bi-file-earmark-binary"></i>
             </button>
             <button data-title-id="<%=titleId%>" data-path="<%=path%>" title="Check Filename"
-                    class="btnAnalyze btn btn-sm bg-primary text-light"
+                    class="btnAnalyze btn btn-sm bg-primary text-light <%=enableRename%>"
                     data-bs-toggle="tooltip" data-bs-placement="left">
                 <i class="bi-file-earmark-check"></i>
             </button>

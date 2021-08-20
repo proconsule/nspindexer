@@ -19,34 +19,39 @@ if (!file_exists(CACHE_DIR)) {
     }
 }
 
-//require 'config.default.php';
+require 'config.default.php';
 if (file_exists('config.php')) {
     require 'config.php';
 }
 
-if($useKeyFile){
-	$keylist = parse_ini_file($keyfile);
+$enableDecryption = false;
+if (!empty($keyFile) && file_exists($keyFile)) {
+    $keyList = parse_ini_file($keyFile);
+    if (count($keyList) > 0) {
+        $enableDecryption = true;
+    }
 }
 
 require 'lib/NSP.php';
 require 'lib/renameNsp.php';
 require 'lib/Utils.php';
 
-$version = file_get_contents('./VERSION');
+$version = trim(file_get_contents('./VERSION'));
 
-
-function romInfo($path){
-	global $gameDir;
-	global $keylist;
-	$filePath = realpath($gameDir . '/' . $path);
-	$fileType = guessFileType($filePath,true);
-	if($fileType == "NSP" ){
-		$nsp = new NSP($filePath,$keylist);
-		$nsp->getHeaderInfo();
-		$ret = $nsp->getInfo();
-		$ret->fileType = $fileType;
-		return json_encode($ret);
-	}
+function romInfo($path)
+{
+    global $gameDir, $keyList;
+    $filePath = realpath($gameDir . '/' . $path);
+    $fileType = guessFileType($filePath, true);
+    if ($fileType == "NSP") {
+        $nsp = new NSP($filePath, $keyList);
+        $nsp->getHeaderInfo();
+        $ret = $nsp->getInfo();
+        $ret->fileType = $fileType;
+        return json_encode($ret);
+    } else {
+        return json_encode(array('int' => -1));
+    }
 }
 
 function getFileList($path)
@@ -188,13 +193,13 @@ function refreshMetadata()
 
 function outputConfig()
 {
-    global $contentUrl, $version, $enableNetInstall, $switchIp ,$useKeyFile,$enableRename;
+    global $contentUrl, $version, $enableNetInstall, $switchIp, $enableDecryption, $enableRename;
     return json_encode(array(
         "contentUrl" => $contentUrl,
         "version" => $version,
         "enableNetInstall" => $enableNetInstall,
-		"enableRename" => $enableRename,
-		"enableDecryption" => $useKeyFile,
+        "enableRename" => $enableRename,
+        "enableRomInfo" => $enableDecryption,
         "switchIp" => $switchIp
     ));
 }
@@ -215,14 +220,14 @@ function outputTitles($forceUpdate = false)
             if (array_key_exists($updateTitleId, $titlesJson)) {
                 $latestVersion = $titlesJson[$updateTitleId]["version"];
             }
-			$realeaseDate = DateTime::createFromFormat('Ynd', $titlesJson[$titleId]["releaseDate"]);
-            $latestVersionDate = $realeaseDate->format('Y-m-d'); 
-			if (array_key_exists(strtolower($titleId), $versionsJson)) {
+            $realeaseDate = DateTime::createFromFormat('Ynd', $titlesJson[$titleId]["releaseDate"]);
+            $latestVersionDate = $realeaseDate->format('Y-m-d');
+            if (array_key_exists(strtolower($titleId), $versionsJson)) {
                 $latestVersionDate = $versionsJson[strtolower($titleId)][$latestVersion];
             }
             $game = array(
                 "path" => $title["path"],
-				"fileType" => guessFileType($gameDir . "/" . $title["path"]),
+                "fileType" => guessFileType($gameDir . "/" . $title["path"]),
                 "name" => $titlesJson[$titleId]["name"],
                 "thumb" => $titlesJson[$titleId]["iconUrl"],
                 "banner" => $titlesJson[$titleId]["bannerUrl"],

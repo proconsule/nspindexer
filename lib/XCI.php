@@ -4,13 +4,13 @@ include "NCA.php";
 
 class XCI
 {
-    function __construct($path,$keys)
+    function __construct($path, $keys)
     {
-		if($keys == null){
-			return false;
-		}
+        if ($keys == null) {
+            return false;
+        }
         $this->path = $path;
-		$this->keys = $keys;
+        $this->keys = $keys;
         $this->open();
     }
 
@@ -29,7 +29,7 @@ class XCI
         fseek($this->fh, 0x100);
         $this->fileSignature = fread($this->fh, 4);
         if ($this->fileSignature != "HEAD") {
-			return false;
+            return false;
         }
         fseek($this->fh, 0x130);
         $this->hfs0offset = unpack("Q", fread($this->fh, 8))[1];
@@ -41,46 +41,47 @@ class XCI
     function getSecurePartition()
     {
         if (!in_array("secure", $this->masterpartition->filenames)) {
-			return false;
+            return false;
         }
         $this->secure_index = array_search('secure', $this->masterpartition->filenames);
         $this->securepartition = new HFS0($this->fh, $this->masterpartition->rawdataoffset + $this->masterpartition->file_array[$this->secure_index]->fileoffset, $this->masterpartition->file_array[$this->secure_index]->filesize);
         $this->securepartition->getHeaderInfo();
-		
-		for($i=0;$i<count($this->securepartition->filenames);$i++){
-			$parts = explode('.', strtolower($this->securepartition->filenames[$i]));
-			$ncafile = new NCA($this->fh,$this->securepartition->rawdataoffset + $this->securepartition->file_array[$i]->fileoffset,$this->securepartition->file_array[$i]->filesize,$this->keys);
-			$ncafile->readHeader();
-		
-			if ($parts[count($parts)-2] == "cnmt" && $parts[count($parts)-1] == "nca"){
-				$cnmtncafile = new NCA($this->fh,$this->securepartition->rawdataoffset + $this->securepartition->file_array[$i]->fileoffset,$this->securepartition->file_array[$i]->filesize,$this->keys);
-				$cnmtncafile->readHeader();
-				$cnmtncafile->getFs();
-				$this->cnmtncafile = $cnmtncafile;
-			}
-		
-			if($ncafile->contentType == 2){
-				$ncafile->getFs();
-				$ncafile->getRomfs(0);
-				$this->ncafile = $ncafile;
-			}
-		}
-		
+
+        for ($i = 0; $i < count($this->securepartition->filenames); $i++) {
+            $parts = explode('.', strtolower($this->securepartition->filenames[$i]));
+            $ncafile = new NCA($this->fh, $this->securepartition->rawdataoffset + $this->securepartition->file_array[$i]->fileoffset, $this->securepartition->file_array[$i]->filesize, $this->keys);
+            $ncafile->readHeader();
+
+            if ($parts[count($parts) - 2] == "cnmt" && $parts[count($parts) - 1] == "nca") {
+                $cnmtncafile = new NCA($this->fh, $this->securepartition->rawdataoffset + $this->securepartition->file_array[$i]->fileoffset, $this->securepartition->file_array[$i]->filesize, $this->keys);
+                $cnmtncafile->readHeader();
+                $cnmtncafile->getFs();
+                $this->cnmtncafile = $cnmtncafile;
+            }
+
+            if ($ncafile->contentType == 2) {
+                $ncafile->getFs();
+                $ncafile->getRomfs(0);
+                $this->ncafile = $ncafile;
+            }
+        }
+
     }
-	
-	function getInfo(){
-		$infoobj = new stdClass();
-		$infoobj->title = $this->ncafile->romfs->nacp->title;
-		$infoobj->publisher = $this->ncafile->romfs->nacp->publisher;
-		$infoobj->version = (int)$this->cnmtncafile->pfs0->cnmt->version;
-		$infoobj->humanVersion = $this->ncafile->romfs->nacp->version;
-		$infoobj->titleId = $this->cnmtncafile->pfs0->cnmt->id;
-		$infoobj->mediaType = ord($this->cnmtncafile->pfs0->cnmt->mediaType);
-		$infoobj->otherId = $this->cnmtncafile->pfs0->cnmt->otherId;
-		$infoobj->sdk = $this->ncafile->sdkArray[3]. "." . $this->ncafile->sdkArray[2].".".$this->ncafile->sdkArray[1];
-		$infoobj->gameIcon = $this->ncafile->romfs->gameIcon;	
-		return $infoobj;
-	}
+
+    function getInfo()
+    {
+        $infoobj = new stdClass();
+        $infoobj->title = $this->ncafile->romfs->nacp->title;
+        $infoobj->publisher = $this->ncafile->romfs->nacp->publisher;
+        $infoobj->version = (int)$this->cnmtncafile->pfs0->cnmt->version;
+        $infoobj->humanVersion = $this->ncafile->romfs->nacp->version;
+        $infoobj->titleId = $this->cnmtncafile->pfs0->cnmt->id;
+        $infoobj->mediaType = ord($this->cnmtncafile->pfs0->cnmt->mediaType);
+        $infoobj->otherId = $this->cnmtncafile->pfs0->cnmt->otherId;
+        $infoobj->sdk = $this->ncafile->sdkArray[3] . "." . $this->ncafile->sdkArray[2] . "." . $this->ncafile->sdkArray[1];
+        $infoobj->gameIcon = $this->ncafile->romfs->gameIcon;
+        return $infoobj;
+    }
 
 }
 
@@ -133,8 +134,8 @@ class HFS0
 
 
 
-#Debug Example
-#use php XCI.php filepath;
+# Debug Example
+# use php XCI.php filepath;
 
 /*
 $mykeys = parse_ini_file("/root/.switch/prod.keys");

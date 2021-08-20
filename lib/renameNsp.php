@@ -2,13 +2,13 @@
 
 function renameNsp($oldName, $preview = true)
 {
-    global $gameDir,$useKeyFile,$keylist;
-    $nsp = "";
-	if($useKeyFile){
-		$nsp = new NSP(realpath($gameDir . '/' . $oldName),$keylist);
-	}else{
-		$nsp = new NSP(realpath($gameDir . '/' . $oldName));
-	}
+    global $gameDir, $enableDecryption, $keyList;
+
+    if ($enableDecryption) {
+        $nsp = new NSP(realpath($gameDir . '/' . $oldName), $keyList);
+    } else {
+        $nsp = new NSP(realpath($gameDir . '/' . $oldName));
+    }
     $error = false;
     $newName = "";
     if ($nsp->getHeaderInfo()) {
@@ -45,11 +45,11 @@ function renameNsp($oldName, $preview = true)
             }
             rename($gameDir . '/' . $oldName, $gameDir . '/' . $newName);
         }
+
+        $nsp->close();
     } else {
         $error = true;
     }
-
-    $nsp->close();
 
     return json_encode(array(
         "int" => $error ? -1 : 0,

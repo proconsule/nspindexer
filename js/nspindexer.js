@@ -2,7 +2,8 @@ var titles = [];
 var keywordTimer;
 var contentUrl;
 var netInstallEnabled = false;
-var enableDecryption = false;
+var renameEnabled = false;
+var romInfoEnabled = false;
 
 $(document).ready(function () {
     $("#keyword").val("");
@@ -42,7 +43,10 @@ $("#btnMetadata").on('click', function () {
     showSpinner(true);
     $.getJSON("index.php?metadata", function (data) {
         showSpinner(false);
-        alert(data.msg);
+        $.alert({
+            title: 'Metadata Update',
+            content: data.msg
+        })
     });
 });
 
@@ -60,9 +64,9 @@ function loadConfig() {
         contentUrl = data.contentUrl;
         $('#version').text(data.version);
         $('#switchIp').val(data.switchIp);
-		enableDecryption = data.enableDecryption;
         netInstallEnabled = data.enableNetInstall;
 		renameEnabled = data.enableRename;
+        romInfoEnabled = data.enableRomInfo;
     });
 }
 
@@ -106,7 +110,7 @@ function confirmRename(oldName, newName) {
                             $.alert({
                                 title: 'Error',
                                 content: 'There was a problem renaming the NSP, please check manually.',
-                            })
+                            });
                         }
                     });
                 }
@@ -194,9 +198,16 @@ function enableNetInstall() {
 
 function enableRomInfo() {
     $('.btnRomInfo').on('click', function () {
-            var path = $(this).data('path');
-            $.getJSON("index.php?rominfo=" + encodeURIComponent(path), function (data) {
-				modalRomInfo(data);                
+        var path = $(this).data('path');
+        $.getJSON("index.php?rominfo=" + encodeURIComponent(path), function (data) {
+            if (data.titleId) {
+                modalRomInfo(data);
+            } else {
+                $.alert({
+                    title: 'Error',
+                    content: 'ROM Info could not be read.',
+                });
+            }
         });
     });
 }
@@ -205,10 +216,8 @@ function enableRomInfo() {
 function enableAnalyze() {
     $('.btnAnalyze').on('click', function () {
         $(this).blur();
-        var titleId = $(this).data('title-id');
-        var version = $(this).data('version');
         $.getJSON("index.php?rename=" + encodeURIComponent($(this).data('path')) + '&preview', function (data) {
-            if (data.int === 0) {
+            if (data.int >= 0) {
                 if (data.old === data.new) {
                     $.alert({
                         title: 'Filename is correct',
@@ -273,7 +282,9 @@ function createCard(titleId, title) {
             date: update.date,
             url: contentUrl + '/' + update.path,
             path: encodeURI(update.path),
-            size: bytesToHuman(update.size_real)
+            size: bytesToHuman(update.size_real),
+            enableRename: (renameEnabled) ? "": "d-none",
+            enableRomInfo: (romInfoEnabled) ? "": "d-none"
         });
     });
     var dlcTemplate = $('#dlcTemplate').html();
@@ -283,7 +294,9 @@ function createCard(titleId, title) {
             name: dlc.name,
             url: contentUrl + '/' + dlc.path,
             path: encodeURI(dlc.path),
-            size: bytesToHuman(dlc.size_real)
+            size: bytesToHuman(dlc.size_real),
+            enableRename: (renameEnabled) ? "": "d-none",
+            enableRomInfo: (romInfoEnabled) ? "": "d-none"
         });
     });
     var updateClass = 'bg-danger';
@@ -302,7 +315,7 @@ function createCard(titleId, title) {
         intro: title.intro,
         enableNetInstall: (netInstallEnabled) ? "" : "d-none",
 		enableRename: (renameEnabled) ? "" : "d-none",
-		enableDecryption: (enableDecryption) ? "": "d-none",
+		enableRomInfo: (romInfoEnabled) ? "": "d-none",
         latestVersion: title.latest_version == null ? "?" : title.latest_version,
         latestDate: title.latest_date == null ? "?" : title.latest_date,
         updateClass: updateClass,
@@ -366,7 +379,7 @@ function modalRomInfo(romData){
 	})
 	$("#modalRomInfoBody").append(romtmpl);
 	$('#modalRomInfo').modal('show');
-	
+
 }
 
 function modalNetInstall(titleId) {

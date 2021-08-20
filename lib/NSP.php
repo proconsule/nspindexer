@@ -4,16 +4,16 @@ include "NCA.php";
 
 class NSP
 {
-    function __construct($path,$keys = null)
+    function __construct($path, $keys = null)
     {
         $this->path = $path;
         $this->open();
-		if($keys == null){
-			$this->decryption = false;
-		}else{
-			$this->decryption = true;
-			$this->keys = $keys;
-		}
+        if ($keys == null) {
+            $this->decryption = false;
+        } else {
+            $this->decryption = true;
+            $this->keys = $keys;
+        }
     }
 
     function open()
@@ -63,43 +63,41 @@ class NSP
             $file->size = $dataSize;
             $file->offset = $dataOffset;
             $this->filesList[] = $file;
-			if($this->decryption){
-				
-				
-				
-				if ($parts[count($parts)-1] == "nca"){
-					fseek($this->fh, $this->fileBodyOffset + $dataOffset);
-					$ncafile = new NCA($this->fh,$this->fileBodyOffset+$dataOffset,$dataSize,$this->keys);
-					$ncafile->readHeader();
-					
-					if ($parts[count($parts)-2] == "cnmt" && $parts[count($parts)-1] == "nca"){
-						$cnmtncafile = new NCA($this->fh,$this->fileBodyOffset+$dataOffset,$dataSize,$this->keys);
-						$cnmtncafile->readHeader();
-						$cnmtncafile->getFs();
-						$this->cnmtncafile = $cnmtncafile;
-				    }
-					
-					
-					if($ncafile->contentType == 2){
-						$ncafile->getFs();
-						$ncafile->getRomfs(0);
-						$this->ncafile = $ncafile;
-					}
-				}
-			}
-            if ($parts[count($parts)-2] . "." . $parts[count($parts)-1] == "cnmt.xml") {
+            if ($this->decryption) {
+
+                if ($parts[count($parts) - 1] == "nca") {
+                    fseek($this->fh, $this->fileBodyOffset + $dataOffset);
+                    $ncafile = new NCA($this->fh, $this->fileBodyOffset + $dataOffset, $dataSize, $this->keys);
+                    $ncafile->readHeader();
+
+                    if ($parts[count($parts) - 2] == "cnmt" && $parts[count($parts) - 1] == "nca") {
+                        $cnmtncafile = new NCA($this->fh, $this->fileBodyOffset + $dataOffset, $dataSize, $this->keys);
+                        $cnmtncafile->readHeader();
+                        $cnmtncafile->getFs();
+                        $this->cnmtncafile = $cnmtncafile;
+                    }
+
+                    if ($ncafile->contentType == 2) {
+                        $ncafile->getFs();
+                        $ncafile->getRomfs(0);
+                        $this->ncafile = $ncafile;
+                    }
+                }
+
+            }
+            if ($parts[count($parts) - 2] . "." . $parts[count($parts) - 1] == "cnmt.xml") {
                 $this->nspHasXmlFile = true;
                 fseek($this->fh, $this->fileBodyOffset + $dataOffset);
                 $this->xmlFile = fread($this->fh, $dataSize);
             }
 
-            if ($parts[count($parts)-1] == "tik") {
+            if ($parts[count($parts) - 1] == "tik") {
                 $this->nspHasTicketFile = true;
                 fseek($this->fh, $this->fileBodyOffset + $dataOffset + 0x180);
                 $titleKey = fread($this->fh, 0x10);
                 fseek($this->fh, $this->fileBodyOffset + $dataOffset + 0x2a0);
                 $titleRightsId = fread($this->fh, 0x10);
-                $titleId = substr($titleRightsId,0,8);
+                $titleId = substr($titleRightsId, 0, 8);
                 $this->ticket->titleKey = bin2hex($titleKey);
                 $this->ticket->titleRightsId = bin2hex($titleRightsId);
                 $this->ticket->titleId = bin2hex($titleId);
@@ -113,25 +111,25 @@ class NSP
 
     function getInfo()
     {
-		$infoobj = new stdClass();
-		if ($this->decryption){
-			$infoobj->title = $this->ncafile->romfs->nacp->title;
-			$infoobj->publisher = $this->ncafile->romfs->nacp->publisher;
-			$infoobj->version = (int)$this->cnmtncafile->pfs0->cnmt->version;
-			$infoobj->humanVersion = $this->ncafile->romfs->nacp->version;
-			$infoobj->titleId = $this->cnmtncafile->pfs0->cnmt->id;
-			$infoobj->mediaType = ord($this->cnmtncafile->pfs0->cnmt->mediaType);
-			$infoobj->otherId = $this->cnmtncafile->pfs0->cnmt->otherId;
-			$infoobj->sdk = $this->ncafile->sdkArray[3]. "." . $this->ncafile->sdkArray[2].".".$this->ncafile->sdkArray[1];
-			$infoobj->gameIcon = $this->ncafile->romfs->gameIcon;
-			if($this->nspHasTicketFile){
-				$infoobj->titleKey = strtoupper($this->ticket->titleKey);
-			}else{
-				$infoobj->titleKey = "No TIK File found";
-			}
-			
-			
-		}elseif ($this->nspHasXmlFile) {
+        $infoobj = new stdClass();
+        if ($this->decryption) {
+            $infoobj->title = $this->ncafile->romfs->nacp->title;
+            $infoobj->publisher = $this->ncafile->romfs->nacp->publisher;
+            $infoobj->version = (int)$this->cnmtncafile->pfs0->cnmt->version;
+            $infoobj->humanVersion = $this->ncafile->romfs->nacp->version;
+            $infoobj->titleId = $this->cnmtncafile->pfs0->cnmt->id;
+            $infoobj->mediaType = ord($this->cnmtncafile->pfs0->cnmt->mediaType);
+            $infoobj->otherId = $this->cnmtncafile->pfs0->cnmt->otherId;
+            $infoobj->sdk = $this->ncafile->sdkArray[3] . "." . $this->ncafile->sdkArray[2] . "." . $this->ncafile->sdkArray[1];
+            $infoobj->gameIcon = $this->ncafile->romfs->gameIcon;
+            if ($this->nspHasTicketFile) {
+                $infoobj->titleKey = strtoupper($this->ticket->titleKey);
+            } else {
+                $infoobj->titleKey = "No TIK File found";
+            }
+
+
+        } elseif ($this->nspHasXmlFile) {
             $xml = simplexml_load_string($this->xmlFile);
             $infoobj->src = 'xml';
             $infoobj->titleId = substr($xml->Id, 2);
@@ -139,8 +137,8 @@ class NSP
         } elseif ($this->nspHasTicketFile) {
             $infoobj->src = 'tik';
             $infoobj->titleId = $this->ticket->titleId;
-            $infoobj->version = 'NOTFOUND';		
-            
+            $infoobj->version = 'NOTFOUND';
+
         } else {
             return false;
         }
@@ -148,7 +146,6 @@ class NSP
     }
 
 }
-
 
 #Debug Example
 #use php NSP.php filepath;

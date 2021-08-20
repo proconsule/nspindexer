@@ -1,6 +1,6 @@
 <?php
 
-#ROMFS very partial implementation, for use on small files only (we just need this)
+# ROMFS very partial implementation, for use on small files only (we just need this)
 
 class ROMFS{
 	function __construct($encData,$key,$ctr){
@@ -13,13 +13,13 @@ class ROMFS{
         $this->dir_hash_size = unpack("Q", substr($this->decData,0x10,8))[1];
 		$this->dir_meta_offset = unpack("Q", substr($this->decData,0x18,8))[1];
 		$this->dir_meta_size = unpack("Q", substr($this->decData,0x20,8))[1];
-		
+
 		$this->file_hash_offset = unpack("Q", substr($this->decData,0x28,8))[1];
         $this->file_hash_size = unpack("Q", substr($this->decData,0x30,8))[1];
 		$this->file_meta_offset = unpack("Q", substr($this->decData,0x38,8))[1];
 		$this->file_meta_size = unpack("Q", substr($this->decData,0x40,8))[1];
 		$this->data_offset = unpack("Q", substr($this->decData,0x48,8))[1];
-		
+
 		$tmpfdata = substr($this->decData,$this->file_meta_offset,$this->file_meta_size);
 		$this->Files = array();
 		$lenred = 0;
@@ -47,13 +47,13 @@ class ROMFS{
 			}
 		}
 		//$this->getFile(0);
-		
-		
+
+
 	}
 	function getFile($i){
 		$filecontents = substr($this->decData,$this->data_offset+$this->Files[$i]->offset,$this->Files[$i]->size);
 		return $filecontents;
-	}	
+	}
 }
 
 class NACP{
@@ -62,6 +62,6 @@ class NACP{
 		$this->publisher = trim(substr($ncapcontents,0x200,0x100));
 		$this->version = trim(substr($ncapcontents,0x3060,0x10));
 	}
-	
-	
+
+
 }

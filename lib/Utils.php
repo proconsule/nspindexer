@@ -1,26 +1,27 @@
 <?php
 
-function guessFileType($path,$internalcheck = false){
-	if($internalcheck == true){
-		$fh = fopen($path, "r");
-		$magicdata = fread($fh,0x104);
-		fclose($fh);
-		if(substr($magicdata,0,4) == "PFS0"){
-			return "NSP";
-		}
-		if(substr($magicdata,0x100,4) == "HEAD"){
-			return "XCI";
-		}
-		return "UNKNOWN";
-	}else{
-		$parts = explode('.', strtolower($path));
-		if($parts[count($parts)-1] == "nsp"){
-			return "NSP";
-		}
-		if($parts[count($parts)-1] == "xci"){
-			return "XCI";
-		}
-	}
+function guessFileType($path, $internalcheck = false)
+{
+    if ($internalcheck == true) {
+        $fh = fopen($path, "r");
+        $magicdata = fread($fh, 0x104);
+        fclose($fh);
+        if (substr($magicdata, 0, 4) == "PFS0") {
+            return "NSP";
+        }
+        if (substr($magicdata, 0x100, 4) == "HEAD") {
+            return "XCI";
+        }
+    } else {
+        $parts = explode('.', strtolower($path));
+        if ($parts[count($parts) - 1] == "nsp") {
+            return "NSP";
+        }
+        if ($parts[count($parts) - 1] == "xci") {
+            return "XCI";
+        }
+    }
+    return "UNKNOWN";
 }
 
 // this is a workaround for 32bit systems and files >2GB
@@ -58,6 +59,3 @@ function getURLSchema()
     }
     return $server_request_scheme;
 }
-
-?>
-
