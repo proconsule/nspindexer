@@ -33,6 +33,7 @@ if (!empty($keyFile) && file_exists($keyFile)) {
 }
 
 require 'lib/NSP.php';
+require 'lib/XCI.php';
 require 'lib/renameNsp.php';
 require 'lib/Utils.php';
 
@@ -49,6 +50,13 @@ function romInfo($path)
         $ret = $nsp->getInfo();
         $ret->fileType = $fileType;
         return json_encode($ret);
+	}elseif($fileType == "XCI"){
+		$xci = new XCI($filePath,$keyList);
+		$xci->getMasterPartitions();
+		$xci->getSecurePartition();
+		$ret = $xci->getInfo();
+		$ret->fileType = $fileType;
+		return json_encode($ret);
     } else {
         return json_encode(array('int' => -1));
     }

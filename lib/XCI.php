@@ -1,6 +1,6 @@
 <?php
 
-include "NCA.php";
+require_once "NCA.php";
 
 class XCI
 {

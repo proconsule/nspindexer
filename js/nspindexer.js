@@ -372,7 +372,7 @@ function modalRomInfo(romData){
 		titleId: romData.titleId.toUpperCase(),
 		humanVersion: romData.humanVersion,
 		intVersion: romData.version,
-		mediaType: myType,
+		mediaType: myType + " [" + romData.fileType + "]",
 		sdk: romData.sdk,
 		titleKey: romData.titleKey,
         showThumb: (romData.mediaType == 130) ? "d-none" : "",
