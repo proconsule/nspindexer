@@ -31,6 +31,20 @@ if (file_exists('config.php')) {
     require 'config.php';
 }
 
+require 'lib/Utils.php';
+
+if (isset($_GET["tinfoil"])) {
+	header("Content-Type: application/json");
+	header('Content-Disposition: filename="main.json"');
+	echo outputTinfoil();
+	die();
+} elseif (isset($_GET["DBI"])) {
+	header("Content-Type: text/plain");
+	echo outputDbi();
+die();
+}
+
+
 $enableDecryption = false;
 if (!empty($keyFile) && file_exists($keyFile)) {
     $keyList = parse_ini_file($keyFile);
@@ -48,7 +62,7 @@ if(!extension_loaded('openssl') && $enableDecryption == true){
 require 'lib/NSP.php';
 require 'lib/XCI.php';
 require 'lib/renameNsp.php';
-require 'lib/Utils.php';
+
 
 $version = trim(file_get_contents('./VERSION'));
 
@@ -324,15 +338,6 @@ if (isset($_GET["config"])) {
 } elseif (isset($_GET["titles"])) {
     header("Content-Type: application/json");
     echo outputTitles(isset($_GET["force"]));
-    die();
-} elseif (isset($_GET["tinfoil"])) {
-    header("Content-Type: application/json");
-    header('Content-Disposition: filename="main.json"');
-    echo outputTinfoil();
-    die();
-} elseif (isset($_GET["DBI"])) {
-    header("Content-Type: text/plain");
-    echo outputDbi();
     die();
 } elseif (isset($_GET['metadata'])) {
     header("Content-Type: application/json");
