@@ -71,7 +71,7 @@ function romInfo($path)
     global $gameDir, $keyList;
     $filePath = realpath($gameDir . '/' . $path);
     $fileType = guessFileType($filePath, true);
-    if ($fileType == "NSP") {
+    if ($fileType == "NSP" || $fileType == "NSZ") {
         $nsp = new NSP($filePath, $keyList);
         $nsp->getHeaderInfo();
         $ret = $nsp->getInfo();

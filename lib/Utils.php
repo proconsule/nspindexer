@@ -1,5 +1,7 @@
 <?php
 
+require_once "PFS0.php" ;
+
 function guessFileType($path, $internalcheck = false)
 {
     if ($internalcheck == true) {
@@ -7,6 +9,16 @@ function guessFileType($path, $internalcheck = false)
         $magicdata = fread($fh, 0x104);
         fclose($fh);
         if (substr($magicdata, 0, 4) == "PFS0") {
+			$pfs0 = new PFS0($magicdata,0,0x104);
+			$pfs0->getHeader();
+			$isnsz = false;
+			for ($i = 0; $i < count($pfs0->filesList); $i++) {
+				$parts = explode('.', strtolower($pfs0->filesList[$i]->name));
+				if ($parts[count($parts)-1] == "ncz"){
+					$isnsz = true;
+				}
+			}
+			if($isnsz)return "NSZ";
             return "NSP";
         }
         if (substr($magicdata, 0x100, 4) == "HEAD") {
@@ -19,6 +31,9 @@ function guessFileType($path, $internalcheck = false)
         }
         if ($parts[count($parts) - 1] == "xci") {
             return "XCI";
+        }
+		 if ($parts[count($parts) - 1] == "nsz") {
+            return "NSZ";
         }
     }
     return "UNKNOWN";
@@ -59,3 +74,4 @@ function getURLSchema()
     }
     return $server_request_scheme;
 }
+

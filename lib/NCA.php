@@ -1,9 +1,9 @@
 <?php
 
-include "AES.php";
-include "ROMFS.php";
-include "IVFC.php";
-include "PFS0.php";
+require_once "AES.php";
+require_once "ROMFS.php";
+require_once "IVFC.php";
+require_once "PFS0.php";
 
 class NCA
 {
