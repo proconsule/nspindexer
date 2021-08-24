@@ -19,6 +19,13 @@ if (!file_exists(CACHE_DIR)) {
     }
 }
 
+
+if(!function_exists('curl_version')){
+	echo "curl extension isn't installed please install it and refresh page";
+	die();
+}
+	
+
 require 'config.default.php';
 if (file_exists('config.php')) {
     require 'config.php';
@@ -31,6 +38,12 @@ if (!empty($keyFile) && file_exists($keyFile)) {
         $enableDecryption = true;
     }
 }
+
+if(!extension_loaded('openssl') && $enableDecryption == true){
+	echo "openssl insn't installed please install it and refresh page";
+	die();
+}
+
 
 require 'lib/NSP.php';
 require 'lib/XCI.php';
