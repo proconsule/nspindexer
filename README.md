@@ -22,6 +22,9 @@ Hope you enjoy it!
 - NCA Control File Decryption (very fast if php have ssl support)
 - File Rename Based on TitleID & Version
 
+#Know Issue
+- 32Bit System suffer for >2GB limit in many way (filesize fseek and so on) so some features are not working (on files >2GB) like FileSize and Rom Info
+
 # Thanks to
 - SciresM for aes128.py we ported to PHP for NCA decryption
 - duckbill007 for support on DBI Installer
