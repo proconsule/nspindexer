@@ -312,7 +312,11 @@ function outputTinfoil()
     $output["files"] = array();
     $urlSchema = getURLSchema();
     foreach ($fileList as $file) {
-        $output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode('/', array_map('rawurlencode', explode('/', $contentUrl . '/' . $file))), 'size' => getFileSize($gameDir . '/' . $file)];
+		if(!is_32bit()){
+			$output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode('/', array_map('rawurlencode', explode('/', $contentUrl . '/' . $file))), 'size' => getFileSize($gameDir . '/' . $file)];
+		}else{
+			$output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode('/', array_map('rawurlencode', explode('/', $contentUrl . '/' . $file))), 'size' => floatval(getFileSize($gameDir . '/' . $file))];
+		}
     }
     $output['success'] = "NSP Indexer";
     return json_encode($output);
