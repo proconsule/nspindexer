@@ -2,6 +2,12 @@
 
 require_once "PFS0.php" ;
 
+require_once dirname(__FILE__) . '/../config.default.php';
+if (file_exists(dirname(__FILE__) . '/../config.php')) {
+    require_once dirname(__FILE__) .'/../config.php';
+}
+
+
 function guessFileType($path, $internalcheck = false)
 {
     if ($internalcheck == true) {
@@ -39,29 +45,35 @@ function guessFileType($path, $internalcheck = false)
     return "UNKNOWN";
 }
 
-// this is a workaround for 32bit systems and files >2GB
+function is_32bit(){
+  return PHP_INT_SIZE === 4;
+}
+
 function getFileSize($filename)
 {
-
-    $size = filesize($filename);
-    if ($size === false) {
-        $fp = fopen($filename, 'r');
-        if (!$fp) {
-            return false;
-        }
-        $offset = PHP_INT_MAX - 1;
-        $size = (float)$offset;
-        if (!fseek($fp, $offset)) {
-            return false;
-        }
-        $chunksize = 8192;
-        while (!feof($fp)) {
-            $size += strlen(fread($fp, $chunksize));
-        }
-    } elseif ($size < 0) {
-        $size = sprintf("%u", $size);
+    if(!is_32bit()){
+       $size = filesize($filename);
+       return $size;
     }
-    return $size;
+    return getFileSize32bit($filename);
+}
+
+/* Hack for get filesize on big files > 4GB  on 32bit Systems */
+function getFileSize32bit($filename){
+	global $contentUrl;
+	global $gameDir;
+	$urlfilename = str_replace($gameDir,$contentUrl,$filename);
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, getURLSchema() . '://' . "127.0.0.1" . implode('/', array_map('rawurlencode', explode('/',$urlfilename))));
+	curl_setopt($ch, CURLOPT_NOBODY, true);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_HEADER, true);
+	$data = curl_exec($ch);
+	curl_close($ch);
+	if ($data !== false && preg_match('/Content-Length: (\d+)/', $data, $matches)) {
+		return $matches[1];
+	}
+	
 }
 
 function getURLSchema()
