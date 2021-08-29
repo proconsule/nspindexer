@@ -4,11 +4,9 @@
 
 class PFS0
 {
-    function __construct($data, $dataOffset, $dataSize)
+    function __construct($data, $mydataOffset, $mydataSize)
     {
-        $this->data = substr($data, $dataOffset, $dataSize);
-
-
+        $this->data = substr($data, $mydataOffset, $mydataSize);
     }
 
     function getHeader()
@@ -19,22 +17,21 @@ class PFS0
         }
 
         $this->numFiles = unpack("V", substr($this->data, 4, 0x04))[1];
-        $this->stringTableSize = unpack("V", substr($this->data, 8, 0x04))[1];
+		$this->stringTableSize = unpack("V", substr($this->data, 8, 0x04))[1];
         $this->stringTableOffset = 0x10 + 0x18 * $this->numFiles;
         $this->fileBodyOffset = $this->stringTableOffset + $this->stringTableSize;
-
-        $this->filesList = [];
+		$this->filesList = [];
         for ($i = 0; $i < $this->numFiles; $i++) {
             $dataOffset = unpack("Q", substr($this->data, 0x10 + (0x20 * $i), 0x08))[1];
             $dataSize = unpack("Q", substr($this->data, 0x18 + (0x20 * $i), 0x08))[1];
             $stringOffset = unpack("V", substr($this->data, 0x1c + (0x20 * $i), 0x04))[1];
             $filename = "";
-            $i = 0;
+            $n = 0;
             while (true) {
-                $byte = unpack("C", substr($this->data, $this->stringTableOffset + $stringOffset + $i, 1))[1];
+                $byte = unpack("C", substr($this->data, $this->stringTableOffset + $stringOffset + $n, 1))[1];
                 if ($byte == 0x00) break;
                 $filename = $filename . chr($byte);
-                $i++;
+                $n++;
             }
             $parts = explode('.', strtolower($filename));
             $file = new stdClass();
