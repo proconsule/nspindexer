@@ -38,17 +38,20 @@ class ROMFS{
 			$idx++;
 		}
 		for($i=0;$i<count($this->Files);$i++){
-			$parts = explode('.', $this->Files[$i]->name);
-			if($parts[1] == "nacp"){
-				$this->nacp = new NACP($this->getFile($i));
-			}
-			if($this->Files[$i]->name == "icon_AmericanEnglish.dat"){
+			if(substr($this->Files[$i]->name,0,5) == "icon_"){
 				$this->gameIcon = base64_encode($this->getFile($i));
+				$this->iconFilename = $this->Files[$i]->name;
+				break;
 			}
 		}
-		//$this->getFile(0);
-
-
+		for($i=0;$i<count($this->Files);$i++){
+			$parts = explode('.', $this->Files[$i]->name);
+			if($parts[1] == "nacp"){
+				$this->nacp = new NACP($this->getFile($i),$this->iconFilename);
+			}
+			
+		}
+	
 	}
 	function getFile($i){
 		$filecontents = substr($this->decData,$this->data_offset+$this->Files[$i]->offset,$this->Files[$i]->size);
@@ -57,9 +60,21 @@ class ROMFS{
 }
 
 class NACP{
-	function __construct($ncapcontents){
-		$this->title = trim(substr($ncapcontents,0,0x200));
-		$this->publisher = trim(substr($ncapcontents,0x200,0x100));
+	function __construct($ncapcontents,$iconfilename){
+		if($iconfilename == "icon_AmericanEnglish.dat"){
+			$this->title = trim(substr($ncapcontents,0,0x200));
+			$this->publisher = trim(substr($ncapcontents,0x200,0x100));
+		}else if($iconfilename == "icon_BritishEnglish.dat"){
+			$this->title = trim(substr($ncapcontents,0x300,0x200));
+			$this->publisher = trim(substr($ncapcontents,0x500,0x100));
+		}
+		else if($iconfilename == "icon_Japanese.dat"){
+			$this->title = trim(substr($ncapcontents,0x600,0x200));
+			$this->publisher = trim(substr($ncapcontents,0x800,0x100));
+		}
+		
+		
+		
 		$this->version = trim(substr($ncapcontents,0x3060,0x10));
 	}
 

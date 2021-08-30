@@ -151,10 +151,11 @@ class NSP
 #use php NSP.php filepath;
 
 /*
+
 $mykeys = parse_ini_file("/root/.switch/prod.keys");
 $nsp = new NSP($argv[1],$mykeys);
 $nsp->getHeaderInfo();
 
-var_dump($nsp->getInfo());
-*/
+var_dump($nsp);
 
+*/
