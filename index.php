@@ -47,7 +47,7 @@ if (isset($_GET["tinfoil"])) {
 $enableDecryption = false;
 if (!empty($keyFile) && file_exists($keyFile)) {
     $keyList = parse_ini_file($keyFile);
-    if (count($keyList) > 0) {
+    if (count($keyList) > 0 && !is_32bit()) {
         $enableDecryption = true;
     }
 }
