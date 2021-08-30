@@ -7,6 +7,7 @@ class PFS0
     function __construct($data, $mydataOffset, $mydataSize)
     {
         $this->data = substr($data, $mydataOffset, $mydataSize);
+		$this->dataSize = $mydataSize; 
     }
 
     function getHeader()
@@ -22,12 +23,12 @@ class PFS0
         $this->fileBodyOffset = $this->stringTableOffset + $this->stringTableSize;
 		$this->filesList = [];
         for ($i = 0; $i < $this->numFiles; $i++) {
-            $dataOffset = unpack("Q", substr($this->data, 0x10 + (0x20 * $i), 0x08))[1];
-            $dataSize = unpack("Q", substr($this->data, 0x18 + (0x20 * $i), 0x08))[1];
+            $dataOffset = unpack("P", substr($this->data, 0x10 + (0x20 * $i), 0x08))[1];
+            $dataSize = unpack("P", substr($this->data, 0x18 + (0x20 * $i), 0x08))[1];
             $stringOffset = unpack("V", substr($this->data, 0x1c + (0x20 * $i), 0x04))[1];
             $filename = "";
             $n = 0;
-            while (true) {
+            while (true && $this->stringTableOffset + $stringOffset + $n < $this->dataSize-1) {
                 $byte = unpack("C", substr($this->data, $this->stringTableOffset + $stringOffset + $n, 1))[1];
                 if ($byte == 0x00) break;
                 $filename = $filename . chr($byte);

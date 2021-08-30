@@ -13,9 +13,14 @@ function guessFileType($path, $internalcheck = false)
     if ($internalcheck == true) {
         $fh = fopen($path, "r");
         $magicdata = fread($fh, 0x104);
-        fclose($fh);
         if (substr($magicdata, 0, 4) == "PFS0") {
-			$pfs0 = new PFS0($magicdata,0,0x104);
+			
+			$numFiles = unpack("V", substr($magicdata, 4, 0x04))[1];
+			$stringTableSize = unpack("V", substr($magicdata, 8, 0x04))[1];
+			$stringTableOffset = 0x10 + 0x18 * $numFiles;
+			fseek($fh,0);
+			$magicdata = fread($fh, $stringTableOffset+$stringTableSize);
+			$pfs0 = new PFS0($magicdata,0,$stringTableOffset+$stringTableSize);
 			$pfs0->getHeader();
 			$isnsz = false;
 			for ($i = 0; $i < count($pfs0->filesList); $i++) {
@@ -30,6 +35,7 @@ function guessFileType($path, $internalcheck = false)
         if (substr($magicdata, 0x100, 4) == "HEAD") {
             return "XCI";
         }
+		fclose($fh);
     } else {
         $parts = explode('.', strtolower($path));
         if ($parts[count($parts) - 1] == "nsp") {

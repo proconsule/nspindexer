@@ -50,7 +50,7 @@ class NCA
         $this->contentType = ord(substr($decHeader, 0x205, 1));
         $this->keyGenerationOld = ord(substr($decHeader, 0x206, 1));
         $this->keyAreaEncryptionKeyIndex = ord(substr($decHeader, 0x207, 1));
-        $this->contentSize = unpack("Q", substr($decHeader, 0x208, 8))[1];
+        $this->contentSize = unpack("P", substr($decHeader, 0x208, 8))[1];
         $this->programId = bin2hex(strrev(substr($decHeader, 0x210, 0x08)));
         $this->contentIndex = unpack("V", substr($decHeader, 0x218, 4))[1];
         $sdkRevision = ord(substr($decHeader, 0x21c, 1));
@@ -141,8 +141,8 @@ class NCA
             if ($this->fsHeaders[$i]->hashType == 2) {
                 $shahash = substr($this->fsHeaders[$i]->superBlock, 0, 0x20)[1];
                 $blocksize = unpack("V", substr($this->fsHeaders[$i]->superBlock, 0x20, 4))[1];
-                $pfs0offset = unpack("Q", substr($this->fsHeaders[$i]->superBlock, 0x38, 8))[1];
-                $pfs0size = unpack("Q", substr($this->fsHeaders[$i]->superBlock, 0x40, 8))[1];
+                $pfs0offset = unpack("P", substr($this->fsHeaders[$i]->superBlock, 0x38, 8))[1];
+                $pfs0size = unpack("P", substr($this->fsHeaders[$i]->superBlock, 0x40, 8))[1];
 				$this->fsEntrys[$i]->pfs0offset = $this->fsEntrys[$i]->startOffset + $pfs0offset;
                 fseek($this->fh, $this->fsEntrys[$i]->startOffset + $this->fileOffset);
                 $this->fsEntrys[$i]->encData = fread($this->fh, $this->fsEntrys[$i]->endOffset - $this->fsEntrys[$i]->startOffset);

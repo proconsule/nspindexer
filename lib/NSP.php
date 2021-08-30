@@ -45,8 +45,8 @@ class NSP
 
         $this->filesList = [];
         for ($i = 0; $i < $this->numFiles; $i++) {
-            $dataOffset = unpack("Q", fread($this->fh, 8))[1];
-            $dataSize = unpack("Q", fread($this->fh, 8))[1];
+            $dataOffset = unpack("P", fread($this->fh, 8))[1];
+            $dataSize = unpack("P", fread($this->fh, 8))[1];
             $stringOffset = unpack("V", fread($this->fh, 4))[1];
             fread($this->fh, 4);
             $storePos = ftell($this->fh);

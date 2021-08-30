@@ -8,17 +8,17 @@ class ROMFS{
 	    $this->decData =  $aesctr->decrypt($encData);
 	}
     function getHeader(){
-        $this->headerSize = unpack("Q", substr($this->decData,0,8))[1];
-        $this->dir_hash_offset = unpack("Q", substr($this->decData,0x08,8))[1];
-        $this->dir_hash_size = unpack("Q", substr($this->decData,0x10,8))[1];
-		$this->dir_meta_offset = unpack("Q", substr($this->decData,0x18,8))[1];
-		$this->dir_meta_size = unpack("Q", substr($this->decData,0x20,8))[1];
+        $this->headerSize = unpack("P", substr($this->decData,0,8))[1];
+        $this->dir_hash_offset = unpack("P", substr($this->decData,0x08,8))[1];
+        $this->dir_hash_size = unpack("P", substr($this->decData,0x10,8))[1];
+		$this->dir_meta_offset = unpack("P", substr($this->decData,0x18,8))[1];
+		$this->dir_meta_size = unpack("P", substr($this->decData,0x20,8))[1];
 
-		$this->file_hash_offset = unpack("Q", substr($this->decData,0x28,8))[1];
-        $this->file_hash_size = unpack("Q", substr($this->decData,0x30,8))[1];
-		$this->file_meta_offset = unpack("Q", substr($this->decData,0x38,8))[1];
-		$this->file_meta_size = unpack("Q", substr($this->decData,0x40,8))[1];
-		$this->data_offset = unpack("Q", substr($this->decData,0x48,8))[1];
+		$this->file_hash_offset = unpack("P", substr($this->decData,0x28,8))[1];
+        $this->file_hash_size = unpack("P", substr($this->decData,0x30,8))[1];
+		$this->file_meta_offset = unpack("P", substr($this->decData,0x38,8))[1];
+		$this->file_meta_size = unpack("P", substr($this->decData,0x40,8))[1];
+		$this->data_offset = unpack("P", substr($this->decData,0x48,8))[1];
 
 		$tmpfdata = substr($this->decData,$this->file_meta_offset,$this->file_meta_size);
 		$this->Files = array();
@@ -28,8 +28,8 @@ class ROMFS{
 			$tmpfentry = new stdClass();
 			$tmpfentry->fileparent = unpack("V", substr($tmpfdata,$lenred,4))[1];
 			$tmpfentry->sibiling = unpack("V", substr($tmpfdata,$lenred+4,4))[1];
-			$tmpfentry->offset = unpack("Q", substr($tmpfdata,$lenred+8,8))[1];
-			$tmpfentry->size = unpack("Q", substr($tmpfdata,$lenred+0x10,8))[1];
+			$tmpfentry->offset = unpack("P", substr($tmpfdata,$lenred+8,8))[1];
+			$tmpfentry->size = unpack("P", substr($tmpfdata,$lenred+0x10,8))[1];
 			$tmpfentry->hashfile = substr($tmpfdata,$lenred+0x18,4);
 			$tmpfentry->name_size = unpack("V", substr($tmpfdata,$lenred+0x1c,4))[1];
 			$tmpfentry->name= substr($tmpfdata,$lenred+0x20,$tmpfentry->name_size);

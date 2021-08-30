@@ -32,8 +32,8 @@ class XCI
             return false;
         }
         fseek($this->fh, 0x130);
-        $this->hfs0offset = unpack("Q", fread($this->fh, 8))[1];
-        $this->hfs0size = unpack("Q", fread($this->fh, 8))[1];
+        $this->hfs0offset = unpack("P", fread($this->fh, 8))[1];
+        $this->hfs0size = unpack("P", fread($this->fh, 8))[1];
         $this->masterpartition = new HFS0($this->fh, $this->hfs0offset, $this->hfs0size);
         $this->masterpartition->getHeaderInfo();
     }
@@ -108,8 +108,8 @@ class HFS0
         $this->file_array = array();
         for ($i = 0; $i < $this->numfiles; $i++) {
             $tmpfileobj = new stdClass();
-            $tmpfileobj->fileoffset = unpack("Q", fread($this->fh, 8))[1];
-            $tmpfileobj->filesize = unpack("Q", fread($this->fh, 8))[1];
+            $tmpfileobj->fileoffset = unpack("P", fread($this->fh, 8))[1];
+            $tmpfileobj->filesize = unpack("P", fread($this->fh, 8))[1];
             $tmpfileobj->stringoffset = unpack("V", fread($this->fh, 4))[1];
             $dummy = fread($this->fh, 0x2C);
             $this->file_array[] = $tmpfileobj;
