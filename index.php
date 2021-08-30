@@ -233,7 +233,10 @@ function outputTitles($forceUpdate = false)
             $latestVersion = 0;
             $updateTitleId = substr_replace($titleId, "800", -3);
             if (array_key_exists($updateTitleId, $titlesJson)) {
-                $latestVersion = $titlesJson[$updateTitleId]["version"];
+				if($titlesJson[$updateTitleId]["version"] != null){
+					$latestVersion = $titlesJson[$updateTitleId]["version"];
+				}
+				
             }
             $realeaseDate = DateTime::createFromFormat('Ynd', $titlesJson[$titleId]["releaseDate"]);
             $latestVersionDate = $realeaseDate->format('Y-m-d');
