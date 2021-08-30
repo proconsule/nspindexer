@@ -7,6 +7,11 @@
  *
  */
 
+require 'lib/NSP.php';
+require 'lib/XCI.php';
+require 'lib/Utils.php';
+require 'config.default.php';
+
 define('REGEX_TITLEID', '0100[0-9A-F]{12}');
 define('REGEX_TITLEID_BASE', '0100[0-9A-F]{8}[02468ACE]000');
 define('REGEX_TITLEID_UPDATE', '0100[0-9A-F]{9}800');
@@ -19,31 +24,25 @@ if (!file_exists(CACHE_DIR)) {
     }
 }
 
-
-if(!function_exists('curl_version')){
-	echo "curl extension isn't installed please install it and refresh page";
-	die();
+if (!function_exists('curl_version')) {
+    echo "curl extension isn't installed please install it and refresh page";
+    die();
 }
-	
 
-require 'config.default.php';
 if (file_exists('config.php')) {
     require 'config.php';
 }
 
-require 'lib/Utils.php';
-
 if (isset($_GET["tinfoil"])) {
-	header("Content-Type: application/json");
-	header('Content-Disposition: filename="main.json"');
-	echo outputTinfoil();
-	die();
+    header("Content-Type: application/json");
+    header('Content-Disposition: filename="main.json"');
+    echo outputTinfoil();
+    die();
 } elseif (isset($_GET["DBI"])) {
-	header("Content-Type: text/plain");
-	echo outputDbi();
-die();
+    header("Content-Type: text/plain");
+    echo outputDbi();
+    die();
 }
-
 
 $enableDecryption = false;
 if (!empty($keyFile) && file_exists($keyFile)) {
@@ -53,37 +52,18 @@ if (!empty($keyFile) && file_exists($keyFile)) {
     }
 }
 
-if(!extension_loaded('openssl') && $enableDecryption == true){
-	echo "openssl insn't installed please install it and refresh page";
-	die();
+if (!extension_loaded('openssl') && $enableDecryption == true) {
+    echo "openssl insn't installed please install it and refresh page";
+    die();
 }
-
-
-require 'lib/NSP.php';
-require 'lib/XCI.php';
-require 'lib/renameNsp.php';
-
 
 $version = trim(file_get_contents('./VERSION'));
 
-function romInfo($path)
+function outputRomInfo($path)
 {
-    global $gameDir, $keyList;
-    $filePath = realpath($gameDir . '/' . $path);
-    $fileType = guessFileType($filePath, true);
-    if ($fileType == "NSP" || $fileType == "NSZ") {
-        $nsp = new NSP($filePath, $keyList);
-        $nsp->getHeaderInfo();
-        $ret = $nsp->getInfo();
-        $ret->fileType = $fileType;
-        return json_encode($ret);
-	}elseif($fileType == "XCI"){
-		$xci = new XCI($filePath,$keyList);
-		$xci->getMasterPartitions();
-		$xci->getSecurePartition();
-		$ret = $xci->getInfo();
-		$ret->fileType = $fileType;
-		return json_encode($ret);
+    global $gameDir;
+    if ($romInfo = romInfo($gameDir . '/' . $path)) {
+        return json_encode($romInfo);
     } else {
         return json_encode(array('int' => -1));
     }
@@ -312,11 +292,11 @@ function outputTinfoil()
     $output["files"] = array();
     $urlSchema = getURLSchema();
     foreach ($fileList as $file) {
-		if(!is_32bit()){
-			$output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode('/', array_map('rawurlencode', explode('/', $contentUrl . '/' . $file))), 'size' => getFileSize($gameDir . '/' . $file)];
-		}else{
-			$output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode('/', array_map('rawurlencode', explode('/', $contentUrl . '/' . $file))), 'size' => floatval(getFileSize($gameDir . '/' . $file))];
-		}
+        if (!is_32bit()) {
+            $output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode('/', array_map('rawurlencode', explode('/', $contentUrl . '/' . $file))), 'size' => getFileSize($gameDir . '/' . $file)];
+        } else {
+            $output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode('/', array_map('rawurlencode', explode('/', $contentUrl . '/' . $file))), 'size' => floatval(getFileSize($gameDir . '/' . $file))];
+        }
     }
     $output['success'] = "NSP Indexer";
     return json_encode($output);
@@ -349,11 +329,11 @@ if (isset($_GET["config"])) {
     die();
 } elseif (!empty($_GET['rename'])) {
     header("Content-Type: application/json");
-    echo renameNsp(rawurldecode($_GET['rename']), isset($_GET['preview']));
+    echo renameRom(rawurldecode($_GET['rename']), isset($_GET['preview']));
     die();
 } elseif (!empty($_GET['rominfo'])) {
     header("Content-Type: application/json");
-    echo romInfo(rawurldecode($_GET['rominfo']));
+    echo outputRomInfo(rawurldecode($_GET['rominfo']));
     die();
 }
 
