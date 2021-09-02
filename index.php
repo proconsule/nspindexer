@@ -7,6 +7,15 @@
  *
  */
 
+require 'lib/NSP.php';
+require 'lib/XCI.php';
+require 'lib/Utils.php';
+require 'config.default.php';
+
+define('REGEX_TITLEID', '0100[0-9A-F]{12}');
+define('REGEX_TITLEID_BASE', '0100[0-9A-F]{8}[02468ACE]000');
+define('REGEX_TITLEID_UPDATE', '0100[0-9A-F]{9}800');
+
 define("CACHE_DIR", './cache');
 if (!file_exists(CACHE_DIR)) {
     if (!@mkdir(CACHE_DIR)) {
@@ -15,24 +24,49 @@ if (!file_exists(CACHE_DIR)) {
     }
 }
 
-require 'config.default.php';
+if (!function_exists('curl_version')) {
+    echo "curl extension isn't installed please install it and refresh page";
+    die();
+}
+
 if (file_exists('config.php')) {
     require 'config.php';
 }
 
-require 'lib/parseNsp.php';
+if (isset($_GET["tinfoil"])) {
+    header("Content-Type: application/json");
+    header('Content-Disposition: filename="main.json"');
+    echo outputTinfoil();
+    die();
+} elseif (isset($_GET["DBI"])) {
+    header("Content-Type: text/plain");
+    echo outputDbi();
+    die();
+}
 
-$version = file_get_contents('./VERSION');
-
-function getURLSchema()
-{
-    $server_request_scheme = "http";
-    if ((!empty($_SERVER['REQUEST_SCHEME']) && $_SERVER['REQUEST_SCHEME'] == 'https') ||
-        (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ||
-        (!empty($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == '443')) {
-        $server_request_scheme = 'https';
+$enableDecryption = false;
+if (!empty($keyFile) && file_exists($keyFile)) {
+    $keyList = parse_ini_file($keyFile);
+    if (count($keyList) > 0 && !is_32bit()) {
+        $enableDecryption = true;
     }
-    return $server_request_scheme;
+}
+
+if (!extension_loaded('openssl') && $enableDecryption == true) {
+    echo "openssl insn't installed please install it and refresh page";
+    die();
+}
+
+$version = trim(file_get_contents('./VERSION'));
+
+function outputRomInfo($path)
+{
+    global $gameDir;
+    if ($romInfo = romInfo($gameDir . '/' . $path)) {
+        return json_encode($romInfo);
+    } else {
+        return json_encode(array('int' => -1));
+    }
 }
 
 function getFileList($path)
@@ -50,6 +84,37 @@ function getFileList($path)
     return array_values($arrFiles);
 }
 
+function getTitleIdType($titleId)
+{
+    if (preg_match('/' . REGEX_TITLEID_BASE . '/', $titleId) === 1) {
+        return 'base';
+    } elseif (preg_match('/' . REGEX_TITLEID_UPDATE . '/', $titleId) === 1) {
+        return 'update';
+    } elseif (preg_match('/' . REGEX_TITLEID . '/', $titleId) === 1) {
+        return 'dlc';
+    }
+    return false;
+}
+
+function getBaseTitleId($titleId)
+{
+    if (getTitleIdType($titleId) == 'update') {
+        return substr_replace($titleId, "000", -3);
+    } elseif (getTitleIdType($titleId) == 'dlc') {
+        return dlcIdToBaseId($titleId);
+    }
+    return strtoupper($titleId);
+}
+
+function dlcIdToBaseId($titleId)
+{
+    // find the Base TitleId (TitleId of the Base game with the fourth bit shifted by 1)
+    $dlcBaseId = substr_replace($titleId, "000", -3);
+    $offsetBit = hexdec(substr($dlcBaseId, 12, 1));
+    $baseTitleBit = strtoupper(dechex($offsetBit - 1));
+    return substr_replace($dlcBaseId, $baseTitleBit, -4, 1);
+}
+
 function matchTitleIds($files)
 {
     $titles = [];
@@ -57,7 +122,7 @@ function matchTitleIds($files)
     foreach ($files as $key => $file) {
 
         // check if we have a Base TitleId (0100XXXXXXXXY000, with Y being an even number)
-        if (preg_match('/(?<=\[)0100[0-9A-F]{8}[02468ACE]000(?=])/', $file, $titleIdMatches) === 1) {
+        if (preg_match('/(?<=\[)' . REGEX_TITLEID_BASE . '(?=])/', $file, $titleIdMatches) === 1) {
             $titleId = $titleIdMatches[0];
             $titles[$titleId] = array(
                 "path" => $file,
@@ -68,35 +133,32 @@ function matchTitleIds($files)
         }
     }
 
+    $unmatched = [];
     // second round, match Updates and DLC to Base TitleIds
     foreach ($files as $key => $file) {
-        if (preg_match('/(?<=\[)0100[0-9A-F]{12}(?=])/', $file, $titleIdMatches) === 0) {
+        if (preg_match('/(?<=\[)' . REGEX_TITLEID . '(?=])/', $file, $titleIdMatches) === 0) {
             // file does not have any kind of TitleId, skip further checks
+            array_push($unmatched, $file);
             continue;
         }
         $titleId = $titleIdMatches[0];
 
         // find Updates (0100XXXXXXXXX800)
-        if (preg_match('/^0100[0-9A-F]{9}800$/', $titleId) === 1) {
+        if (preg_match('/^' . REGEX_TITLEID_UPDATE . '$/', $titleId) === 1) {
 
             if (preg_match('/(?<=\[v).+?(?=])/', $file, $versionMatches) === 1) {
                 $version = $versionMatches[0];
-                $baseTitleId = substr_replace($titleId, "000", -3);
+                $baseTitleId = getBaseTitleId($titleId);
                 // add Update only if the Base TitleId for it exists
                 if ($titles[$baseTitleId]) {
-                    $titles[$baseTitleId]['updates'][$titleId] = array(
-                        "path" => $file,
-                        "version" => $version
+                    $titles[$baseTitleId]['updates'][$version] = array(
+                        "path" => $file
                     );
                 }
             }
 
         } else {
-            // it's DLC, so find the Base TitleId (TitleId of the Base game with the fourth bit shifted by 1)
-            $dlcBaseId = substr_replace($titleId, "000", -3);
-            $offsetBit = hexdec(substr($dlcBaseId, 12, 1));
-            $baseTitleBit = strtoupper(dechex($offsetBit - 1));
-            $baseTitleId = substr_replace($dlcBaseId, $baseTitleBit, -4, 1);
+            $baseTitleId = getBaseTitleId($titleId);
             // add DLC only if the Base TitleId for it exists
             if ($titles[$baseTitleId]) {
                 $titles[$baseTitleId]['dlc'][$titleId] = array(
@@ -106,32 +168,10 @@ function matchTitleIds($files)
         }
 
     }
-    return $titles;
-}
-
-// this is a workaround for 32bit systems and files >2GB
-function getFileSize($filename)
-{
-
-    $size = filesize($filename);
-    if ($size === false) {
-        $fp = fopen($filename, 'r');
-        if (!$fp) {
-            return false;
-        }
-        $offset = PHP_INT_MAX - 1;
-        $size = (float)$offset;
-        if (!fseek($fp, $offset)) {
-            return false;
-        }
-        $chunksize = 8192;
-        while (!feof($fp)) {
-            $size += strlen(fread($fp, $chunksize));
-        }
-    } elseif ($size < 0) {
-        $size = sprintf("%u", $size);
-    }
-    return $size;
+    return array(
+        'titles' => $titles,
+        'unmatched' => $unmatched
+    );
 }
 
 function getMetadata($type, $refresh = false)
@@ -155,7 +195,7 @@ function refreshMetadata()
 {
     $refreshed = array();
     foreach (array('versions', 'titles') as $type) {
-        if (filemtime(CACHE_DIR . "/" . $type . ".json") < (time() - 60 * 5)) {
+        if (!file_exists(CACHE_DIR . "/" . $type . ".json") || filemtime(CACHE_DIR . "/" . $type . ".json") < (time() - 60 * 5)) {
             getMetadata($type, true);
             array_push($refreshed, $type);
         }
@@ -168,18 +208,20 @@ function refreshMetadata()
 
 function outputConfig()
 {
-    global $contentUrl, $version, $enableNetInstall, $switchIp;
+    global $contentUrl, $version, $enableNetInstall, $switchIp, $enableDecryption, $enableRename;
     return json_encode(array(
         "contentUrl" => $contentUrl,
         "version" => $version,
         "enableNetInstall" => $enableNetInstall,
+        "enableRename" => $enableRename,
+        "enableRomInfo" => $enableDecryption,
         "switchIp" => $switchIp
     ));
 }
 
-function outputTitles()
+function outputTitles($forceUpdate = false)
 {
-    if (file_exists(CACHE_DIR . "/games.json") && (filemtime(CACHE_DIR . "/games.json") > (time() - 60 * 5))) {
+    if (!$forceUpdate && file_exists(CACHE_DIR . "/games.json") && (filemtime(CACHE_DIR . "/games.json") > (time() - 60 * 5))) {
         $json = file_get_contents(CACHE_DIR . "/games.json");
     } else {
         global $gameDir;
@@ -187,18 +229,23 @@ function outputTitles()
         $titlesJson = getMetadata("titles");
         $titles = matchTitleIds(getFileList($gameDir));
         $output = array();
-        foreach ($titles as $titleId => $title) {
+        foreach ($titles['titles'] as $titleId => $title) {
             $latestVersion = 0;
             $updateTitleId = substr_replace($titleId, "800", -3);
             if (array_key_exists($updateTitleId, $titlesJson)) {
-                $latestVersion = $titlesJson[$updateTitleId]["version"];
+				if($titlesJson[$updateTitleId]["version"] != null){
+					$latestVersion = $titlesJson[$updateTitleId]["version"];
+				}
+				
             }
-            $latestVersionDate = join("-", array_slice(date_parse_from_format("Ynd", $titlesJson[$titleId]["releaseDate"]), 0, 3));
+            $realeaseDate = DateTime::createFromFormat('Ynd', $titlesJson[$titleId]["releaseDate"]);
+            $latestVersionDate = $realeaseDate->format('Y-m-d');
             if (array_key_exists(strtolower($titleId), $versionsJson)) {
                 $latestVersionDate = $versionsJson[strtolower($titleId)][$latestVersion];
             }
             $game = array(
                 "path" => $title["path"],
+                "fileType" => guessFileType($gameDir . "/" . $title["path"]),
                 "name" => $titlesJson[$titleId]["name"],
                 "thumb" => $titlesJson[$titleId]["iconUrl"],
                 "banner" => $titlesJson[$titleId]["bannerUrl"],
@@ -209,10 +256,10 @@ function outputTitles()
                 "size_real" => getFileSize($gameDir . "/" . $title["path"])
             );
             $updates = array();
-            foreach ($title["updates"] as $updateId => $update) {
-                $updates[(int)$update["version"]] = array(
+            foreach ($title["updates"] as $updateVersion => $update) {
+                $updates[(int)$updateVersion] = array(
                     "path" => $update["path"],
-                    "date" => $versionsJson[strtolower($titleId)][$update["version"]],
+                    "date" => $versionsJson[strtolower($titleId)][$updateVersion],
                     "size_real" => getFileSize($gameDir . "/" . $update["path"])
                 );
             }
@@ -227,9 +274,12 @@ function outputTitles()
                 );
             }
             $game['dlc'] = $dlcs;
-            $output['titles'][$titleId] = $game;
+            $output[$titleId] = $game;
         }
-        $json = json_encode($output);
+        $json = json_encode(array(
+            'titles' => $output,
+            'unmatched' => $titles['unmatched']
+        ));
         file_put_contents(CACHE_DIR . "/games.json", $json);
     }
     return $json;
@@ -245,7 +295,11 @@ function outputTinfoil()
     $output["files"] = array();
     $urlSchema = getURLSchema();
     foreach ($fileList as $file) {
-        $output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode('/', array_map('rawurlencode', explode('/', $contentUrl . '/' . $file))), 'size' => getFileSize($gameDir . '/' . $file)];
+        if (!is_32bit()) {
+            $output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode('/', array_map('rawurlencode', explode('/', $contentUrl . '/' . $file))), 'size' => getFileSize($gameDir . '/' . $file)];
+        } else {
+            $output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode('/', array_map('rawurlencode', explode('/', $contentUrl . '/' . $file))), 'size' => floatval(getFileSize($gameDir . '/' . $file))];
+        }
     }
     $output['success'] = "NSP Indexer";
     return json_encode($output);
@@ -270,24 +324,19 @@ if (isset($_GET["config"])) {
     die();
 } elseif (isset($_GET["titles"])) {
     header("Content-Type: application/json");
-    echo outputTitles();
-    die();
-} elseif (isset($_GET["tinfoil"])) {
-    header("Content-Type: application/json");
-    header('Content-Disposition: filename="main.json"');
-    echo outputTinfoil();
-    die();
-} elseif (isset($_GET["DBI"])) {
-    header("Content-Type: text/plain");
-    echo outputDbi();
+    echo outputTitles(isset($_GET["force"]));
     die();
 } elseif (isset($_GET['metadata'])) {
     header("Content-Type: application/json");
     echo refreshMetadata();
     die();
-} elseif (!empty($_GET['parsensp'])) {
-    //header("Content-Type: application/json");
-    echo parseNsp(realpath($gameDir . '/' . rawurldecode($_GET['parsensp'])));
+} elseif (!empty($_GET['rename'])) {
+    header("Content-Type: application/json");
+    echo renameRom(rawurldecode($_GET['rename']), isset($_GET['preview']));
+    die();
+} elseif (!empty($_GET['rominfo'])) {
+    header("Content-Type: application/json");
+    echo outputRomInfo(rawurldecode($_GET['rominfo']));
     die();
 }
 

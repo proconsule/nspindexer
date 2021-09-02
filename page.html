@@ -8,6 +8,7 @@
     <link rel="icon" type="image/png" href="img/favicon.png">
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/bootstrap-icons.css" rel="stylesheet">
+    <link href="css/jquery-confirm.min.css" rel="stylesheet">
     <link href="css/nspindexer.css" rel="stylesheet">
 </head>
 <body>
@@ -16,7 +17,9 @@
     <nav class="navbar navbar-expand-md navbar-dark bg-dark shadow-sm">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="#">
-                <i class="bi-controller brandLogo "></i>&nbsp;<strong>NSP Indexer</strong>
+                <i class="bi-controller brandLogo d-none" id="brandLogo"></i>
+                <div class="spinner-border spinner-border-sm d-inline" id="loadingSpinner" role="status"></div>
+                <strong>&nbsp;NSP Indexer</strong>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                     data-bs-target="#navbarContent" aria-controls="navbarContent"
@@ -24,7 +27,14 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse justify-content-end mt-2 mt-md-0" id="navbarContent">
-                <button class="mx-0 mx-md-3 my-2 my-md-0 btn bg-secondary text-light" id="btnMetadata" title="Update Metadata"
+                <button class="mx-0 mx-md-1 my-2 my-md-0 btn bg-secondary text-light" id="btnRefresh"
+                        title="Refresh List"
+                        data-bs-toggle="tooltip" data-bs-placement="left">
+                    <i class="bi-arrow-repeat"></i>
+                    <span class="d-inline-block d-md-none">Refresh List</span>
+                </button>
+                <button class="mx-0 mx-md-3 my-2 my-md-0 btn bg-secondary text-light" id="btnMetadata"
+                        title="Update Metadata"
                         data-bs-toggle="tooltip" data-bs-placement="left">
                     <i class="bi-cloud-download"></i>
                     <span class="d-inline-block d-md-none">Update Metadata</span>
@@ -42,7 +52,15 @@
 </header>
 
 <main>
-    <div class="album py-3 bg-light">
+    <div class="py-3 bg-light">
+        <div class="container mb-3 d-none" id="warningUnmatched">
+            <div class="card text-white bg-danger">
+                <div class="card-header">
+                    <strong>Unmatched files found!</strong>
+                </div>
+                <ul class="list-group list-group-flush" id="unmatchedList"></ul>
+            </div>
+        </div>
         <div class="container" id="titleList">
         </div>
     </div>
@@ -56,6 +74,21 @@
         <p class="mb-1">NSP Indexer v<span id="version">0</span></p>
     </div>
 </footer>
+
+<div class="modal fade" id="modalRomInfo" tabindex="-1" aria-labelledby="modalRomInfoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div id="modalRomInfoContent" class="modal-content">
+            <div class="modal-header bg-dark">
+                <h5 class="modal-title text-white" id="modalRomInfoLabel">ROM Info</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modalRomInfoBody"></div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="modalNetInstall" tabindex="-1" aria-labelledby="modalNetInstallLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -86,13 +119,14 @@
 <script src="js/jquery-3.6.0.min.js"></script>
 <script src="js/bootstrap.bundle.min.js"></script>
 <script src="js/jquery.lazy.min.js"></script>
-<script src="js/nspindexer.js"></script>
+<script src="js/jquery-confirm.min.js"></script>
+<script src="js/nspindexer.js?random=<?= uniqid() ?>"></script>
 
 <script id="cardTemplate" type="text/x-template">
     <div class="row gx-2 mb-4">
         <div class="col col-2 d-none d-md-block">
             <div class="card px-0 shadow-sm fill cardThumb">
-                <img data-src="<%=thumbUrl%>" class="img-fluid d-block lazy"/>
+                <img data-src="<%=thumbUrl%>" class="img-fluid rounded d-block lazy"/>
             </div>
         </div>
         <div class="col col-12 col-md-10">
@@ -110,20 +144,30 @@
                     </h5>
                     <div class="card-text">
                         <p class="small noWrap"><%=intro%></p>
-                        <p class="small"><strong>Latest Version:</strong> v<%=latestVersion%> (<%=latestDate%>)
-                            <%=updateStatus%></p>
+                        <p class="small">
+                            <strong>Latest Version:</strong>
+                            <span class="badge <%=updateClass%>">v<%=latestVersion%></span> <span class="text-muted">(<%=latestDate%>)</span>
+                        </p>
                         <ul class="list-group">
                             <li class="list-group-item">
                                 <p class="my-1">
                                     <strong>Base Game</strong>
+                                    <span class="badge bg-success"><%=fileType%></span>
                                     <span class="float-end">
-                                        <span class="badge bg-secondary"><%=fileSize%></span>
-                                        <button data-title-id="<%=titleId%>" data-path="<%=filePath%>" title="Analyze"
-                                                class="btnAnalyze btn btn-sm bg-primary text-light"
+                                        <span class="badge bg-secondary"><%=size%></span>
+										<button data-title-id="<%=titleId%>" data-path="<%=path%>"
+                                                title="ROM Info"
+                                                class="btnRomInfo btn btn-sm bg-primary text-light <%=enableRomInfo%>"
+                                                data-bs-toggle="tooltip" data-bs-placement="left">
+                                            <i class="bi-file-earmark-binary"></i>
+                                        </button>
+                                        <button data-title-id="<%=titleId%>" data-path="<%=path%>"
+                                                title="Check Filename"
+                                                class="btnAnalyze btn btn-sm bg-primary text-light <%=enableRename%>"
                                                 data-bs-toggle="tooltip" data-bs-placement="left">
                                             <i class="bi-file-earmark-check"></i>
                                         </button>
-                                        <a href="<%=fileUrl%>" title="Download" class="btn btn-sm bg-primary text-light"
+                                        <a href="<%=url%>" title="Download" class="btn btn-sm bg-primary text-light"
                                            data-bs-toggle="tooltip" data-bs-placement="left">
                                             <i class="bi-download"></i>
                                         </a>
@@ -166,8 +210,14 @@
     <li class="list-group-item">v<%=version%> <small class="text-muted">(#<%=revision%>, <%=date%>)</small>
         <span class="float-end">
             <span class="badge bg-secondary"><%=size%></span>
-            <button data-title-id="<%=titleId%>" data-version="<%=version%>" data-path="<%=path%>" title="Analyze"
-                    class="btnAnalyze btn btn-sm bg-primary text-light"
+            <button data-title-id="<%=titleId%>" data-version="<%=version%>" data-path="<%=path%>" title="ROM Info"
+                    class="btnRomInfo btn btn-sm bg-primary text-light <%=enableRomInfo%>"
+                    data-bs-toggle="tooltip" data-bs-placement="left">
+                <i class="bi-file-earmark-binary"></i>
+            </button>
+			<button data-title-id="<%=titleId%>" data-version="<%=version%>" data-path="<%=path%>"
+                    title="Check Filename"
+                    class="btnAnalyze btn btn-sm bg-primary text-light <%=enableRename%>"
                     data-bs-toggle="tooltip" data-bs-placement="left">
                 <i class="bi-file-earmark-check"></i>
             </button>
@@ -183,8 +233,13 @@
     <li class="list-group-item"><%=name%>
         <span class="float-end">
             <span class="badge bg-secondary"><%=size%></span>
-            <button data-title-id="<%=titleId%>" data-path="<%=path%>" title="Analyze"
-                    class="btnAnalyze btn btn-sm bg-primary text-light"
+			<button data-title-id="<%=titleId%>" data-path="<%=path%>" title="ROM Info"
+                    class="btnRomInfo btn btn-sm bg-primary text-light <%=enableRomInfo%>"
+                    data-bs-toggle="tooltip" data-bs-placement="left">
+                <i class="bi-file-earmark-binary"></i>
+            </button>
+            <button data-title-id="<%=titleId%>" data-path="<%=path%>" title="Check Filename"
+                    class="btnAnalyze btn btn-sm bg-primary text-light <%=enableRename%>"
                     data-bs-toggle="tooltip" data-bs-placement="left">
                 <i class="bi-file-earmark-check"></i>
             </button>
@@ -194,6 +249,30 @@
             </a>
         </span>
     </li>
+</script>
+
+<script id="romInfoTemplate" type="text/x-template">
+    <div id="modalrominfoContainer" class="container">
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9"><%=titleId%></dd>
+            <dt class="col-sm-3">Title</dt>
+            <dd class="col-sm-9"><%=titlename%></dd>
+            <dt class="col-sm-3">Publisher</dt>
+            <dd class="col-sm-9"><%=publisher%></dd>
+            <dt class="col-sm-3">Version</dt>
+            <dd class="col-sm-9"><%=humanVersion%></dd>
+            <dt class="col-sm-3">Int Version</dt>
+            <dd class="col-sm-9">v<%=intVersion%></dd>
+            <dt class="col-sm-3">ROM Type</dt>
+            <dd class="col-sm-9"><%=mediaType%></dd>
+            <dt class="col-sm-3">SDK</dt>
+            <dd class="col-sm-9"><%=sdk%></dd>
+            <dt class="col-sm-3">Title Key</dt>
+            <dd class="col-sm-9"><%=titleKey%></dd>
+            <img src="<%=imgData%>" class="img-thumbnail <%=showThumb%>"/>
+        </dl>
+    </div>
 </script>
 
 <script id="netInstallTemplate" type="text/x-template">
@@ -233,8 +312,21 @@
     <div class="form-check">
         <input class="form-check-input netInstallCheckbox" type="checkbox" id="netinstall_<%=type%>_<%=idx%>"
                data-path="<%=path%>">
-        <label class="form-check-label w-100 small" for="netinstall_<%=type%>_<%=idx%>" class="noWrap"><%=name%><span class="float-end"><span class="badge bg-secondary"><%=size_real%></span></span></label>
+        <label class="form-check-label w-100 small" for="netinstall_<%=type%>_<%=idx%>" class="noWrap"><%=name%><span
+                class="float-end"><span class="badge bg-secondary"><%=size_real%></span></span></label>
     </div>
+</script>
+
+<script id="unmatchedTemplate" type="text/x-template">
+    <li class="list-group-item">
+        <%=name%>
+        <span class="float-end">
+            <button data-path="<%=path%>" class="btnRename btn btn-sm bg-danger text-light"
+                    title="Rename" data-bs-toggle="tooltip" data-bs-placement="left">
+                <i class="bi-spellcheck"></i>
+            </button>
+        </span>
+    </li>
 </script>
 
 </body>

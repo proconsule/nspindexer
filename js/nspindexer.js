@@ -2,10 +2,15 @@ var titles = [];
 var keywordTimer;
 var contentUrl;
 var netInstallEnabled = false;
+var renameEnabled = false;
+var romInfoEnabled = false;
 
 $(document).ready(function () {
     $("#keyword").val("");
     loadConfig();
+    $('[data-bs-toggle="tooltip"]').each(function () {
+        new bootstrap.Tooltip($(this));
+    });
     loadTitles();
 })
 
@@ -27,9 +32,21 @@ $("#keyword").on('keyup', function () {
     }
 });
 
+$("#btnRefresh").on('click', function () {
+    $(this).blur();
+    showSpinner(true);
+    loadTitles(true);
+});
+
 $("#btnMetadata").on('click', function () {
+    $(this).blur();
+    showSpinner(true);
     $.getJSON("index.php?metadata", function (data) {
-        alert(data.msg);
+        showSpinner(false);
+        $.alert({
+            title: 'Metadata Update',
+            content: data.msg
+        })
     });
 });
 
@@ -48,14 +65,86 @@ function loadConfig() {
         $('#version').text(data.version);
         $('#switchIp').val(data.switchIp);
         netInstallEnabled = data.enableNetInstall;
+		renameEnabled = data.enableRename;
+        romInfoEnabled = data.enableRomInfo;
     });
 }
 
-function loadTitles() {
-    $.getJSON("index.php?titles", function (data) {
+function loadTitles(forceUpdate = false) {
+    var force = '';
+    if (forceUpdate) {
+        force = '&force';
+    }
+    $.getJSON("index.php?titles" + force, function (data) {
+        showSpinner(false);
         titles = data.titles;
+        showUnmatched(data.unmatched);
         createRows(titles);
     });
+}
+
+function confirmRename(oldName, newName) {
+    $.confirm({
+        columnClass: 'large',
+        title: 'Confirm Rename',
+        content: 'Do you want to rename <code class="small text-light bg-dark rounded p-1">' + decodeURI(oldName) + '</code> to <code class="small text-light bg-dark rounded p-1">' + newName + '</code>?',
+        buttons: {
+            cancel: {
+                text: 'No',
+                btnClass: 'btn-danger',
+                action: function (btn) {
+                    // nothing
+                }
+            },
+            confirm: {
+                text: 'Yes',
+                btnClass: 'btn-success',
+                action: function (btn) {
+                    $.getJSON("index.php?rename=" + oldName, function (data) {
+                        if (data.int === 0) {
+                            $('button[data-path="' + oldName + '"]').parent().parent().remove();
+                            if ($('#unmatchedList li').length < 1) {
+                                $('#warningUnmatched').addClass('d-none');
+                            }
+                        } else {
+                            $.alert({
+                                title: 'Error',
+                                content: 'There was a problem renaming the NSP, please check manually.',
+                            });
+                        }
+                    });
+                }
+            }
+        }
+    });
+}
+
+function showUnmatched(unmatched) {
+    var list = $('#unmatchedList');
+    var warning = $('#warningUnmatched');
+    list.empty();
+    warning.addClass('d-none');
+    if (unmatched.length > 0) {
+        var unmatchedTemplate = $('#unmatchedTemplate').html();
+        $.each(unmatched, function (i, path) {
+            var row = tmpl(unmatchedTemplate, {
+                name: path,
+                path: encodeURI(path)
+            });
+            list.append(row)
+        });
+        warning.removeClass('d-none');
+        $('.btnRename').on('click', function () {
+            var path = $(this).data('path');
+            var preview = '&preview';
+            $.getJSON("index.php?rename=" + path + preview, function (data) {
+                if (data.int === 0) {
+                    confirmRename(data.old, data.new);
+                }
+            });
+        });
+    }
+    console.log();
 }
 
 function createRows(data, keyword = "") {
@@ -68,6 +157,16 @@ function createRows(data, keyword = "") {
         //return false;
     });
     init();
+}
+
+function showSpinner(show) {
+    if (show) {
+        $('#loadingSpinner').removeClass('d-none');
+        $('#brandLogo').addClass('d-none');
+    } else {
+        $('#loadingSpinner').addClass('d-none');
+        $('#brandLogo').removeClass('d-none');
+    }
 }
 
 function lazyLoad() {
@@ -91,27 +190,41 @@ function enableListTriggers() {
 
 function enableNetInstall() {
     $('.btnNetInstall').on('click', function () {
+        $(this).blur();
         var titleId = $(this).data("title-id");
         modalNetInstall(titleId);
     });
 }
 
+function enableRomInfo() {
+    $('.btnRomInfo').on('click', function () {
+        var path = $(this).data('path');
+        $.getJSON("index.php?rominfo=" + encodeURIComponent(path), function (data) {
+            if (data.titleId) {
+                modalRomInfo(data);
+            } else {
+                $.alert({
+                    title: 'Error',
+                    content: 'ROM Info could not be read.',
+                });
+            }
+        });
+    });
+}
+
+
 function enableAnalyze() {
     $('.btnAnalyze').on('click', function () {
-        var titleId = $(this).data('title-id');
-        var version = $(this).data('version');
-        $.getJSON("index.php?parsensp=" + encodeURIComponent($(this).data('path')), function (data) {
-            if (data.int === 0) {
-                if(titleId.toLowerCase() == data.titleId) {
-                    if (version === undefined) {
-                        alert("TitleId in filename matches internal TitleId.");
-                    } else if (version == data.version) {
-                        alert("TitleId in filename matches internal TitleId.\nVersion in filename matches internal version.");
-                    } else {
-                        alert("TitleId in filename matches internal TitleId.\nVersion in filename DOES NOT match internal version.\nFilename: v"+version+"\nInternal:  v"+data.version);
-                    }
+        $(this).blur();
+        $.getJSON("index.php?rename=" + encodeURIComponent($(this).data('path')) + '&preview', function (data) {
+            if (data.int >= 0) {
+                if (data.old === data.new) {
+                    $.alert({
+                        title: 'Filename is correct',
+                        content: 'The current filename matches the expected filename.'
+                    });
                 } else {
-                    alert("TitleId in filename DOES NOT match internal TitleId!\nFilename: "+titleId.toLowerCase()+"\nInternal:  "+data.titleId);
+                    confirmRename(data.old, data.new);
                 }
             } else {
                 alert(data.msg);
@@ -123,17 +236,18 @@ function enableAnalyze() {
 }
 
 function enablePopovers() {
-    $('[data-bs-toggle="tooltip"]').each(function () {
+    $('#titleList [data-bs-toggle="tooltip"]').each(function () {
         new bootstrap.Tooltip($(this), {
             container: $(this).parent()
         });
-    })
+    });
 }
 
 function init() {
     lazyLoad();
     enableListTriggers();
     enableNetInstall();
+	enableRomInfo();
     enableAnalyze();
     enablePopovers();
 }
@@ -160,47 +274,54 @@ function createCard(titleId, title) {
     var listUpdates = [];
     var listDlc = []
     var updateTemplate = $('#updateTemplate').html();
-    $.each(title.updates, function (version, u) {
+    $.each(title.updates, function (updateVersion, update) {
         listUpdates += tmpl(updateTemplate, {
             titleId: titleId.substr(0, 13) + '800',
-            version: version,
-            revision: version / 65536,
-            date: u.date,
-            url: encodeURI(contentUrl + '/' + u.path),
-            path: u.path,
-            size: bytesToHuman(u.size_real)
+            version: updateVersion,
+            revision: updateVersion / 65536,
+            date: update.date,
+            url: contentUrl + '/' + update.path,
+            path: encodeURI(update.path),
+            size: bytesToHuman(update.size_real),
+            enableRename: (renameEnabled) ? "": "d-none",
+            enableRomInfo: (romInfoEnabled) ? "": "d-none"
         });
     });
     var dlcTemplate = $('#dlcTemplate').html();
-    $.each(title.dlc, function (dlcID, d) {
+    $.each(title.dlc, function (dlcId, dlc) {
         listDlc += tmpl(dlcTemplate, {
-            titleId: dlcID,
-            name: d.name,
-            url: encodeURI(contentUrl + '/' + d.path),
-            path: d.path,
-            size: bytesToHuman(d.size_real)
+            titleId: dlcId,
+            name: dlc.name,
+            url: contentUrl + '/' + dlc.path,
+            path: encodeURI(dlc.path),
+            size: bytesToHuman(dlc.size_real),
+            enableRename: (renameEnabled) ? "": "d-none",
+            enableRomInfo: (romInfoEnabled) ? "": "d-none"
         });
     });
-    var updateStatus = '<i class="bi-x-circle-fill text-danger"></i>';
+    var updateClass = 'bg-danger';
     if (title.latest_version === 0 || title.latest_version in title.updates) {
-        updateStatus = '<i class="bi-check-circle-fill text-success"></i>';
+        updateClass = 'bg-success';
     }
     var countUpdates = Object.keys(title.updates).length;
     var countDlc = Object.keys(title.dlc).length;
     var cardTemplate = $('#cardTemplate');
     var card = tmpl(cardTemplate.html(), {
         titleId: titleId,
+		fileType: title.fileType,
         thumbUrl: title.thumb,
         bannerUrl: title.banner,
         name: title.name,
         intro: title.intro,
         enableNetInstall: (netInstallEnabled) ? "" : "d-none",
+		enableRename: (renameEnabled) ? "" : "d-none",
+		enableRomInfo: (romInfoEnabled) ? "": "d-none",
         latestVersion: title.latest_version == null ? "?" : title.latest_version,
         latestDate: title.latest_date == null ? "?" : title.latest_date,
-        updateStatus: updateStatus,
-        filePath: encodeURI(title.path),
-        fileUrl: contentUrl + '/' + title.path,
-        fileSize: bytesToHuman(title.size_real),
+        updateClass: updateClass,
+        path: encodeURI(title.path),
+        url: contentUrl + '/' + title.path,
+        size: bytesToHuman(title.size_real),
         hideUpdates: (countUpdates == 0) ? "d-none" : "",
         countUpdates: countUpdates,
         listUpdates: listUpdates,
@@ -234,33 +355,59 @@ function startNetInstall() {
     }
 }
 
+function modalRomInfo(romData){
+	$("#modalRomInfoBody").empty();
+    var contentTemplate = $("#romInfoTemplate").html();
+	var myType = "";
+	if(romData.mediaType == 128){
+		myType = "Base Game";
+	}else if(romData.mediaType == 129){
+		myType = "Update";
+	}else if(romData.mediaType == 130){
+		myType = "DLC";
+	}
+	var romtmpl = tmpl(contentTemplate, {
+		titlename: romData.title,
+		publisher: romData.publisher,
+		titleId: romData.titleId.toUpperCase(),
+		humanVersion: romData.humanVersion,
+		intVersion: romData.version,
+		mediaType: myType + " [" + romData.fileType + "]",
+		sdk: romData.sdk,
+		titleKey: romData.titleKey,
+        showThumb: (romData.mediaType == 130) ? "d-none" : "",
+		imgData: "data:image/jpeg;base64,"+romData.gameIcon
+	})
+	$("#modalRomInfoBody").append(romtmpl);
+	$('#modalRomInfo').modal('show');
+
+}
 
 function modalNetInstall(titleId) {
     $("#startNetInstall").attr('disabled', true);
     $("#listNetInstall").empty();
     var contentTemplate = $('#netInstallContentTemplate').html();
-
     var countUpdates = Object.keys(titles[titleId].updates).length;
     var listUpdates = [];
-    $.each(titles[titleId].updates, function (version, u) {
+    $.each(titles[titleId].updates, function (updateVersion, update) {
         listUpdates += tmpl(contentTemplate, {
-            idx: version,
             type: 'update',
-            name: 'v' + version + ' <small class="text-muted">(#' + version / 65536 + ', ' + u.date + ')</small>',
-            path: u.path,
-            size_real: bytesToHuman(u.size_real)
+            idx: updateVersion,
+            name: 'v' + updateVersion + ' <small class="text-muted">(#' + updateVersion / 65536 + ', ' + update.date + ')</small>',
+            path: encodeURI(update.path),
+            size_real: bytesToHuman(update.size_real)
         });
     });
 
     var countDlc = Object.keys(titles[titleId].dlc).length;
     var listDlc = [];
-    $.each(titles[titleId].dlc, function (i, d) {
+    $.each(titles[titleId].dlc, function (dlcId, dlc) {
         listDlc += tmpl(contentTemplate, {
             type: 'dlc',
-            idx: i,
-            name: d.name,
-            path: d.path,
-            size_real: bytesToHuman(d.size_real)
+            idx: dlcId,
+            name: dlc.name,
+            path: encodeURI(dlc.path),
+            size_real: bytesToHuman(dlc.size_real)
         });
     });
 

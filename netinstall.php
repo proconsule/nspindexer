@@ -5,15 +5,16 @@ if (file_exists('config.php')) {
     require 'config.php';
 }
 
-$srcAddr = $_SERVER['SERVER_ADDR'];
-$srcPort = $_SERVER['SERVER_PORT'];
+if (!$netInstallSrc) {
+    $netInstallSrc = $_SERVER['SERVER_ADDR'] . ':' . $_SERVER['SERVER_PORT'];
+}
 
 $dstAddr = $_POST["dstAddr"];
 $dstPort = 2000;
 
 $strPayload = "";
 foreach ($_POST["listFiles"] as $key => $file) {
-    $strPayload .= $srcAddr . ":" . $srcPort . implode('/', array_map('rawurlencode', explode('/', $contentUrl . '/' . $file))) . "\n";
+    $strPayload .= $netInstallSrc . $contentUrl . '/' . $file . "\n";
 }
 
 $strPayload = mb_convert_encoding($strPayload, 'ASCII');
