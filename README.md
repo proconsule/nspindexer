@@ -18,7 +18,7 @@ Hope you enjoy it!
 - Net Install (if TCP port 2000 of Switch is reachable by webserver)
 - NSP Internal TitleID Check
 - XCI Internal TitleID Check (if keys supplied)
-- NSP & XCI File Decryption (very fast if php have ssl support)
+- NSP & XCI File Decryption
 - File Rename Based on TitleID & Version
 
 # Known Issue
