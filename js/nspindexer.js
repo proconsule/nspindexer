@@ -358,6 +358,7 @@ function startNetInstall() {
 function modalRomInfo(romData){
 	$("#modalRomInfoBody").empty();
     var contentTemplate = $("#romInfoTemplate").html();
+	var contentfileTemplate = $("#romInfofilesCheckTemplate").html();
 	var myType = "";
 	if(romData.mediaType == 128){
 		myType = "Base Game";
@@ -366,6 +367,28 @@ function modalRomInfo(romData){
 	}else if(romData.mediaType == 130){
 		myType = "DLC";
 	}
+	
+	var filelisttmpt = [];
+	
+	console.log(romData);
+	
+	for (var i = 0; i < romData.filesList.length; i++) {
+		if(romData.filesList[i].name.endsWith(".nca")){
+			filelisttmpt += tmpl(contentfileTemplate, {
+				fileName: romData.filesList[i].name,
+				sigcheckcolor: (romData.filesList[i].sigcheck == false) ? "bg-warning" : "bg-success",
+				sigcheck: (romData.filesList[i].sigcheck == false) ? "Warning" : "OK"
+			});
+		}else{
+			filelisttmpt += tmpl(contentfileTemplate, {
+				fileName: romData.filesList[i].name,
+				sigcheckcolor: "d-none",
+				sigcheck: "Not Checked"
+			});
+		}
+	}
+	
+	
 	var romtmpl = tmpl(contentTemplate, {
 		titlename: romData.title,
 		publisher: romData.publisher,
@@ -376,7 +399,8 @@ function modalRomInfo(romData){
 		sdk: romData.sdk,
 		titleKey: romData.titleKey,
         showThumb: (romData.mediaType == 130) ? "d-none" : "",
-		imgData: "data:image/jpeg;base64,"+romData.gameIcon
+		imgData: "data:image/jpeg;base64,"+romData.gameIcon,
+		filescheck: filelisttmpt
 	})
 	$("#modalRomInfoBody").append(romtmpl);
 	$('#modalRomInfo').modal('show');

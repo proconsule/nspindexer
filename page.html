@@ -271,8 +271,19 @@
             <dt class="col-sm-3">Title Key</dt>
             <dd class="col-sm-9"><%=titleKey%></dd>
             <img src="<%=imgData%>" class="img-thumbnail <%=showThumb%>"/>
+			<div>
+			<div id="modalrominfofilesCheckContainer" class="container">
+			<p>Internal File List:</p>
+				<ul class="list-group">
+					<%=filescheck%>
+				</ul>	
+		    </div>
         </dl>
     </div>
+</script>
+
+<script id="romInfofilesCheckTemplate" type="text/x-template">
+			<li class="list-group-item"><div class="small"><%=fileName%> <span class="badge <%=sigcheckcolor%>"><%=sigcheck%></span></div></h6></li>
 </script>
 
 <script id="netInstallTemplate" type="text/x-template">

@@ -62,17 +62,19 @@ class NSP
             $file->name = $filename;
             $file->size = $dataSize;
             $file->offset = $dataOffset;
-            $this->filesList[] = $file;
+			$file->sigcheck = false;
             if ($this->decryption) {
-
+				
                 if ($parts[count($parts) - 1] == "nca") {
                     fseek($this->fh, $this->fileBodyOffset + $dataOffset);
                     $ncafile = new NCA($this->fh, $this->fileBodyOffset + $dataOffset, $dataSize, $this->keys);
                     $ncafile->readHeader();
+					$file->sigcheck = $ncafile->sigcheck;
 
                     if ($parts[count($parts) - 2] == "cnmt" && $parts[count($parts) - 1] == "nca") {
                         $cnmtncafile = new NCA($this->fh, $this->fileBodyOffset + $dataOffset, $dataSize, $this->keys);
                         $cnmtncafile->readHeader();
+						$file->sigcheck = $ncafile->sigcheck;
                         $cnmtncafile->getFs();
                         $this->cnmtncafile = $cnmtncafile;
                     }
@@ -85,6 +87,7 @@ class NSP
                 }
 
             }
+			$this->filesList[] = $file;
             if ($parts[count($parts) - 2] . "." . $parts[count($parts) - 1] == "cnmt.xml") {
                 $this->nspHasXmlFile = true;
                 fseek($this->fh, $this->fileBodyOffset + $dataOffset);
@@ -127,6 +130,7 @@ class NSP
             } else {
                 $infoobj->titleKey = "No TIK File found";
             }
+			$infoobj->filesList = $this->filesList;
 
 
         } elseif ($this->nspHasXmlFile) {

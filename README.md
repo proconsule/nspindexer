@@ -19,6 +19,7 @@ Hope you enjoy it!
 - NSP Internal TitleID Check
 - XCI Internal TitleID Check (if keys supplied)
 - NSP & XCI File Decryption
+- NCA Header Signature Check
 - File Rename Based on TitleID & Version
 
 # Known Issue

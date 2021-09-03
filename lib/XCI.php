@@ -46,12 +46,19 @@ class XCI
         $this->secure_index = array_search('secure', $this->masterpartition->filenames);
         $this->securepartition = new HFS0($this->fh, $this->masterpartition->rawdataoffset + $this->masterpartition->file_array[$this->secure_index]->fileoffset, $this->masterpartition->file_array[$this->secure_index]->filesize);
         $this->securepartition->getHeaderInfo();
+		$this->filesList = [];
+		
 
         for ($i = 0; $i < count($this->securepartition->filenames); $i++) {
+			$file = new stdClass();
+			$file->name = $this->securepartition->filenames[$i];
+            $file->size = $this->securepartition->file_array[$i]->filesize;
+            $file->offset = $this->securepartition->rawdataoffset + $this->securepartition->file_array[$i]->fileoffset;
             $parts = explode('.', strtolower($this->securepartition->filenames[$i]));
             $ncafile = new NCA($this->fh, $this->securepartition->rawdataoffset + $this->securepartition->file_array[$i]->fileoffset, $this->securepartition->file_array[$i]->filesize, $this->keys);
             $ncafile->readHeader();
-
+			$file->sigcheck = $ncafile->sigcheck;
+			$this->filesList[] = $file;
             if ($parts[count($parts) - 2] == "cnmt" && $parts[count($parts) - 1] == "nca") {
                 $cnmtncafile = new NCA($this->fh, $this->securepartition->rawdataoffset + $this->securepartition->file_array[$i]->fileoffset, $this->securepartition->file_array[$i]->filesize, $this->keys);
                 $cnmtncafile->readHeader();
@@ -80,6 +87,7 @@ class XCI
         $infoobj->otherId = $this->cnmtncafile->pfs0->cnmt->otherId;
         $infoobj->sdk = $this->ncafile->sdkArray[3] . "." . $this->ncafile->sdkArray[2] . "." . $this->ncafile->sdkArray[1];
         $infoobj->gameIcon = $this->ncafile->romfs->gameIcon;
+		$infoobj->filesList = $this->filesList;
         return $infoobj;
     }
 
