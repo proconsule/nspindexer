@@ -52,11 +52,12 @@ class XCI
         for ($i = 0; $i < count($this->securepartition->filenames); $i++) {
 			$file = new stdClass();
 			$file->name = $this->securepartition->filenames[$i];
-            $file->size = $this->securepartition->file_array[$i]->filesize;
+            $file->filesize = $this->securepartition->file_array[$i]->filesize;
             $file->offset = $this->securepartition->rawdataoffset + $this->securepartition->file_array[$i]->fileoffset;
             $parts = explode('.', strtolower($this->securepartition->filenames[$i]));
             $ncafile = new NCA($this->fh, $this->securepartition->rawdataoffset + $this->securepartition->file_array[$i]->fileoffset, $this->securepartition->file_array[$i]->filesize, $this->keys);
             $ncafile->readHeader();
+			$file->contentType = $ncafile->contentType;
 			$file->sigcheck = $ncafile->sigcheck;
 			$this->filesList[] = $file;
             if ($parts[count($parts) - 2] == "cnmt" && $parts[count($parts) - 1] == "nca") {

@@ -355,6 +355,27 @@ function startNetInstall() {
     }
 }
 
+function ncacontentType(contentType){
+	if(contentType == 0){
+		return "Program";
+	}
+	if(contentType == 1){
+		return "Meta";
+	}
+	if(contentType == 2){
+		return "Control";
+	}
+	if(contentType == 3){
+		return "Manual";
+	}
+	if(contentType == 4){
+		return "Data";
+	}
+	if(contentType == 5){
+		return "PublicData";
+	}
+}
+
 function modalRomInfo(romData){
 	$("#modalRomInfoBody").empty();
     var contentTemplate = $("#romInfoTemplate").html();
@@ -377,13 +398,18 @@ function modalRomInfo(romData){
 			filelisttmpt += tmpl(contentfileTemplate, {
 				fileName: romData.filesList[i].name,
 				sigcheckcolor: (romData.filesList[i].sigcheck == false) ? "bg-warning" : "bg-success",
-				sigcheck: (romData.filesList[i].sigcheck == false) ? "Warning" : "OK"
+				sigcheck: (romData.filesList[i].sigcheck == false) ? "Sig Warning" : "Sig OK",
+				fileSize: bytesToHuman(romData.filesList[i].filesize),
+				contentType: ncacontentType(romData.filesList[i].contentType)
 			});
 		}else{
+			var fileExt = romData.filesList[i].name.split('.').pop();
 			filelisttmpt += tmpl(contentfileTemplate, {
 				fileName: romData.filesList[i].name,
 				sigcheckcolor: "d-none",
-				sigcheck: "Not Checked"
+				sigcheck: "Not Checked",
+				fileSize: bytesToHuman(romData.filesList[i].filesize),
+				contentType: fileExt.toUpperCase()
 			});
 		}
 	}

@@ -60,8 +60,8 @@ class NSP
             $parts = explode('.', strtolower($filename));
             $file = new stdClass();
             $file->name = $filename;
-            $file->size = $dataSize;
-            $file->offset = $dataOffset;
+            $file->filesize = $dataSize;
+            $file->fileoffset = $dataOffset;
 			$file->sigcheck = false;
             if ($this->decryption) {
 				
@@ -70,6 +70,7 @@ class NSP
                     $ncafile = new NCA($this->fh, $this->fileBodyOffset + $dataOffset, $dataSize, $this->keys);
                     $ncafile->readHeader();
 					$file->sigcheck = $ncafile->sigcheck;
+					$file->contentType = $ncafile->contentType;
 
                     if ($parts[count($parts) - 2] == "cnmt" && $parts[count($parts) - 1] == "nca") {
                         $cnmtncafile = new NCA($this->fh, $this->fileBodyOffset + $dataOffset, $dataSize, $this->keys);

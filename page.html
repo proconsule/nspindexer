@@ -76,7 +76,7 @@
 </footer>
 
 <div class="modal fade" id="modalRomInfo" tabindex="-1" aria-labelledby="modalRomInfoLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div id="modalRomInfoContent" class="modal-content">
             <div class="modal-header bg-dark">
                 <h5 class="modal-title text-white" id="modalRomInfoLabel">ROM Info</h5>
@@ -283,7 +283,7 @@
 </script>
 
 <script id="romInfofilesCheckTemplate" type="text/x-template">
-			<li class="list-group-item"><div class="small"><%=fileName%> <span class="badge <%=sigcheckcolor%>"><%=sigcheck%></span></div></h6></li>
+			<li class="list-group-item"><div class=""><span class="badge bg-primary"><%=contentType%></span> <%=fileName%><span class="float-end"><span class="badge bg-secondary"><%=fileSize%></span> <span class="badge <%=sigcheckcolor%>"><%=sigcheck%></span></span></div></h6></li>
 </script>
 
 <script id="netInstallTemplate" type="text/x-template">
