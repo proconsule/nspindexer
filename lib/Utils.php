@@ -1,6 +1,7 @@
 <?php
 
 require_once "PFS0.php";
+require_once "NSP.php";
 
 require_once dirname(__FILE__) . '/../config.default.php';
 if (file_exists(dirname(__FILE__) . '/../config.php')) {
@@ -166,3 +167,5 @@ function renameRom($oldName, $preview = true)
         "new" => $newName,
     ));
 }
+
+

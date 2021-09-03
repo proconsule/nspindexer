@@ -196,12 +196,13 @@ function enableNetInstall() {
     });
 }
 
+
 function enableRomInfo() {
     $('.btnRomInfo').on('click', function () {
         var path = $(this).data('path');
         $.getJSON("index.php?rominfo=" + encodeURIComponent(path), function (data) {
             if (data.titleId) {
-                modalRomInfo(data);
+                modalRomInfo(path,data);
             } else {
                 $.alert({
                     title: 'Error',
@@ -376,7 +377,7 @@ function ncacontentType(contentType){
 	}
 }
 
-function modalRomInfo(romData){
+function modalRomInfo(path,romData){
 	$("#modalRomInfoBody").empty();
     var contentTemplate = $("#romInfoTemplate").html();
 	var contentfileTemplate = $("#romInfofilesCheckTemplate").html();
@@ -400,7 +401,8 @@ function modalRomInfo(romData){
 				sigcheckcolor: (romData.filesList[i].sigcheck == false) ? "bg-warning" : "bg-success",
 				sigcheck: (romData.filesList[i].sigcheck == false) ? "Sig Warning" : "Sig OK",
 				fileSize: bytesToHuman(romData.filesList[i].filesize),
-				contentType: ncacontentType(romData.filesList[i].contentType)
+				contentType: ncacontentType(romData.filesList[i].contentType),
+				path: path
 			});
 		}else{
 			var fileExt = romData.filesList[i].name.split('.').pop();
@@ -409,7 +411,8 @@ function modalRomInfo(romData){
 				sigcheckcolor: "d-none",
 				sigcheck: "Not Checked",
 				fileSize: bytesToHuman(romData.filesList[i].filesize),
-				contentType: fileExt.toUpperCase()
+				contentType: fileExt.toUpperCase(),
+				path: path
 			});
 		}
 	}
@@ -430,6 +433,13 @@ function modalRomInfo(romData){
 	})
 	$("#modalRomInfoBody").append(romtmpl);
 	$('#modalRomInfo').modal('show');
+	
+	$('.btnRomFile').on('click', function () {
+        var path = $(this).data('path');
+		var ncaname = $(this).data('nca-name');
+		window.open("index.php?romfilename=" + path + "&romfile=" + ncaname)
+    });
+	
 
 }
 

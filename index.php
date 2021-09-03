@@ -318,6 +318,54 @@ function outputDbi()
     return $output;
 }
 
+function outputRomFile($romfilename,$romfile){
+	global $keyList;
+	global $gameDir;
+    $nsp = new NSP(realpath($gameDir . '/' . $romfilename), $keyList);
+    $nsp->getHeaderInfo();
+	$fileidx = -1;
+	for($i=0;$i<count($nsp->filesList);$i++){
+		if($nsp->filesList[$i]->name == $romfile){
+			$fileidx = $i;
+			break;
+		}
+	}
+	if($fileidx == -1){
+		die();
+	}
+	$size = $nsp->filesList[$fileidx]->filesize;
+	$chunksize = 5 * (1024 * 1024);
+	header('Content-Type: application/octet-stream');
+    header('Content-Transfer-Encoding: binary');
+    header('Content-Length: '.$size);
+    header('Content-Disposition: attachment;filename="'.$romfile.'"');
+    $tmpchunksize = $size;
+	fseek($nsp->fh, $nsp->fileBodyOffset + $nsp->filesList[$fileidx]->fileoffset);
+	if($size > $chunksize)
+    { 
+    	while ($tmpchunksize>$chunksize)
+        { 
+	      echo(fread($nsp->fh, $chunksize));
+		  $tmpchunksize -=$chunksize;
+          ob_flush();
+          flush();
+        }
+		if($tmpchunksize>0){
+		  echo(fread($nsp->fh, $tmpchunksize));
+          ob_flush();
+          flush();
+		}
+         
+    }
+	if($size < $chunksize){
+		  echo(fread($nsp->fh, $tmpchunksize));
+          ob_flush();
+          flush();
+	}
+	fclose($nsp->fh);
+	die();
+}
+
 if (isset($_GET["config"])) {
     header("Content-Type: application/json");
     echo outputConfig();
@@ -337,6 +385,14 @@ if (isset($_GET["config"])) {
 } elseif (!empty($_GET['rominfo'])) {
     header("Content-Type: application/json");
     echo outputRomInfo(rawurldecode($_GET['rominfo']));
+    die();
+} elseif (!empty($_GET['rominfo'])) {
+    header("Content-Type: application/json");
+    echo outputRomInfo(rawurldecode($_GET['rominfo']));
+    die();
+} elseif (!empty($_GET['romfilename'])) {
+    header("Content-Type: application/json");
+    echo outputRomFile(rawurldecode($_GET['romfilename']),$_GET['romfile']);
     die();
 }
 

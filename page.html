@@ -283,7 +283,13 @@
 </script>
 
 <script id="romInfofilesCheckTemplate" type="text/x-template">
-			<li class="list-group-item"><div class=""><span class="badge bg-primary"><%=contentType%></span> <%=fileName%><span class="float-end"><span class="badge bg-secondary"><%=fileSize%></span> <span class="badge <%=sigcheckcolor%>"><%=sigcheck%></span></span></div></h6></li>
+			<li class="list-group-item"><div class=""><span class="badge bg-primary"><%=contentType%></span> <%=fileName%><span class="float-end">
+			<button data-nca-name="<%=fileName%>" data-path="<%=path%>" title="Download"
+                    class="btnRomFile btn btn-sm bg-primary text-light"
+                    data-bs-toggle="tooltip" data-bs-placement="left">
+                <i class="bi-file-earmark-binary"></i>
+            </button>
+			<span class="badge bg-secondary"><%=fileSize%></span> <span class="badge <%=sigcheckcolor%>"><%=sigcheck%></span></span></div></h6></li>
 </script>
 
 <script id="netInstallTemplate" type="text/x-template">
