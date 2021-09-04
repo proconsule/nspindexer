@@ -2,6 +2,7 @@
 
 require_once "PFS0.php";
 require_once "NSP.php";
+require_once "XCI.php";
 
 require_once dirname(__FILE__) . '/../config.default.php';
 if (file_exists(dirname(__FILE__) . '/../config.php')) {
@@ -115,6 +116,109 @@ function romInfo($path)
         return $ret;
     }
     return false;
+}
+
+function romFile($romfilename,$romfile){
+	
+	global $keyList;
+	global $gameDir;
+	
+	if(guessFileType($romfilename) == "NSP" || guessFileType($romfilename) =="NSZ"){	
+		$nsp = new NSP(realpath($gameDir . '/' . $romfilename), $keyList);
+		$nsp->getHeaderInfo();
+		$fileidx = -1;
+		for($i=0;$i<count($nsp->filesList);$i++){
+			if($nsp->filesList[$i]->name == $romfile){
+				$fileidx = $i;
+				break;
+			}
+		}
+		if($fileidx == -1){
+			die();
+		}
+		$size = $nsp->filesList[$fileidx]->filesize;
+		$chunksize = 5 * (1024 * 1024);
+		header('Content-Type: application/octet-stream');
+		header('Content-Transfer-Encoding: binary');
+		header('Content-Length: '.$size);
+		header('Content-Disposition: attachment;filename="'.$romfile.'"');
+		$tmpchunksize = $size;
+		fseek($nsp->fh, $nsp->fileBodyOffset + $nsp->filesList[$fileidx]->fileoffset);
+		if($size > $chunksize)
+		{ 
+			while ($tmpchunksize>$chunksize)
+			{ 
+				echo(fread($nsp->fh, $chunksize));
+				$tmpchunksize -=$chunksize;
+				ob_flush();
+				flush();
+			}
+			if($tmpchunksize>0){
+			echo(fread($nsp->fh, $tmpchunksize));
+			ob_flush();
+			flush();
+			}
+         
+		}
+		if($size < $chunksize){
+		  echo(fread($nsp->fh, $tmpchunksize));
+          ob_flush();
+          flush();
+		}
+		fclose($nsp->fh);
+		die();
+	}
+	if(guessFileType($romfilename) == "XCI" || guessFileType($romfilename) =="XCZ"){
+		$xci = new XCI(realpath($gameDir . '/' . $romfilename), $keyList);
+		$xci->getMasterPartitions();
+		$xci->getSecurePartition();
+		$fileidx = -1;
+		for($i=0;$i<count($xci->filesList);$i++){
+			if($xci->filesList[$i]->name == $romfile){
+				$fileidx = $i;
+				break;
+			}
+		}
+		if($fileidx == -1){
+			die();
+		}
+		$size = $xci->filesList[$fileidx]->filesize;
+		$chunksize = 5 * (1024 * 1024);
+		header('Content-Type: application/octet-stream');
+		header('Content-Transfer-Encoding: binary');
+		header('Content-Length: '.$size);
+		header('Content-Disposition: attachment;filename="'.$romfile.'"');
+		$tmpchunksize = $size;
+		fseek($xci->fh, $xci->securepartition->rawdataoffset + $xci->securepartition->file_array[$fileidx]->fileoffset);
+		if($size > $chunksize)
+		{ 
+			while ($tmpchunksize>$chunksize)
+			{ 
+				echo(fread($xci->fh, $chunksize));
+				$tmpchunksize -=$chunksize;
+				ob_flush();
+				flush();
+			}
+			if($tmpchunksize>0){
+			echo(fread($xci->fh, $tmpchunksize));
+			ob_flush();
+			flush();
+			}
+         
+		}
+		if($size < $chunksize){
+		  echo(fread($xci->fh, $tmpchunksize));
+          ob_flush();
+          flush();
+		}
+		fclose($xci->fh);
+		die();
+		
+		
+	}
+	
+	
+	
 }
 
 function renameRom($oldName, $preview = true)
