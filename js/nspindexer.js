@@ -395,7 +395,7 @@ function modalRomInfo(path,romData){
 	console.log(romData);
 	
 	for (var i = 0; i < romData.filesList.length; i++) {
-		if(romData.filesList[i].name.endsWith(".nca")){
+		if(romData.filesList[i].name.endsWith(".nca") || romData.filesList[i].name.endsWith(".ncz")){
 			filelisttmpt += tmpl(contentfileTemplate, {
 				fileName: romData.filesList[i].name,
 				sigcheckcolor: (romData.filesList[i].sigcheck == false) ? "bg-warning" : "bg-success",

@@ -65,7 +65,7 @@ class NSP
 			$file->sigcheck = false;
             if ($this->decryption) {
 				
-                if ($parts[count($parts) - 1] == "nca") {
+                if ($parts[count($parts) - 1] == "nca" || $parts[count($parts) - 1] == "ncz") {
                     fseek($this->fh, $this->fileBodyOffset + $dataOffset);
                     $ncafile = new NCA($this->fh, $this->fileBodyOffset + $dataOffset, $dataSize, $this->keys);
                     $ncafile->readHeader();
