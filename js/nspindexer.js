@@ -380,6 +380,7 @@ function ncacontentType(contentType){
 function modalRomInfo(path,romData){
 	$("#modalRomInfoBody").empty();
     var contentTemplate = $("#romInfoTemplate").html();
+	var contentDlcTemplate = $("#romInfoDlcTemplate").html();
 	var contentfileTemplate = $("#romInfofilesCheckTemplate").html();
 	var myType = "";
 	if(romData.mediaType == 128){
@@ -417,6 +418,7 @@ function modalRomInfo(path,romData){
 		}
 	}
 	
+	if(romData.mediaType != 130){
 	
 	var romtmpl = tmpl(contentTemplate, {
 		titlename: romData.title,
@@ -433,6 +435,18 @@ function modalRomInfo(path,romData){
 	})
 	$("#modalRomInfoBody").append(romtmpl);
 	$('#modalRomInfo').modal('show');
+	}else{
+	var romtmpl = tmpl(contentDlcTemplate, {
+		titleId: romData.titleId.toUpperCase(),
+		intVersion: romData.version,
+		mediaType: myType + " [" + romData.fileType + "]",
+		titleKey: romData.titleKey,
+        filescheck: filelisttmpt
+	})
+	$("#modalRomInfoBody").append(romtmpl);
+	$('#modalRomInfo').modal('show');	
+	}
+	
 	
 	$('.btnRomFile').on('click', function () {
         var path = $(this).data('path');
