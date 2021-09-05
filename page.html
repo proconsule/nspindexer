@@ -278,7 +278,7 @@
 
 <script id="romInfoTemplate" type="text/x-template">
     <div id="modalrominfoContainer" class="container">
-        <dl class="row">
+        <dl class="row shadow-sm p-3 mb-5 bg-body rounded">
             <dt class="col-sm-3">ID</dt>
             <dd class="col-sm-9"><%=titleId%></dd>
             <dt class="col-sm-3">Title</dt>
@@ -297,7 +297,10 @@
             <dd class="col-sm-9"><%=sdk%></dd>
             <dt class="col-sm-3">Title Key</dt>
             <dd class="col-sm-9"><%=titleKey%></dd>
-            <img src="<%=imgData%>" class="img-thumbnail" width="256" height="256" <%=showThumb%>"/>
+			</dl>
+			<div class="container-fluid">		
+			<img src="<%=imgData%>" class="img-thumbnail mx-auto d-block shadow-sm p-3 mb-5 bg-body rounded" width="256" height="256" <%=showThumb%>"/>		
+			</div>
 			<div class="<%=xciupdatepartition%>"><p>Update Partition</p>
 			<ul class="list-group">
 			<li class="list-group-item">
@@ -310,13 +313,13 @@
 			</li>	
 			</ul>
 			</div>
-			<div id="modalrominfofilesCheckContainer" class="container">
+			<div id="modalrominfofilesCheckContainer" class="container shadow-sm p-3 mb-5 bg-body rounded">
 			<p>Internal File List:</p>
 				<ul class="list-group">
 					<%=filescheck%>
 				</ul>	
 		    </div>
-        </dl>
+        
     </div>
 </script>
 
