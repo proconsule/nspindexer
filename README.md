@@ -8,6 +8,8 @@ Place all files into a directory on your webserver, then copy `config.defaults.p
 
 Your filenames need to contain at least a Title ID in the format `[0100XXXXXXXXYYYY]`, and Updates also need a version tag like `[v1441792]`.
 
+For advanced features a 64 bit OS is needed!
+
 Hope you enjoy it!
 
 # Features
@@ -20,6 +22,8 @@ Hope you enjoy it!
 - XCI Internal TitleID Check (if keys supplied)
 - NSP & XCI File Decryption
 - NCA Header Signature Check
+- Download of individual internal file (NCA TIK XML CERT)
+- Download of Switch FW Update from XCI file (as a single tar file)
 - File Rename Based on TitleID & Version
 
 # Known Issue

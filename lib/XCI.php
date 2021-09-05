@@ -82,7 +82,7 @@ class XCI
         $this->secure_index = array_search('secure', $this->masterpartition->filenames);
         $this->securepartition = new HFS0($this->fh, $this->masterpartition->rawdataoffset + $this->masterpartition->file_array[$this->secure_index]->fileoffset, $this->masterpartition->file_array[$this->secure_index]->filesize);
         $this->securepartition->getHeaderInfo();
-		$this->filesList = [];
+		$this->securepartition->filesList = [];
 		
 
         for ($i = 0; $i < count($this->securepartition->filenames); $i++) {
@@ -95,7 +95,7 @@ class XCI
             $ncafile->readHeader();
 			$file->contentType = $ncafile->contentType;
 			$file->sigcheck = $ncafile->sigcheck;
-			$this->filesList[] = $file;
+			$this->securepartition->filesList[] = $file;
             if ($parts[count($parts) - 2] == "cnmt" && $parts[count($parts) - 1] == "nca") {
                 $cnmtncafile = new NCA($this->fh, $this->securepartition->rawdataoffset + $this->securepartition->file_array[$i]->fileoffset, $this->securepartition->file_array[$i]->filesize, $this->keys);
                 $cnmtncafile->readHeader();
@@ -124,7 +124,7 @@ class XCI
         $infoobj->otherId = $this->cnmtncafile->pfs0->cnmt->otherId;
         $infoobj->sdk = $this->ncafile->sdkArray[3] . "." . $this->ncafile->sdkArray[2] . "." . $this->ncafile->sdkArray[1];
         $infoobj->gameIcon = $this->ncafile->romfs->gameIcon;
-		$infoobj->filesList = $this->filesList;
+		$infoobj->filesList = $this->securepartition->filesList;
 		if($this->updatepartition){
 			$infoobj->fwupdateversion = $this->updatepartition->fwversion;
 		}else{

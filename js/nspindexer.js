@@ -464,6 +464,12 @@ function modalRomInfo(path,romData){
 		window.open("index.php?xcifile=" + path + "&fwfilename=" + fwname +".tar");
     });
 	
+	$('#modalRomInfoBody [data-bs-toggle="tooltip"]').each(function () {
+        new bootstrap.Tooltip($(this), {
+            container: $(this).parent()
+        });
+    });
+	
 
 }
 
