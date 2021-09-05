@@ -298,7 +298,18 @@
             <dt class="col-sm-3">Title Key</dt>
             <dd class="col-sm-9"><%=titleKey%></dd>
             <img src="<%=imgData%>" class="img-thumbnail" width="256" height="256" <%=showThumb%>"/>
-			<div>
+			<div class="<%=xciupdatepartition%>"><p>Update Partition</p>
+			<ul class="list-group">
+			<li class="list-group-item">
+			    Switch FW Version: <%=fwupdateversion%>
+				<span class="float-end"><button data-fw-name="Firmware-<%=fwupdateversion%>" data-path="<%=path%>" title="Download Firmware"
+                    class="btnFWDownload btn btn-sm bg-primary text-light"
+                    data-bs-toggle="tooltip" data-bs-placement="left">
+                <i class="bi-file-earmark-binary"></i></span>
+            </button>
+			</li>	
+			</ul>
+			</div>
 			<div id="modalrominfofilesCheckContainer" class="container">
 			<p>Internal File List:</p>
 				<ul class="list-group">

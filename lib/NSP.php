@@ -133,6 +133,7 @@ class NSP
 			$infoobj->reqsysversion = (($this->cnmtncafile->pfs0->cnmt->reqsysversion  >> 26) & 0x3F) . "." . (($this->cnmtncafile->pfs0->cnmt->reqsysversion  >> 20) & 0x3F) . "." . (($this->cnmtncafile->pfs0->cnmt->reqsysversion  >> 16) & 0x3F);
         
 			$infoobj->filesList = $this->filesList;
+			$infoobj->fwupdateversion = false;
 
 
         } elseif ($this->nspHasXmlFile) {

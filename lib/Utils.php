@@ -274,20 +274,17 @@ function renameRom($oldName, $preview = true)
     ));
 }
 
-function XCIUpdatePartition($xcifilename){
+function XCIUpdatePartition($xcifilename,$tarfilename){
+	
 	global $gameDir, $enableDecryption, $keyList;
 	
-	$mykeys = parse_ini_file("/root/.switch/prod.keys");
-	//$xci = new XCI($gameDir . '/' . $xcifilename,$keyList);
-	$xci = new XCI($xcifilename,$mykeys);
+	$xci = new XCI(realpath($gameDir . '/' . $xcifilename),$keyList);
 	
 	$xci->getMasterPartitions();
 	$xci->getSecurePartition();
 	$xci->GetUpdatePartition();
 	
-	var_dump($xci->updatepartition->filesList);
-	die();
-	$tar = new TAR("test.tar");
+	$tar = new TAR($tarfilename);
 	
 	$tarfinalsize = 0;
 	for($i=0;$i<count($xci->updatepartition->filesList);$i++){
@@ -296,14 +293,17 @@ function XCIUpdatePartition($xcifilename){
 		$tarfinalsize += $xci->updatepartition->filesList[$i]->filesize;
 		$tarfinalsize += strlen($tarentry[1]);
 	}
+	header( 'Content-type: archive/tar' );
+	header( 'Content-Disposition: attachment; filename="' . basename( $tarfilename ) . '"'  );
+	header( 'Content-Transfer-Encoding: binary' );
+	header( 'Content-Length: ' . $tarfinalsize  );
+	
 	
 	for($i=0;$i<count($xci->updatepartition->filesList);$i++){
 		$tar->AddFile($xci->updatepartition->filesList[$i]->name,$xci->fh,$xci->updatepartition->filesList[$i]->offset,$xci->updatepartition->filesList[$i]->filesize);
 	}
-	//echo $tarfinalsize;
-	
+	die();
 	
 	
 }
 
-//XCIUpdatePartition($argv[1]);

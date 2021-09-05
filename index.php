@@ -323,6 +323,11 @@ function outputRomFile($romfilename,$romfile)
 		romFile($romfilename,$romfile);
 }
 
+function outputFWFile($xcifile,$fwfilename)
+{
+		XCIUpdatePartition($xcifile,$fwfilename);
+}
+
 if (isset($_GET["config"])) {
     header("Content-Type: application/json");
     echo outputConfig();
@@ -350,6 +355,10 @@ if (isset($_GET["config"])) {
 } elseif (!empty($_GET['romfilename'])) {
     header("Content-Type: application/json");
     echo outputRomFile(rawurldecode($_GET['romfilename']),$_GET['romfile']);
+    die();
+} elseif (!empty($_GET['xcifile'])) {
+    header("Content-Type: application/json");
+    echo outputFWFile(rawurldecode($_GET['xcifile']),$_GET['fwfilename']);
     die();
 }
 

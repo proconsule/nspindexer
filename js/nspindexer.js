@@ -432,6 +432,9 @@ function modalRomInfo(path,romData){
 		titleKey: romData.titleKey,
         showThumb: (romData.mediaType == 130) ? "d-none" : "",
 		imgData: "data:image/jpeg;base64,"+romData.gameIcon,
+		xciupdatepartition: (romData.fwupdateversion == false) ? "d-none" : "",
+		fwupdateversion: (romData.fwupdateversion == false) ? "none" : romData.fwupdateversion,
+		path: path,
 		filescheck: filelisttmpt
 	})
 	$("#modalRomInfoBody").append(romtmpl);
@@ -453,6 +456,12 @@ function modalRomInfo(path,romData){
         var path = $(this).data('path');
 		var ncaname = $(this).data('nca-name');
 		window.open("index.php?romfilename=" + path + "&romfile=" + ncaname)
+    });
+	
+	$('.btnFWDownload').on('click', function () {
+        var path = $(this).data('path');
+		var fwname = $(this).data('fw-name');
+		window.open("index.php?xcifile=" + path + "&fwfilename=" + fwname +".tar");
     });
 	
 
