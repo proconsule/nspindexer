@@ -37,6 +37,42 @@ class XCI
         $this->masterpartition = new HFS0($this->fh, $this->hfs0offset, $this->hfs0size);
         $this->masterpartition->getHeaderInfo();
     }
+	
+	function getUpdatePartition()
+    {
+		if (!in_array("update", $this->masterpartition->filenames)) {
+			$this->updatepartition = false;
+            return false;
+        }
+		$this->update_index = array_search('update', $this->masterpartition->filenames);
+		$this->updatepartition = new HFS0($this->fh, $this->masterpartition->rawdataoffset + $this->masterpartition->file_array[$this->update_index]->fileoffset, $this->masterpartition->file_array[$this->update_index]->filesize);
+        $this->updatepartition->getHeaderInfo();
+		$this->updatepartition->filesList = [];
+		for ($i = 0; $i < count($this->updatepartition->filenames); $i++) {
+			$file = new stdClass();
+			$file->name = $this->updatepartition->filenames[$i];
+            $file->filesize = $this->updatepartition->file_array[$i]->filesize;
+            $file->offset = $this->updatepartition->rawdataoffset + $this->updatepartition->file_array[$i]->fileoffset;
+            $this->updatepartition->filesList[] = $file;
+		}
+		for ($i = 0; $i < count($this->updatepartition->filesList); $i++) {
+			$parts = explode('.', strtolower($this->updatepartition->filesList[$i]->name));
+			if($parts[count($parts)-2] == "cnmt" && $parts[count($parts)-1] == "nca"){
+					$ncafile = new NCA($this->fh, $this->updatepartition->filesList[$i]->offset,$this->updatepartition->filesList[$i]->filesize, $this->keys);
+					$ncafile->readHeader();
+					if($ncafile->programId == "0100000000000809"){
+						$ncafile->getFs();
+						$this->updatepartition->fwversion = (($ncafile->pfs0->cnmt->version  >> 26) & 0x3F) . "." . (($ncafile->pfs0->cnmt->version  >> 20) & 0x3F) . "." . (($ncafile->pfs0->cnmt->version  >> 16) & 0x3F);
+						
+						break;
+					}
+            
+			}
+			
+		}
+		return true;
+		
+	}
 
     function getSecurePartition()
     {
@@ -89,6 +125,12 @@ class XCI
         $infoobj->sdk = $this->ncafile->sdkArray[3] . "." . $this->ncafile->sdkArray[2] . "." . $this->ncafile->sdkArray[1];
         $infoobj->gameIcon = $this->ncafile->romfs->gameIcon;
 		$infoobj->filesList = $this->filesList;
+		if($this->updatepartition){
+			$infoobj->fwupdateversion = $this->updatepartition->fwversion;
+		}else{
+			$infoobj->fwupdateversion = false;
+		}
+		$infoobj->reqsysversion = (($this->cnmtncafile->pfs0->cnmt->reqsysversion  >> 26) & 0x3F) . "." . (($this->cnmtncafile->pfs0->cnmt->reqsysversion  >> 20) & 0x3F) . "." . (($this->cnmtncafile->pfs0->cnmt->reqsysversion  >> 16) & 0x3F);
         return $infoobj;
     }
 
@@ -153,6 +195,8 @@ $mykeys = parse_ini_file("/root/.switch/prod.keys");
 $xci = new XCI($argv[1],$mykeys);
 $xci->getMasterPartitions();
 $xci->getSecurePartition();
-
-var_dump($xci->getInfo());
+$xci->GetUpdatePartition();
+var_dump($xci->updatepartition->filesList);
 */
+//var_dump($xci->getInfo());
+

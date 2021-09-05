@@ -63,8 +63,7 @@ class NSP
             $file->filesize = $dataSize;
             $file->fileoffset = $dataOffset;
 			$file->sigcheck = false;
-            if ($this->decryption) {
-				
+            if ($this->decryption) {	
                 if ($parts[count($parts) - 1] == "nca" || $parts[count($parts) - 1] == "ncz") {
                     fseek($this->fh, $this->fileBodyOffset + $dataOffset);
                     $ncafile = new NCA($this->fh, $this->fileBodyOffset + $dataOffset, $dataSize, $this->keys);
@@ -131,6 +130,8 @@ class NSP
             } else {
                 $infoobj->titleKey = "No TIK File found";
             }
+			$infoobj->reqsysversion = (($this->cnmtncafile->pfs0->cnmt->reqsysversion  >> 26) & 0x3F) . "." . (($this->cnmtncafile->pfs0->cnmt->reqsysversion  >> 20) & 0x3F) . "." . (($this->cnmtncafile->pfs0->cnmt->reqsysversion  >> 16) & 0x3F);
+        
 			$infoobj->filesList = $this->filesList;
 
 

@@ -3,6 +3,7 @@
 require_once "PFS0.php";
 require_once "NSP.php";
 require_once "XCI.php";
+require_once "TAR.php";
 
 require_once dirname(__FILE__) . '/../config.default.php';
 if (file_exists(dirname(__FILE__) . '/../config.php')) {
@@ -111,6 +112,7 @@ function romInfo($path)
         $xci = new XCI($filePath, $keyList);
         $xci->getMasterPartitions();
         $xci->getSecurePartition();
+		$haveupdatepartition = $xci->getUpdatePartition();
         $ret = $xci->getInfo();
         $ret->fileType = $fileType;
         return $ret;
@@ -272,4 +274,36 @@ function renameRom($oldName, $preview = true)
     ));
 }
 
+function XCIUpdatePartition($xcifilename){
+	global $gameDir, $enableDecryption, $keyList;
+	
+	$mykeys = parse_ini_file("/root/.switch/prod.keys");
+	//$xci = new XCI($gameDir . '/' . $xcifilename,$keyList);
+	$xci = new XCI($xcifilename,$mykeys);
+	
+	$xci->getMasterPartitions();
+	$xci->getSecurePartition();
+	$xci->GetUpdatePartition();
+	
+	var_dump($xci->updatepartition->filesList);
+	die();
+	$tar = new TAR("test.tar");
+	
+	$tarfinalsize = 0;
+	for($i=0;$i<count($xci->updatepartition->filesList);$i++){
+		$tarentry = $tar->getTarHeaderFooter($xci->updatepartition->filesList[$i]->name,$xci->updatepartition->filesList[$i]->filesize,0);
+		$tarfinalsize += strlen($tarentry[0]);
+		$tarfinalsize += $xci->updatepartition->filesList[$i]->filesize;
+		$tarfinalsize += strlen($tarentry[1]);
+	}
+	
+	for($i=0;$i<count($xci->updatepartition->filesList);$i++){
+		$tar->AddFile($xci->updatepartition->filesList[$i]->name,$xci->fh,$xci->updatepartition->filesList[$i]->offset,$xci->updatepartition->filesList[$i]->filesize);
+	}
+	//echo $tarfinalsize;
+	
+	
+	
+}
 
+//XCIUpdatePartition($argv[1]);

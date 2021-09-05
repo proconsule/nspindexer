@@ -428,6 +428,7 @@ function modalRomInfo(path,romData){
 		intVersion: romData.version,
 		mediaType: myType + " [" + romData.fileType + "]",
 		sdk: romData.sdk,
+		reqsysversion: romData.reqsysversion,
 		titleKey: romData.titleKey,
         showThumb: (romData.mediaType == 130) ? "d-none" : "",
 		imgData: "data:image/jpeg;base64,"+romData.gameIcon,
