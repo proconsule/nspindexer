@@ -450,6 +450,7 @@ function modalRomInfo(path,romData){
 		fwupdateversion: (romData.fwupdateversion == false) ? "none" : romData.fwupdateversion,
 		isnsz: (romData.fileType != "NSZ") ? "d-none" : "",
 		compressedsize: (romData.fileType != "NSZ") ? "" : bytesToHuman(romData.compressedsize),
+		compressedratio: (romData.originalsize/romData.compressedsize).toFixed(0) + ":1 ("+ ((1-(romData.compressedsize/romData.originalsize))*100).toFixed(1) +"%)",
 		originalsize: (romData.fileType != "NSZ") ? "" : bytesToHuman(romData.originalsize),
 		path: path,
 		langcombo: langcombotmpl,
