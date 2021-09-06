@@ -124,6 +124,7 @@
 <script src="js/jquery-confirm.min.js"></script>
 <script src="js/nspindexer.js?random=<?= uniqid() ?>"></script>
 
+
 <script id="cardTemplate" type="text/x-template">
     <div class="row gx-2 mb-4">
         <div class="col col-2 d-none d-md-block">
@@ -310,7 +311,11 @@
             <dd class="col-sm-9"><%=reqsysversion%></dd>
             <dt class="col-sm-3">SDK</dt>
             <dd class="col-sm-9"><%=sdk%></dd>
-            <dt class="col-sm-3">Title Key</dt>
+			<dt class="col-sm-3 <%=isnsz%>">Compressed Size</dt>
+            <dd class="col-sm-9 <%=isnsz%>"><%=compressedsize%></dd>
+			<dt class="col-sm-3 <%=isnsz%>">Original Size</dt>
+            <dd class="col-sm-9 <%=isnsz%>"><%=originalsize%></dd>
+	        <dt class="col-sm-3">Title Key</dt>
             <dd class="col-sm-9"><%=titleKey%></dd>
 			</dl>
 			<div class="container-fluid">		

@@ -1,6 +1,7 @@
 <?php
 
 require_once "NCA.php";
+require_once "NCZ.php";
 
 class NSP
 {
@@ -25,6 +26,19 @@ class NSP
     {
         fclose($this->fh);
     }
+	
+	function getRealSize(){
+		$finalsize = 0;
+		for ($i = 0; $i < count($this->filesList); $i++) {
+			$parts = explode('.', strtolower($this->filesList[$i]->name));
+			if($parts[count($parts) - 1] == "ncz"){
+				$finalsize += $this->nczfile->getOriginalSize();
+			}else{
+				$finalsize +=$this->filesList[$i]->filesize;
+			}
+		}
+		return $finalsize;
+	}
 
     function getHeaderInfo()
     {
@@ -42,6 +56,7 @@ class NSP
         $this->HasTicketFile = false;
         $this->nspHasXmlFile = false;
         $this->ticket = new stdClass();
+		$this->nczfile = null;
 
         $this->filesList = [];
         for ($i = 0; $i < $this->numFiles; $i++) {
@@ -63,8 +78,19 @@ class NSP
             $file->filesize = $dataSize;
             $file->fileoffset = $dataOffset;
 			$file->sigcheck = false;
-            if ($this->decryption) {	
-                if ($parts[count($parts) - 1] == "nca" || $parts[count($parts) - 1] == "ncz") {
+			
+            if ($this->decryption) {
+				if($parts[count($parts) - 1] == "ncz"){
+					fseek($this->fh, $this->fileBodyOffset + $dataOffset);
+                    $nczfile = new NCZ($this->fh, $this->fileBodyOffset + $dataOffset, $dataSize, $this->keys);
+                    $nczfile->readHeader();
+					$file->sigcheck = $nczfile->nczfile->sigcheck;
+					$file->contentType = $nczfile->nczfile->contentType;
+					$this->nczfile = $nczfile;
+					
+				}
+				
+                if ($parts[count($parts) - 1] == "nca") {
                     fseek($this->fh, $this->fileBodyOffset + $dataOffset);
                     $ncafile = new NCA($this->fh, $this->fileBodyOffset + $dataOffset, $dataSize, $this->keys);
                     $ncafile->readHeader();
@@ -120,9 +146,12 @@ class NSP
             $infoobj->version = (int)$this->cnmtncafile->pfs0->cnmt->version;
             $infoobj->titleId = $this->cnmtncafile->pfs0->cnmt->id;
             $infoobj->mediaType = ord($this->cnmtncafile->pfs0->cnmt->mediaType);
+			$infoobj->humanVersion = $this->ncafile->romfs->nacp->version;
             $infoobj->otherId = $this->cnmtncafile->pfs0->cnmt->otherId;
             $infoobj->sdk = $this->ncafile->sdkArray[3] . "." . $this->ncafile->sdkArray[2] . "." . $this->ncafile->sdkArray[1];
-            if ($this->nspHasTicketFile) {
+            $infoobj->compressedsize = getFileSize($this->path);
+			$infoobj->originalsize = $this->getRealSize();
+			if ($this->nspHasTicketFile) {
                 $infoobj->titleKey = strtoupper($this->ticket->titleKey);
             } else {
                 $infoobj->titleKey = "No TIK File found";

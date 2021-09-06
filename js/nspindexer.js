@@ -448,6 +448,9 @@ function modalRomInfo(path,romData){
 		imgData: "data:image/jpeg;base64,"+romData.langs[0].gameIcon,
 		xciupdatepartition: (romData.fwupdateversion == false) ? "d-none" : "",
 		fwupdateversion: (romData.fwupdateversion == false) ? "none" : romData.fwupdateversion,
+		isnsz: (romData.fileType != "NSZ") ? "d-none" : "",
+		compressedsize: (romData.fileType != "NSZ") ? "" : bytesToHuman(romData.compressedsize),
+		originalsize: (romData.fileType != "NSZ") ? "" : bytesToHuman(romData.originalsize),
 		path: path,
 		langcombo: langcombotmpl,
 		filescheck: filelisttmpt
@@ -465,7 +468,6 @@ function modalRomInfo(path,romData){
 	$("#modalRomInfoBody").append(romtmpl);
 	$('#modalRomInfo').modal('show');	
 	}
-	
 	
 	$('.btnRomFile').on('click', function () {
         var path = $(this).data('path');
@@ -495,7 +497,6 @@ function modalRomInfo(path,romData){
 		$("#rominfoIcon").attr("src","data:image/jpeg;base64,"+romData.langs[$( this ).val()].gameIcon);
 	});
 	
-
 }
 
 function modalNetInstall(titleId) {
