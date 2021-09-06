@@ -10,6 +10,8 @@
     <link href="css/bootstrap-icons.css" rel="stylesheet">
     <link href="css/jquery-confirm.min.css" rel="stylesheet">
     <link href="css/nspindexer.css" rel="stylesheet">
+	
+	
 </head>
 <body>
 
@@ -276,15 +278,28 @@
 
 </script>
 
+<script id="romInfoLangComboTemplate" type="text/x-template">
+	<option value="<%=langidx%>" <%=langselected%>><%=lang%></option>
+</script>
+
+
 <script id="romInfoTemplate" type="text/x-template">
     <div id="modalrominfoContainer" class="container">
+		<div class="mb-3 row">
+		<label for="rominfolanguage" class="col-sm-2 col-form-label">Languages</label>
+		 <div class="col-sm-10">
+		<select id="rominfolanguage" class="form-select" aria-label="Default select example">
+			      <%=langcombo%>
+		</select>
+		</div>
+		</div>	 
         <dl class="row shadow-sm p-3 mb-5 bg-body rounded">
             <dt class="col-sm-3">ID</dt>
             <dd class="col-sm-9"><%=titleId%></dd>
             <dt class="col-sm-3">Title</dt>
-            <dd class="col-sm-9"><%=titlename%></dd>
+            <dd id="rominfoTitle" class="col-sm-9"><%=titlename%></dd>
             <dt class="col-sm-3">Publisher</dt>
-            <dd class="col-sm-9"><%=publisher%></dd>
+            <dd id="rominfoPublisher" class="col-sm-9"><%=publisher%></dd>
             <dt class="col-sm-3">Version</dt>
             <dd class="col-sm-9"><%=humanVersion%></dd>
             <dt class="col-sm-3">Int Version</dt>
@@ -299,7 +314,7 @@
             <dd class="col-sm-9"><%=titleKey%></dd>
 			</dl>
 			<div class="container-fluid">		
-			<img src="<%=imgData%>" class="img-thumbnail mx-auto d-block shadow-sm p-3 mb-5 bg-body rounded" width="256" height="256" <%=showThumb%>"/>		
+			<img id="rominfoIcon" src="<%=imgData%>" class="img-thumbnail mx-auto d-block shadow-sm p-3 mb-5 bg-body rounded" width="256" height="256" <%=showThumb%>"/>		
 			</div>
 			<div class="<%=xciupdatepartition%>"><p>Update Partition</p>
 			<ul class="list-group">

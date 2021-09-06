@@ -284,7 +284,7 @@ function XCIUpdatePartition($xcifilename,$tarfilename){
 	$xci->getSecurePartition();
 	$xci->GetUpdatePartition();
 	
-	$tar = new TAR($tarfilename);
+	$tar = new TAR();
 	
 	$tarfinalsize = 0;
 	for($i=0;$i<count($xci->updatepartition->filesList);$i++){

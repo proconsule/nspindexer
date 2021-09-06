@@ -37,20 +37,24 @@ class ROMFS{
 			$this->Files[] = $tmpfentry;
 			$idx++;
 		}
-		for($i=0;$i<count($this->Files);$i++){
-			if(substr($this->Files[$i]->name,0,5) == "icon_"){
-				$this->gameIcon = base64_encode($this->getFile($i));
-				$this->iconFilename = $this->Files[$i]->name;
-				break;
-			}
-		}
+		
 		for($i=0;$i<count($this->Files);$i++){
 			$parts = explode('.', $this->Files[$i]->name);
 			if($parts[1] == "nacp"){
-				$this->nacp = new NACP($this->getFile($i),$this->iconFilename);
+				$this->nacp = new NACP($this->getFile($i));
 			}
 			
 		}
+		
+		for($i=0;$i<count($this->Files);$i++){
+			if(substr($this->Files[$i]->name,0,5) == "icon_"){
+				$fileidx = $this->nacp->getLangIdx($this->Files[$i]->name);
+				$this->nacp->langs[$fileidx]->gameIcon = base64_encode($this->getFile($i));
+				$this->nacp->langs[$fileidx]->iconFilename = $this->Files[$i]->name;
+				//break;
+			}
+		}
+		
 	
 	}
 	function getFile($i){
@@ -60,23 +64,36 @@ class ROMFS{
 }
 
 class NACP{
-	function __construct($ncapcontents,$iconfilename){
-		if($iconfilename == "icon_AmericanEnglish.dat"){
-			$this->title = trim(substr($ncapcontents,0,0x200));
-			$this->publisher = trim(substr($ncapcontents,0x200,0x100));
-		}else if($iconfilename == "icon_BritishEnglish.dat"){
-			$this->title = trim(substr($ncapcontents,0x300,0x200));
-			$this->publisher = trim(substr($ncapcontents,0x500,0x100));
+	
+	const langStrings = ["AmericanEnglish","BritishEnglish","Japanese","French","German","LatinAmericanSpanish","Spanish","Italian","Dutch","CanadianFrench","Portuguese","Russian","Korean","TraditionalChinese","SimplifiedChinese" ];
+	
+	function __construct($ncapcontents){
+		$this->langs = array();
+		
+		
+		for($i=0;$i<15;$i++){
+			$langtmp = new stdClass();
+			$langtmp->title = trim(substr($ncapcontents,0+(0x300*$i),0x200));
+			$langtmp->publisher = trim(substr($ncapcontents,0x200+(0x300*$i),0x100));
+			$langtmp->name = self::langStrings[$i];
+			$langtmp->present = false;
+			$this->langs[] = $langtmp;
 		}
-		else if($iconfilename == "icon_Japanese.dat"){
-			$this->title = trim(substr($ncapcontents,0x600,0x200));
-			$this->publisher = trim(substr($ncapcontents,0x800,0x100));
-		}
-		
-		
-		
+		$this->getLanguages(unpack("V",substr($ncapcontents,0x302C,4))[1]);
 		$this->version = trim(substr($ncapcontents,0x3060,0x10));
 	}
 
+	function getLangIdx($iconfile){
+		$iconlang = str_replace(".dat","",str_replace("icon_","",$iconfile));
+		return array_search($iconlang,self::langStrings);
+	}
 
+	function getLanguages($suportedlanguages){
+		for($i=0;$i<15;$i++){
+			if( $suportedlanguages & (1 << $i) ) {
+				$this->langs[$i]->present = true;
+			}
+		}
+		
+	}
 }

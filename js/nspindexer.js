@@ -5,6 +5,8 @@ var netInstallEnabled = false;
 var renameEnabled = false;
 var romInfoEnabled = false;
 
+var langFlags = ["🇺🇸","🇬🇧","🇯🇵","🇫🇷","🇩🇪","🇪🇸","🇪🇸","🇮🇹","🇩🇪","🇨🇦","🇵🇹","🇷🇺","🇰🇷","🇨🇳","🇨🇳"];
+
 $(document).ready(function () {
     $("#keyword").val("");
     loadConfig();
@@ -393,8 +395,6 @@ function modalRomInfo(path,romData){
 	
 	var filelisttmpt = [];
 	
-	console.log(romData);
-	
 	for (var i = 0; i < romData.filesList.length; i++) {
 		if(romData.filesList[i].name.endsWith(".nca") || romData.filesList[i].name.endsWith(".ncz")){
 			filelisttmpt += tmpl(contentfileTemplate, {
@@ -420,9 +420,23 @@ function modalRomInfo(path,romData){
 	
 	if(romData.mediaType != 130){
 	
+	var langcombotmpl = [];
+	
+	var romInfoLangComboTemplate = $("#romInfoLangComboTemplate").html();
+	for (var i = 0; i < romData.langs.length; i++) {
+			if(romData.langs[i].present){
+				langcombotmpl += tmpl(romInfoLangComboTemplate, {
+					langselected: "",
+					langidx: i,
+					lang: langFlags[i] + " " + romData.langs[i].name
+				})
+		}
+	}
+	
+	
 	var romtmpl = tmpl(contentTemplate, {
-		titlename: romData.title,
-		publisher: romData.publisher,
+		titlename: romData.langs[0].title,
+		publisher: romData.langs[0].publisher,
 		titleId: romData.titleId.toUpperCase(),
 		humanVersion: romData.humanVersion,
 		intVersion: romData.version,
@@ -431,10 +445,11 @@ function modalRomInfo(path,romData){
 		reqsysversion: romData.reqsysversion,
 		titleKey: romData.titleKey,
         showThumb: (romData.mediaType == 130) ? "d-none" : "",
-		imgData: "data:image/jpeg;base64,"+romData.gameIcon,
+		imgData: "data:image/jpeg;base64,"+romData.langs[0].gameIcon,
 		xciupdatepartition: (romData.fwupdateversion == false) ? "d-none" : "",
 		fwupdateversion: (romData.fwupdateversion == false) ? "none" : romData.fwupdateversion,
 		path: path,
+		langcombo: langcombotmpl,
 		filescheck: filelisttmpt
 	})
 	$("#modalRomInfoBody").append(romtmpl);
@@ -469,6 +484,16 @@ function modalRomInfo(path,romData){
             container: $(this).parent()
         });
     });
+	
+	$("#rominfoTitle").html(romData.langs[$("#rominfolanguage").val()].title);
+	$("#rominfoPublisher").html(romData.langs[$("#rominfolanguage").val()].publisher);
+	$("#rominfoIcon").attr("src","data:image/jpeg;base64,"+romData.langs[$("#rominfolanguage").val()].gameIcon);
+	
+	$( "#rominfolanguage").change(function() {
+		$("#rominfoTitle").html(romData.langs[$( this ).val()].title);
+		$("#rominfoPublisher").html(romData.langs[$( this ).val()].publisher);
+		$("#rominfoIcon").attr("src","data:image/jpeg;base64,"+romData.langs[$( this ).val()].gameIcon);
+	});
 	
 
 }

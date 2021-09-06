@@ -115,16 +115,13 @@ class XCI
     function getInfo()
     {
         $infoobj = new stdClass();
-        $infoobj->title = $this->ncafile->romfs->nacp->title;
-        $infoobj->publisher = $this->ncafile->romfs->nacp->publisher;
-        $infoobj->version = (int)$this->cnmtncafile->pfs0->cnmt->version;
+        $infoobj->langs = $this->ncafile->romfs->nacp->langs;$infoobj->version = (int)$this->cnmtncafile->pfs0->cnmt->version;
         $infoobj->humanVersion = $this->ncafile->romfs->nacp->version;
         $infoobj->titleId = $this->cnmtncafile->pfs0->cnmt->id;
         $infoobj->mediaType = ord($this->cnmtncafile->pfs0->cnmt->mediaType);
         $infoobj->otherId = $this->cnmtncafile->pfs0->cnmt->otherId;
         $infoobj->sdk = $this->ncafile->sdkArray[3] . "." . $this->ncafile->sdkArray[2] . "." . $this->ncafile->sdkArray[1];
-        $infoobj->gameIcon = $this->ncafile->romfs->gameIcon;
-		$infoobj->filesList = $this->securepartition->filesList;
+        $infoobj->filesList = $this->securepartition->filesList;
 		if($this->updatepartition){
 			$infoobj->fwupdateversion = $this->updatepartition->fwversion;
 		}else{
@@ -182,8 +179,6 @@ class HFS0
     }
 
 }
-
-
 
 # Debug Example
 # use php XCI.php filepath;

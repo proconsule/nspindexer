@@ -116,15 +116,12 @@ class NSP
     {
         $infoobj = new stdClass();
         if ($this->decryption) {
-            $infoobj->title = $this->ncafile->romfs->nacp->title;
-            $infoobj->publisher = $this->ncafile->romfs->nacp->publisher;
+			$infoobj->langs = $this->ncafile->romfs->nacp->langs;
             $infoobj->version = (int)$this->cnmtncafile->pfs0->cnmt->version;
-            $infoobj->humanVersion = $this->ncafile->romfs->nacp->version;
             $infoobj->titleId = $this->cnmtncafile->pfs0->cnmt->id;
             $infoobj->mediaType = ord($this->cnmtncafile->pfs0->cnmt->mediaType);
             $infoobj->otherId = $this->cnmtncafile->pfs0->cnmt->otherId;
             $infoobj->sdk = $this->ncafile->sdkArray[3] . "." . $this->ncafile->sdkArray[2] . "." . $this->ncafile->sdkArray[1];
-            $infoobj->gameIcon = $this->ncafile->romfs->gameIcon;
             if ($this->nspHasTicketFile) {
                 $infoobj->titleKey = strtoupper($this->ticket->titleKey);
             } else {

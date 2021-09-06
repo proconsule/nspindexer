@@ -2,9 +2,9 @@
 
 class TAR
 {
-    function __construct($tarfilename)
+    function __construct()
     {
-        $this->tarfilename = $tarfilename;
+        
     }
 	
 	function  AddFile($filename,$fh,$offset,$size)
@@ -20,14 +20,20 @@ class TAR
 			if($tmpsize > $chunksize){
 				echo fread($fh,$chunksize);
 				$tmpsize -= $chunksize;
+				flush();
+				ob_flush();
 			}else
 			{
 				echo fread($fh,$tmpsize);
 				$tmpsize=0;
+				flush();
+				ob_flush();
 			}
 			
 		}
 		echo $entry[1];
+		flush();
+		ob_flush();
 		
 	}
 	
