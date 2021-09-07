@@ -5,7 +5,7 @@ include_once "ROMFS.php";
 include_once "IVFC.php";
 include_once "PFS0.php";
 
-include_once "RSAPSS.php";
+include_once "N-RSA.php";
 
 
 class NCA
@@ -32,7 +32,7 @@ class NCA
         $this->rsa2 = bin2hex(substr($decHeader, 0x100, 0x100));
         $this->magic = substr($decHeader, 0x200, 4);
 		
-		$rsapss = new RSAPSS(substr($this->decHeader,0x200,0x200),hex2bin($this->rsa1));
+		$rsapss = new NCARSAPSS(substr($this->decHeader,0x200,0x200),hex2bin($this->rsa1));
 		$this->sigcheck = $rsapss->verify();
         $this->distributionType = ord(substr($decHeader, 0x204, 1));
         $this->contentType = ord(substr($decHeader, 0x205, 1));

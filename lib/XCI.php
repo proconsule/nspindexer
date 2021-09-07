@@ -1,10 +1,13 @@
 <?php
 
 require_once "NCA.php";
+require_once "N-RSA.php";
 
 class XCI
 {
-    function __construct($path, $keys)
+	public static $romsizestrings = array(0xFA => "1GB",0xF8 => "2GB",0xF0 => "4GB",0xE0 => "8GB",0xE1 => "16GB",0xE2 => "32GB");
+	
+	function __construct($path, $keys)
     {
         if ($keys == null) {
             return false;
@@ -26,11 +29,19 @@ class XCI
 
     function getMasterPartitions()
     {
-        fseek($this->fh, 0x100);
-        $this->fileSignature = fread($this->fh, 4);
-        if ($this->fileSignature != "HEAD") {
+        $this->headerrsa = fread($this->fh, 0x100);
+		$this->headerdata = fread($this->fh, 0x100);
+		$rsapkcs1 = new XCIRSAPKCS1($this->headerdata,$this->headerrsa);
+		$this->headersig = $rsapkcs1->verify();
+		fseek($this->fh, 0x100);
+        $this->xcimagic = fread($this->fh, 4);
+        if ($this->xcimagic != "HEAD") {
             return false;
         }
+		fseek($this->fh, 0x10D);
+		$this->romsize = fread($this->fh, 1);;
+		 
+		
         fseek($this->fh, 0x130);
         $this->hfs0offset = unpack("P", fread($this->fh, 8))[1];
         $this->hfs0size = unpack("P", fread($this->fh, 8))[1];
@@ -128,7 +139,9 @@ class XCI
         $infoobj->mediaType = ord($this->cnmtncafile->pfs0->cnmt->mediaType);
         $infoobj->otherId = $this->cnmtncafile->pfs0->cnmt->otherId;
         $infoobj->sdk = $this->ncafile->sdkArray[3] . "." . $this->ncafile->sdkArray[2] . "." . $this->ncafile->sdkArray[1];
+		$infoobj->romsize = self::$romsizestrings[ord($this->romsize)];
         $infoobj->filesList = $this->securepartition->filesList;
+		$infoobj->headsigcheck = $this->headersig;
 		if($this->updatepartition != null){
 			$infoobj->fwupdateversion = $this->updatepartition->fwversion;
 		}else{
@@ -198,7 +211,5 @@ $xci = new XCI($argv[1],$mykeys);
 $xci->getMasterPartitions();
 $xci->getSecurePartition();
 $xci->GetUpdatePartition();
-var_dump($xci->updatepartition->filesList);
+var_dump($xci->getInfo());
 */
-//var_dump($xci->getInfo());
-
