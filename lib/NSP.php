@@ -34,7 +34,7 @@ class NSP
 			if($parts[count($parts) - 1] == "ncz"){
 				$finalsize += $this->nczfile->getOriginalSize();
 			}else{
-				$finalsize +=$this->filesList[$i]->filesize;
+				$finalsize += $this->filesList[$i]->filesize;
 			}
 		}
 		return $finalsize;
@@ -84,6 +84,7 @@ class NSP
 					fseek($this->fh, $this->fileBodyOffset + $dataOffset);
                     $nczfile = new NCZ($this->fh, $this->fileBodyOffset + $dataOffset, $dataSize, $this->keys);
                     $nczfile->readHeader();
+					$nczfile->ReadNCZSECT();
 					$file->sigcheck = $nczfile->nczfile->sigcheck;
 					$file->contentType = $nczfile->nczfile->contentType;
 					$this->nczfile = $nczfile;

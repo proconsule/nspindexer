@@ -40,6 +40,7 @@ class XCI
 	
 	function getUpdatePartition()
     {
+		$this->updatepartition = null;
 		if (!in_array("update", $this->masterpartition->filenames)) {
 			$this->updatepartition = false;
             return false;
@@ -48,6 +49,12 @@ class XCI
 		$this->updatepartition = new HFS0($this->fh, $this->masterpartition->rawdataoffset + $this->masterpartition->file_array[$this->update_index]->fileoffset, $this->masterpartition->file_array[$this->update_index]->filesize);
         $this->updatepartition->getHeaderInfo();
 		$this->updatepartition->filesList = [];
+		
+		if($this->updatepartition->numfiles==0){
+			$this->updatepartition = null;
+			return false;
+		}
+		
 		for ($i = 0; $i < count($this->updatepartition->filenames); $i++) {
 			$file = new stdClass();
 			$file->name = $this->updatepartition->filenames[$i];
@@ -122,7 +129,7 @@ class XCI
         $infoobj->otherId = $this->cnmtncafile->pfs0->cnmt->otherId;
         $infoobj->sdk = $this->ncafile->sdkArray[3] . "." . $this->ncafile->sdkArray[2] . "." . $this->ncafile->sdkArray[1];
         $infoobj->filesList = $this->securepartition->filesList;
-		if($this->updatepartition){
+		if($this->updatepartition != null){
 			$infoobj->fwupdateversion = $this->updatepartition->fwversion;
 		}else{
 			$infoobj->fwupdateversion = false;
