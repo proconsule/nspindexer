@@ -46,4 +46,5 @@ Hope you enjoy it!
 - SciresM for aes128.py we ported to PHP for NCA decryption
 - duckbill007 for support on DBI Installer
 - blawar for nsp update version look suggestion and all tinfoil cool stuff
+- nicoboss for help on supporting NSZ XCZ (your file type is so smart!)
 - Ejec at GBAtemp forum (for his bugs reports)
