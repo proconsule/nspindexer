@@ -477,13 +477,13 @@ function modalRomInfo(path,romData){
 	$('.btnRomFile').on('click', function () {
         var path = $(this).data('path');
 		var ncaname = $(this).data('nca-name');
-		window.open("index.php?romfilename=" + path + "&romfile=" + ncaname)
+		window.open("index.php?romfilename=" + encodeURIComponent(path) + "&romfile=" + ncaname)
     });
 	
 	$('.btnFWDownload').on('click', function () {
         var path = $(this).data('path');
 		var fwname = $(this).data('fw-name');
-		window.open("index.php?xcifile=" + path + "&fwfilename=" + fwname +".tar");
+		window.open("index.php?xcifile=" + encodeURIComponent(path) + "&fwfilename=" + fwname +".tar");
     });
 	
 	$('#modalRomInfoBody [data-bs-toggle="tooltip"]').each(function () {

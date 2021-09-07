@@ -121,12 +121,11 @@ function romInfo($path)
 }
 
 function romFile($romfilename,$romfile){
-	
 	global $keyList;
 	global $gameDir;
 	
 	if(guessFileType($romfilename) == "NSP" || guessFileType($romfilename) =="NSZ"){	
-		$nsp = new NSP(realpath($gameDir . '/' . $romfilename), $keyList);
+		$nsp = new NSP(realpath($romfilename), $keyList);
 		$nsp->getHeaderInfo();
 		$fileidx = -1;
 		for($i=0;$i<count($nsp->filesList);$i++){
@@ -171,12 +170,14 @@ function romFile($romfilename,$romfile){
 		die();
 	}
 	if(guessFileType($romfilename) == "XCI" || guessFileType($romfilename) =="XCZ"){
-		$xci = new XCI(realpath($gameDir . '/' . $romfilename), $keyList);
+		$xci = new XCI(realpath($romfilename), $keyList);
+		
+		
 		$xci->getMasterPartitions();
 		$xci->getSecurePartition();
 		$fileidx = -1;
-		for($i=0;$i<count($xci->filesList);$i++){
-			if($xci->filesList[$i]->name == $romfile){
+		for($i=0;$i<count($xci->securepartition->filesList);$i++){
+			if($xci->securepartition->filesList[$i]->name == $romfile){
 				$fileidx = $i;
 				break;
 			}
@@ -184,7 +185,7 @@ function romFile($romfilename,$romfile){
 		if($fileidx == -1){
 			die();
 		}
-		$size = $xci->filesList[$fileidx]->filesize;
+		$size = $xci->securepartition->filesList[$fileidx]->filesize;
 		$chunksize = 5 * (1024 * 1024);
 		header('Content-Type: application/octet-stream');
 		header('Content-Transfer-Encoding: binary');
@@ -278,7 +279,7 @@ function XCIUpdatePartition($xcifilename,$tarfilename){
 	
 	global $gameDir, $enableDecryption, $keyList;
 	
-	$xci = new XCI(realpath($gameDir . '/' . $xcifilename),$keyList);
+	$xci = new XCI(realpath($xcifilename),$keyList);
 	
 	$xci->getMasterPartitions();
 	$xci->getSecurePartition();

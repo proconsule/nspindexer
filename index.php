@@ -320,12 +320,16 @@ function outputDbi()
 
 function outputRomFile($romfilename,$romfile)
 {
-		romFile($romfilename,$romfile);
+	    global $gameDir;
+		$path = $gameDir . '/' . $romfilename;
+		romFile($path,$romfile);
 }
 
 function outputFWFile($xcifile,$fwfilename)
 {
-		XCIUpdatePartition($xcifile,$fwfilename);
+		global $gameDir;
+	    $path = $gameDir . '/' . $xcifile;
+		XCIUpdatePartition($path,$fwfilename);
 }
 
 if (isset($_GET["config"])) {
@@ -348,11 +352,7 @@ if (isset($_GET["config"])) {
     header("Content-Type: application/json");
     echo outputRomInfo(rawurldecode($_GET['rominfo']));
     die();
-} elseif (!empty($_GET['rominfo'])) {
-    header("Content-Type: application/json");
-    echo outputRomInfo(rawurldecode($_GET['rominfo']));
-    die();
-} elseif (!empty($_GET['romfilename'])) {
+}  elseif (!empty($_GET['romfilename'])) {
     header("Content-Type: application/json");
     echo outputRomFile(rawurldecode($_GET['romfilename']),$_GET['romfile']);
     die();
