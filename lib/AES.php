@@ -98,7 +98,6 @@ class AESCTR
                 $ctr = $this->ctr;
             }
             $out = openssl_decrypt($data, 'AES-128-CTR', $this->key, OPENSSL_RAW_DATA, $ctr->ctr);
-			$this->ctr = $ctr;
             return $out;
         } else {
             #same CTR is symmetric

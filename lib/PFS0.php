@@ -63,17 +63,17 @@ class PFS0Encrypted
 		$this->aesctr = new AESCTR(hex2bin(strtoupper($key)), hex2bin(strtoupper($ctr)), true);
 		$this->aesctr->ctr->add($pfs0Offset/16);
 		$this->data = $this->aesctr->decrypt(fread($fh,$encSize));
-		$this->startctr = $this->aesctr->ctr;
+		$this->startctr = $this->aesctr->ctr->ctr;
 		$this->startOffset = $encdataOffset+$pfs0Offset;
 		$this->dataSize = $pfs0Size; 
     }
 	
 #offset must be a multiple of 0x10
 	function getCTROffset($offset){
+		$ctr = new CTRCOUNTER($this->startctr);
 		$adder = $offset/16;
-		$returnctr = $this->startctr;
-		$returnctr->add($adder);
-		return $returnctr;
+		$ctr->add($adder);
+		return $ctr;
 	}
 
     function getHeader()
@@ -124,6 +124,46 @@ class PFS0Encrypted
 			$decfile = $this->aesctr->decrypt(fread($this->fh,$this->filesList[$idx]->size+$subber),$this->getCTROffset($this->fileBodyOffset+$this->filesList[$idx]->offset-$subber));
 			$decfile = substr($decfile,$subber,$this->filesList[$idx]->size+$subber);
 			return $decfile;
+		}
+		
+	}
+	
+	function extractFile($idx){
+		$subber = ($this->fileBodyOffset+$this->filesList[$idx]->offset)%16;
+		fseek($this->fh, $this->startOffset+$this->fileBodyOffset+$this->filesList[$idx]->offset-$subber);
+		
+		$size = $this->filesList[$idx]->size;
+		$chunksize = 5 * (1024 * 1024);
+		header('Content-Type: application/octet-stream');
+		header('Content-Transfer-Encoding: binary');
+		header('Content-Length: '.$size);
+		header('Content-Disposition: attachment;filename="'.$this->filesList[$idx]->name.'"');
+		$tmpchunksize = $size;
+		$tmpchunkdone = 1;
+		if($size >= $chunksize)
+		{
+            $ctr = $this->getCTROffset($this->fileBodyOffset+$this->filesList[$idx]->offset-$subber);		
+			while ($tmpchunksize>$chunksize)
+			{ 
+				echo $this->aesctr->decrypt(fread($this->fh,$chunksize),$ctr);
+                $tmpchunksize -=$chunksize;
+				$ctr = $this->getCTROffset($this->fileBodyOffset+$this->filesList[$idx]->offset-$subber+($chunksize*$tmpchunkdone));
+				$tmpchunkdone += 1;
+				
+				ob_flush();
+				flush();
+			}
+			if($tmpchunksize>0){
+			echo $this->aesctr->decrypt(fread($this->fh,$tmpchunksize),$ctr);
+			ob_flush();
+			flush();
+			}
+         
+		}
+		if($size < $chunksize){
+		  echo $this->aesctr->decrypt(fread($this->fh,$this->filesList[$idx]->size+$subber),$this->getCTROffset($this->fileBodyOffset+$this->filesList[$idx]->offset-$subber));
+          ob_flush();
+          flush();
 		}
 		
 	}
