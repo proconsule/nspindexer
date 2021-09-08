@@ -108,8 +108,10 @@ class NSP
 
                     if ($ncafile->contentType == 2) {
                         $ncafile->getFs();
-                        $ncafile->getRomfs(0);
-                        $this->ncafile = $ncafile;
+						if($ncafile->romfsidx >-1){
+							$ncafile->getRomfs($ncafile->romfsidx);
+							$this->ncafile = $ncafile;
+						}
                     }
                 }
 

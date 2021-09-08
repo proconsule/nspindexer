@@ -208,8 +208,8 @@ class AESXTSN
         }
         return $out;
     }
-
-    /*
+/*
+    
     function decrypt_sector($data, $tweak){
         if (strlen($data) % $this->block_size){
             return false;
@@ -230,8 +230,8 @@ class AESXTSN
         }
         return $out;
     }
-    */
-
+    
+*/  
     function decrypt_sector2($data, $tweak)
     {
         if (strlen($data) % $this->block_size) {
