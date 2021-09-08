@@ -19,18 +19,32 @@ function guessFileType($path, $internalcheck = false)
         if (substr($magicdata, 0, 4) == "PFS0") {
             $numFiles = unpack("V", substr($magicdata, 4, 0x04))[1];
             $stringTableSize = unpack("V", substr($magicdata, 8, 0x04))[1];
-            $stringTableOffset = 0x10 + 0x18 * $numFiles;
-            fseek($fh, 0);
-            $magicdata = fread($fh, $stringTableOffset + $stringTableSize);
-            $pfs0 = new PFS0($magicdata, 0, $stringTableOffset + $stringTableSize);
-            $pfs0->getHeader();
-            $isnsz = false;
-            for ($i = 0; $i < count($pfs0->filesList); $i++) {
-                $parts = explode('.', strtolower($pfs0->filesList[$i]->name));
-                if ($parts[count($parts) - 1] == "ncz") {
+			$stringTableOffset = 0x10 + 0x18 * $numFiles;
+			fseek($fh, 0x10);
+			for ($i = 0; $i < $numFiles; $i++) {
+				$dataOffset = unpack("P", fread($fh, 8))[1];
+				$dataSize = unpack("P", fread($fh, 8))[1];
+				$stringOffset = unpack("V", fread($fh, 4))[1];
+				fread($fh, 4);
+				$storePos = ftell($fh);
+				fseek($fh, $stringTableOffset + $stringOffset);
+				$filename = "";
+				while (true) {
+					$byte = unpack("C", fread($fh, 1))[1];
+					if ($byte == 0x00) break;
+					$filename = $filename . chr($byte);
+				}
+				$parts = explode('.', strtolower($filename));
+				$file = new stdClass();
+				$file->name = $filename;
+				$file->filesize = $dataSize;
+				$file->fileoffset = $dataOffset;
+				if ($parts[count($parts) - 1] == "ncz") {
                     $isnsz = true;
                 }
-            }
+				fseek($fh, $storePos);
+			}
+			
             if ($isnsz) return "NSZ";
             return "NSP";
         }

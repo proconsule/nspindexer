@@ -22,6 +22,7 @@ Hope you enjoy it!
 - XCI Internal TitleID Check (if keys supplied)
 - NSP & XCI File Decryption
 - NCA Header Signature Check
+- XCI Header Signature Check
 - Download of individual internal file (NCA TIK XML CERT)
 - Download of Switch FW Update from XCI file (as a single tar file)
 - File Rename Based on TitleID & Version
