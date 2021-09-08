@@ -123,8 +123,6 @@ class NCA
             if ($this->fsHeaders[$i]->hashType == 3) {
                 $ivfc = new IVFC($this->fsHeaders[$i]->superBlock);
                 $this->fsEntrys[$i]->romfsoffset = $this->fsEntrys[$i]->startOffset + $ivfc->sboffset;
-                fseek($this->fh, $this->fsEntrys[$i]->startOffset + $this->fileOffset);
-                $this->fsEntrys[$i]->encData = fread($this->fh, $this->fsEntrys[$i]->endOffset - $this->fsEntrys[$i]->startOffset);
             }
             if ($this->fsHeaders[$i]->hashType == 2) {
                 $shahash = substr($this->fsHeaders[$i]->superBlock, 0, 0x20)[1];
@@ -132,11 +130,7 @@ class NCA
                 $pfs0offset = unpack("P", substr($this->fsHeaders[$i]->superBlock, 0x38, 8))[1];
                 $pfs0size = unpack("P", substr($this->fsHeaders[$i]->superBlock, 0x40, 8))[1];
 				$this->fsEntrys[$i]->pfs0offset = $this->fsEntrys[$i]->startOffset + $pfs0offset;
-                fseek($this->fh, $this->fsEntrys[$i]->startOffset + $this->fileOffset);
-                $this->fsEntrys[$i]->encData = fread($this->fh, $this->fsEntrys[$i]->endOffset - $this->fsEntrys[$i]->startOffset);
-                $aesctr = new AESCTR(hex2bin(strtoupper($this->deckeyArea[2])), hex2bin(strtoupper($this->fsHeaders[$i]->ctr)), true);
-                $this->fsEntrys[$i]->decData = $aesctr->decrypt($this->fsEntrys[$i]->encData);
-                $pfs0 = new PFS0($this->fsEntrys[$i]->decData, $pfs0offset, $pfs0size);
+				$pfs0 = new PFS0Encrypted($this->fh,$this->fsEntrys[$i]->startOffset + $this->fileOffset,$this->fsEntrys[$i]->endOffset - $this->fsEntrys[$i]->startOffset,$pfs0offset,$pfs0size,$this->deckeyArea[2],$this->fsHeaders[$i]->ctr);
 				$pfs0->getHeader();
                 $this->pfs0 = $pfs0;
             }
@@ -145,8 +139,17 @@ class NCA
 
     function getRomfs($idx)
     {
-        $this->romfs = new ROMFS($this->fsEntrys[$idx]->encData, $this->deckeyArea[2], $this->fsHeaders[$idx]->ctr);
+		$this->romfs = new ROMFS($this->fh,$this->fsEntrys[$idx]->startOffset + $this->fileOffset,$this->fsEntrys[$idx]->endOffset - $this->fsEntrys[$idx]->startOffset, $this->deckeyArea[2], $this->fsHeaders[$idx]->ctr);
         $this->romfs->decData = substr($this->romfs->decData, $this->fsEntrys[$idx]->romfsoffset - $this->fsEntrys[$idx]->startOffset, $this->fsEntrys[$idx]->endOffset);
         $this->romfs->getHeader();
     }
 }
+
+/*
+$mykeys = parse_ini_file("/root/.switch/prod.keys");
+$fh = fopen($argv[1],'r');
+$test = new NCA($fh,0,1,$mykeys);
+$test->readHeader();
+$test->getFs();
+//$test->getRomfs(0);
+*/

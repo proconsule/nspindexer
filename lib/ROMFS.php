@@ -3,9 +3,13 @@
 # ROMFS very partial implementation, for use on small files only (we just need this)
 
 class ROMFS{
-	function __construct($encData,$key,$ctr){
+	function __construct($fh,$offset,$size,$key,$ctr){
 		$aesctr = new AESCTR(hex2bin(strtoupper($key)),hex2bin(strtoupper($ctr)),true);
-	    $this->decData =  $aesctr->decrypt($encData);
+		$this->fh = $fh;
+		$this->offset = $offset;
+		$this->size = $size;
+		fseek($fh,$offset);
+	    $this->decData =  $aesctr->decrypt(fread($fh,$size));
 	}
     function getHeader(){
         $this->headerSize = unpack("P", substr($this->decData,0,8))[1];

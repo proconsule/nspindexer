@@ -21,6 +21,7 @@ function guessFileType($path, $internalcheck = false)
             $stringTableSize = unpack("V", substr($magicdata, 8, 0x04))[1];
 			$stringTableOffset = 0x10 + 0x18 * $numFiles;
 			fseek($fh, 0x10);
+			$isnsz = false;
 			for ($i = 0; $i < $numFiles; $i++) {
 				$dataOffset = unpack("P", fread($fh, 8))[1];
 				$dataSize = unpack("P", fread($fh, 8))[1];
