@@ -150,11 +150,13 @@ function matchTitleIds($files)
                 $version = $versionMatches[0];
                 $baseTitleId = getBaseTitleId($titleId);
                 // add Update only if the Base TitleId for it exists
-                if ($titles[$baseTitleId]) {
-                    $titles[$baseTitleId]['updates'][$version] = array(
-                        "path" => $file
-                    );
-                }
+				if(array_key_exists($baseTitleId,$titles)){
+					if ($titles[$baseTitleId]) {
+						$titles[$baseTitleId]['updates'][$version] = array(
+							"path" => $file
+						);
+					}
+				}
             }
 
         } else {
