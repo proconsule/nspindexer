@@ -151,5 +151,6 @@ $fh = fopen($argv[1],'r');
 $test = new NCA($fh,0,1,$mykeys);
 $test->readHeader();
 $test->getFs();
-//$test->getRomfs(0);
 */
+//$test->getRomfs(0);
+

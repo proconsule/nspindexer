@@ -60,13 +60,21 @@ class PFS0Encrypted
     {
 		$this->fh = $fh;
 		fseek($this->fh, $encdataOffset+$pfs0Offset);
-		$aesctr = new AESCTR(hex2bin(strtoupper($key)), hex2bin(strtoupper($ctr)), true);
-		$aesctr->ctr->add($pfs0Offset/16);
-		$this->data = $aesctr->decrypt(fread($fh,$encSize));
-		$this->startctr = $aesctr->ctr->ctr;
+		$this->aesctr = new AESCTR(hex2bin(strtoupper($key)), hex2bin(strtoupper($ctr)), true);
+		$this->aesctr->ctr->add($pfs0Offset/16);
+		$this->data = $this->aesctr->decrypt(fread($fh,$encSize));
+		$this->startctr = $this->aesctr->ctr;
 		$this->startOffset = $encdataOffset+$pfs0Offset;
 		$this->dataSize = $pfs0Size; 
     }
+	
+#offset must be a multiple of 0x10
+	function getCTROffset($offset){
+		$adder = $offset/16;
+		$returnctr = $this->startctr;
+		$returnctr->add($adder);
+		return $returnctr;
+	}
 
     function getHeader()
     {
@@ -97,14 +105,28 @@ class PFS0Encrypted
             $file->name = $filename;
             $file->size = $dataSize;
             $file->offset = $dataOffset;
+			$this->filesList[] = $file;
+			
             if ($parts[count($parts) - 1] == "cnmt") {
-                $this->cnmt = new CNMT(substr($this->data, $this->fileBodyOffset + $dataOffset, $dataSize), $dataSize);
+                $this->cnmt = new CNMT($this->getFile($i),$dataSize);
             }
-            $this->filesList[] = $file;
+            
 
         }
 
     }
+	
+# In memory extraction use on small file only
+	function getFile($idx){
+		$subber = ($this->fileBodyOffset+$this->filesList[$idx]->offset)%16;
+		fseek($this->fh, $this->startOffset+$this->fileBodyOffset+$this->filesList[$idx]->offset-$subber);
+		if(($this->fileBodyOffset+$this->filesList[$idx]->offset)%16 == 0){
+			$decfile = $this->aesctr->decrypt(fread($this->fh,$this->filesList[$idx]->size+$subber),$this->getCTROffset($this->fileBodyOffset+$this->filesList[$idx]->offset-$subber));
+			$decfile = substr($decfile,$subber,$this->filesList[$idx]->size+$subber);
+			return $decfile;
+		}
+		
+	}
 
 }
 
