@@ -57,6 +57,11 @@ if (!extension_loaded('openssl') && $enableDecryption == true) {
     die();
 }
 
+if (!function_exists('gmp_add') && $enableDecryption == true) {
+    echo "php gmp is not installed please install it and refresh page";
+    die();
+}
+
 $version = trim(file_get_contents('./VERSION'));
 
 function outputRomInfo($path)
