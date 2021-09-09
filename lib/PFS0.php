@@ -59,21 +59,22 @@ class PFS0Encrypted
     function __construct($fh, $encdataOffset, $encSize , $pfs0Offset, $pfs0Size,$key,$ctr)
     {
 		$this->fh = $fh;
-		fseek($this->fh, $encdataOffset+$pfs0Offset);
+		$this->startctr = hex2bin($ctr);
+		fseek($this->fh, $encdataOffset+ $pfs0Offset);
 		$this->aesctr = new AESCTR(hex2bin(strtoupper($key)), hex2bin(strtoupper($ctr)), true);
-		$this->aesctr->ctr->add($pfs0Offset/16);
-		$this->data = $this->aesctr->decrypt(fread($fh,$encSize));
-		$this->startctr = $this->aesctr->ctr->ctr;
+		$this->data = $this->aesctr->decrypt(fread($this->fh,0x10),$this->getCTROffset($pfs0Offset));
 		$this->startOffset = $encdataOffset+$pfs0Offset;
-		$this->dataSize = $pfs0Size; 
+		$this->pfs0Offset = $pfs0Offset;
+		$this->dataSize = $pfs0Size;
+		
     }
 	
 #offset must be a multiple of 0x10
 	function getCTROffset($offset){
-		$ctr = new CTRCOUNTER($this->startctr);
+		$ctr = new CTRCOUNTER_GMP($this->startctr);
 		$adder = $offset/16;
 		$ctr->add($adder);
-		return $ctr;
+		return $ctr->getCtr();
 	}
 
     function getHeader()
@@ -85,13 +86,15 @@ class PFS0Encrypted
 
         $this->numFiles = unpack("V", substr($this->data, 4, 0x04))[1];
 		$this->stringTableSize = unpack("V", substr($this->data, 8, 0x04))[1];
+		fseek($this->fh, $this->startOffset);
         $this->stringTableOffset = 0x10 + 0x18 * $this->numFiles;
         $this->fileBodyOffset = $this->stringTableOffset + $this->stringTableSize;
+		$this->data = $this->aesctr->decrypt(fread($this->fh,$this->fileBodyOffset),$this->getCTROffset($this->pfs0Offset));
 		$this->filesList = [];
         for ($i = 0; $i < $this->numFiles; $i++) {
-            $dataOffset = unpack("P", substr($this->data, 0x10 + (0x20 * $i), 0x08))[1];
-            $dataSize = unpack("P", substr($this->data, 0x18 + (0x20 * $i), 0x08))[1];
-            $stringOffset = unpack("V", substr($this->data, 0x1c + (0x20 * $i), 0x04))[1];
+            $dataOffset = unpack("P", substr($this->data, 0x10 + (0x18 * $i), 0x08))[1];
+            $dataSize = unpack("P", substr($this->data, 0x10+ 0x08 + (0x18 * $i), 0x08))[1];
+            $stringOffset = unpack("V", substr($this->data, 0x10+0x08+0x08 + (0x18 * $i), 0x04))[1];
             $filename = "";
             $n = 0;
             while (true && $this->stringTableOffset + $stringOffset + $n < $this->dataSize-1) {
@@ -121,7 +124,7 @@ class PFS0Encrypted
 		$subber = ($this->fileBodyOffset+$this->filesList[$idx]->offset)%16;
 		fseek($this->fh, $this->startOffset+$this->fileBodyOffset+$this->filesList[$idx]->offset-$subber);
 		if(($this->fileBodyOffset+$this->filesList[$idx]->offset)%16 == 0){
-			$decfile = $this->aesctr->decrypt(fread($this->fh,$this->filesList[$idx]->size+$subber),$this->getCTROffset($this->fileBodyOffset+$this->filesList[$idx]->offset-$subber));
+			$decfile = $this->aesctr->decrypt(fread($this->fh,$this->filesList[$idx]->size+$subber),$this->getCTROffset($this->pfs0Offset+$this->fileBodyOffset+$this->filesList[$idx]->offset-$subber));
 			$decfile = substr($decfile,$subber,$this->filesList[$idx]->size+$subber);
 			return $decfile;
 		}
@@ -142,14 +145,13 @@ class PFS0Encrypted
 		$tmpchunkdone = 1;
 		if($size >= $chunksize)
 		{
-            $ctr = $this->getCTROffset($this->fileBodyOffset+$this->filesList[$idx]->offset-$subber);		
+            $ctr = $this->getCTROffset($this->pfs0Offset+$this->fileBodyOffset+$this->filesList[$idx]->offset-$subber);		
 			while ($tmpchunksize>$chunksize)
 			{ 
 				echo $this->aesctr->decrypt(fread($this->fh,$chunksize),$ctr);
                 $tmpchunksize -=$chunksize;
-				$ctr = $this->getCTROffset($this->fileBodyOffset+$this->filesList[$idx]->offset-$subber+($chunksize*$tmpchunkdone));
+				$ctr = $this->getCTROffset($this->pfs0Offset+$this->fileBodyOffset+$this->filesList[$idx]->offset-$subber+($chunksize*$tmpchunkdone));
 				$tmpchunkdone += 1;
-				
 				ob_flush();
 				flush();
 			}

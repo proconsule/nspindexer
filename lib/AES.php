@@ -38,6 +38,26 @@ class CTRCOUNTER
     }
 }
 
+class CTRCOUNTER_GMP
+{
+	function __construct($ctr)
+    {
+        $this->ctr = gmp_import($ctr);
+    }
+	
+	function add($num)
+    {
+        $this->ctr = gmp_add($this->ctr,$num);
+    }
+	
+	function getCtr(){
+		return str_pad(gmp_export($this->ctr), 16, chr(0), STR_PAD_LEFT);
+	}
+	
+}
+
+
+
 # Ugly class to deal with very long binary string integer (just to remove php-gmp deps)
 class BINSTRNUM
 {
@@ -80,14 +100,14 @@ class AESCTR
     {
         $this->ssl = $ssl;
         if ($ssl == true) {
-            $this->ctr = new CTRCOUNTER($ctr);
+            $this->ctr = $ctr;
             $this->key = $key;
         } else {
             $this->aes = new AESECB($key);
             if (strlen($ctr) != $this->aes->block_size) {
                 return false;
             }
-            $this->ctr = new CTRCOUNTER($ctr);
+            $this->ctr = $ctr;
         }
     }
 
@@ -97,7 +117,7 @@ class AESCTR
             if ($ctr == null) {
                 $ctr = $this->ctr;
             }
-            $out = openssl_decrypt($data, 'AES-128-CTR', $this->key, OPENSSL_RAW_DATA, $ctr->ctr);
+            $out = openssl_decrypt($data, 'AES-128-CTR', $this->key, OPENSSL_RAW_DATA, $ctr);
             return $out;
         } else {
             #same CTR is symmetric
@@ -113,7 +133,7 @@ class AESCTR
         $out = '';
         $ln = strlen($data);
         while ($ln) {
-            $xorpad = $this->aes->encrypt_block_ecb($ctr->ctr);
+            $xorpad = $this->aes->encrypt_block_ecb($ctr->getCtr());
             $l = min(0x10, $ln);
             $out .= sxor(substr($data, 0, $l), substr($xorpad, 0, $l));
             $data = substr($data, $l, strlen($data) - $l);
