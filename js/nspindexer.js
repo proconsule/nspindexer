@@ -379,6 +379,70 @@ function ncacontentType(contentType){
 	}
 }
 
+function modalRomContents(ncaData){
+	$("#modalRomInfoContents").empty();
+	var contentTemplate = $("#romfileContentsTemplate").html();
+	var contentItemTemplate = $("#romfileContentsItemTemplate").html();
+	
+	
+	var psf0filelisttmpt = [];
+	var romfsfilelisttmpt = [];
+	
+	var havepfs0 = false;
+	var haveromfs = false;
+	
+	if(ncaData.ret.pfs0){
+		havepfs0= true;
+		for (var i = 0; i < ncaData.ret.pfs0.length; i++) {
+			psf0filelisttmpt += tmpl(contentItemTemplate, {
+			fileName: ncaData.ret.pfs0[i].name,
+			fileSize: bytesToHuman(ncaData.ret.pfs0[i].size),
+			path: ncaData.path,
+			type: "pfs0",
+			fileidx: i,
+			ncaName: ncaData.ncaName
+	});
+	}	
+		
+	}
+	if(ncaData.ret.romfs){
+		haveromfs= true;
+		for (var i = 0; i < ncaData.ret.romfs.length; i++) {
+			romfsfilelisttmpt += tmpl(contentItemTemplate, {
+			fileName: ncaData.ret.romfs[i].name,
+			fileSize: bytesToHuman(ncaData.ret.romfs[i].size),
+			path: ncaData.path,
+			type: "romfs",
+			fileidx: i,
+			ncaName: ncaData.ncaName
+	});
+	}
+	}
+	
+	
+	var romtmpl = tmpl(contentTemplate, {
+		pfs0fileslist: psf0filelisttmpt,
+		romfsfileslist: romfsfilelisttmpt,
+		havepfs0: (havepfs0 == false) ? "d-none": "",
+		haveromfs: (haveromfs == false) ? "d-none": ""
+	});
+	
+	$("#modalRomInfoContents").append(romtmpl);
+	
+	
+	$('.btnRomDownloadContents').on('click', function () {
+        var path = $(this).data('path');
+		var ncaname = $(this).data('nca-name');
+		var type = $(this).data('type');
+		var fileidx = $(this).data('fileidx');
+		
+		window.open("index.php?downloadfilecontents=" + encodeURIComponent(path) + "&romfile=" + ncaname + "&type=" + type +"&fileidx="+ fileidx);
+    });
+	
+	
+}
+
+
 function modalRomInfo(path,romData){
 	$("#modalRomInfoBody").empty();
     var contentTemplate = $("#romInfoTemplate").html();
@@ -403,6 +467,7 @@ function modalRomInfo(path,romData){
 				sigcheck: (romData.filesList[i].sigcheck == false) ? "Sig Warning" : "Sig OK",
 				fileSize: bytesToHuman(romData.filesList[i].filesize),
 				contentType: ncacontentType(romData.filesList[i].contentType),
+				isnca: "",
 				path: path
 			});
 		}else{
@@ -413,7 +478,8 @@ function modalRomInfo(path,romData){
 				sigcheck: "Not Checked",
 				fileSize: bytesToHuman(romData.filesList[i].filesize),
 				contentType: fileExt.toUpperCase(),
-				path: path
+				path: path,
+				isnca: "d-none"
 			});
 		}
 	}
@@ -480,6 +546,21 @@ function modalRomInfo(path,romData){
 		window.open("index.php?romfilename=" + encodeURIComponent(path) + "&romfile=" + ncaname)
     });
 	
+	$('.btnRomFileContents').on('click', function () {
+        var path = $(this).data('path');
+		var ncaname = $(this).data('nca-name');
+		$.getJSON("index.php?romfilecontents=" + encodeURIComponent(path) + "&romfile=" + ncaname, function (data) {
+            if (data.int >= 0) {
+				console.log(data);
+				modalRomContents(data);
+				$('#modalRomContents').modal('show');	
+			}
+			
+		});
+		
+		//window.open("index.php?romfilecontents=" + encodeURIComponent(path) + "&romfile=" + ncaname)
+    });
+	
 	$('.btnFWDownload').on('click', function () {
         var path = $(this).data('path');
 		var fwname = $(this).data('fw-name');
@@ -502,7 +583,10 @@ function modalRomInfo(path,romData){
 		$("#rominfoIcon").attr("src","data:image/jpeg;base64,"+romData.langs[$( this ).val()].gameIcon);
 	});
 	
+	
+	
 }
+
 
 function modalNetInstall(titleId) {
     $("#startNetInstall").attr('disabled', true);

@@ -325,6 +325,26 @@ function outputDbi()
     return $output;
 }
 
+function outputRomFileContents($romfilecontents,$romfile){
+		global $gameDir;
+		$path = $gameDir . '/' . $romfilecontents;
+		$ret = romFileListContents($path,$romfile);
+		if($ret){
+			return json_encode(array(
+			"int" =>  0,
+			"ret" => $ret,
+			"path" => $romfilecontents,
+			"ncaName" => $romfile
+			));
+			
+		}else{
+			return json_encode(array(
+			"int" =>  -1,
+			"Message" => "AAAA"
+			));
+		}
+}
+
 function outputRomFile($romfilename,$romfile)
 {
 	    global $gameDir;
@@ -337,6 +357,12 @@ function outputFWFile($xcifile,$fwfilename)
 		global $gameDir;
 	    $path = $gameDir . '/' . $xcifile;
 		XCIUpdatePartition($path,$fwfilename);
+}
+function outputDownloadRomFileContents($romfilename,$romfile,$type,$fileidx)
+{
+		global $gameDir;
+	    $path = $gameDir . '/' . $romfilename;
+		downloadromFileContents($path,$romfile,$type,$fileidx);
 }
 
 if (isset($_GET["config"])) {
@@ -366,6 +392,14 @@ if (isset($_GET["config"])) {
 } elseif (!empty($_GET['xcifile'])) {
     header("Content-Type: application/json");
     echo outputFWFile(rawurldecode($_GET['xcifile']),$_GET['fwfilename']);
+    die();
+}elseif (!empty($_GET['romfilecontents'])) {
+    header("Content-Type: application/json");
+    echo outputRomFileContents(rawurldecode($_GET['romfilecontents']),$_GET['romfile']);
+    die();
+}elseif (!empty($_GET['downloadfilecontents'])) {
+    header("Content-Type: application/json");
+    echo outputDownloadRomFileContents(rawurldecode($_GET['downloadfilecontents']),$_GET['romfile'],$_GET['type'],$_GET['fileidx']);
     die();
 }
 

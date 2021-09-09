@@ -92,6 +92,21 @@
     </div>
 </div>
 
+<div class="modal fade modal-child" id="modalRomContents" tabindex="-1" aria-labelledby="modalRomContentsLabel" aria-hidden="true" data-modal-parent="#modalRomInfo">
+    <div class="modal-dialog modal-lg">
+        <div id="modalRomInfoContentesContent" class="modal-content">
+            <div class="modal-header bg-dark">
+                <h5 class="modal-title text-white" id="modalRomContentsLabel">ROM Contents</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modalRomInfoContents"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="modalNetInstall" tabindex="-1" aria-labelledby="modalNetInstallLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div id="netinstallContent" class="modal-content">
@@ -279,6 +294,30 @@
 
 </script>
 
+
+<script id="romfileContentsItemTemplate" type="text/x-template">
+	<li class="list-group-item"><%=fileName%><span class="float-end"><span class="badge bg-secondary"><%=fileSize%></span>
+	<button data-nca-name="<%=ncaName%>" data-path="<%=path%>" title="Download" data-type="<%=type%>" data-fileidx="<%=fileidx%>"
+                    class="btnRomDownloadContents btn btn-sm bg-primary text-light"
+                    data-bs-toggle="tooltip" data-bs-placement="left">
+                <i class="bi-file-earmark-binary"></i>
+            </button>
+	</span></li>
+</script>
+
+
+<script id="romfileContentsTemplate" type="text/x-template">
+	<div class="<%=havepfs0%>">PFS0</div>
+	<ul class="list-group list-group-scrol">
+			<%=pfs0fileslist%>
+	</ul>
+	<div class="<%=haveromfs%>">ROMFS</div>
+	<ul class="list-group list-group-scrol">
+			<%=romfsfileslist%>
+	</ul>
+</script>
+
+
 <script id="romInfoLangComboTemplate" type="text/x-template">
 	<option value="<%=langidx%>" <%=langselected%>><%=lang%></option>
 </script>
@@ -355,6 +394,11 @@
                     class="btnRomFile btn btn-sm bg-primary text-light"
                     data-bs-toggle="tooltip" data-bs-placement="left">
                 <i class="bi-file-earmark-binary"></i>
+            </button>
+			<button data-nca-name="<%=fileName%>" data-path="<%=path%>" title="Show Contents"
+                    class="btnRomFileContents btn btn-sm bg-primary text-light <%=isnca%>"
+                    data-bs-toggle="tooltip" data-bs-placement="left" data-toggle="modal">
+                <i class="bi-file-code"></i>
             </button>
 			<span class="badge bg-secondary"><%=fileSize%></span> <span class="badge <%=sigcheckcolor%>"><%=sigcheck%></span></span></div></h6></li>
 </script>

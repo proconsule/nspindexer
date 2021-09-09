@@ -189,15 +189,18 @@ class ROMFS{
 		return $filecontents;
 	}
 	
+#File extraction (WOW it works!)	
 	function extractFile($idx){
 		fseek($this->fh,$this->romfsoffset + $this->data_offset+$this->Files[$idx]["ofs"]);
+		
+		$parts = explode('/', $this->Files[$idx]["name"]);
 		
 		$size = $this->Files[$idx]["size"];
 		$chunksize = 5 * (1024 * 1024);
 		header('Content-Type: application/octet-stream');
 		header('Content-Transfer-Encoding: binary');
 		header('Content-Length: '.$size);
-		header('Content-Disposition: attachment;filename="'.$this->Files[$idx]["name"].'"');
+		header('Content-Disposition: attachment;filename="'.$parts[count($parts)-1].'"');
 		$tmpchunksize = $size;
 		$tmpchunkdone = 1;
 		if($size >= $chunksize)
