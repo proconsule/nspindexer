@@ -135,6 +135,47 @@ function romInfo($path)
     return false;
 }
 
+function romFileListContents($romfilename,$romfile){
+	global $keyList;
+	global $gameDir;
+	
+	$keyList = parse_ini_file("/root/.switch/prod.keys");
+	
+	if(guessFileType($romfilename) == "NSP"){	
+		$nsp = new NSP(realpath($romfilename), $keyList);
+		$nsp->getHeaderInfo();
+		$fileidx = -1;
+		for($i=0;$i<count($nsp->filesList);$i++){
+			if($nsp->filesList[$i]->name == $romfile){
+				$fileidx = $i;
+				break;
+			}
+		}
+		if($fileidx == -1){
+			die();
+		}
+		
+		fseek($nsp->fh, $nsp->fileBodyOffset + $nsp->filesList[$fileidx]->fileoffset);
+		$ncafile = new NCA($nsp->fh, $nsp->fileBodyOffset + $nsp->filesList[$fileidx]->fileoffset, $nsp->filesList[$fileidx]->filesize, $keyList,$nsp->ticket->titleKey);
+		
+		$ncafile->readHeader();
+		$ncafile->getFs();
+		
+		$ncafilesList = array();
+		
+		if($ncafile->pfs0){
+			$ncafilesList["pfs0"] = $ncafile->pfs0->filesList;
+		}
+		if($ncafile->romfsidx>-1){
+			$ncafile->getRomfs($ncafile->romfsidx);
+			$ncafilesList["romfs"] = $ncafile->romfs->Files;
+		}
+		return ncafilesList;
+		
+	}
+	return false;
+}
+
 function romFile($romfilename,$romfile){
 	global $keyList;
 	global $gameDir;

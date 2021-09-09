@@ -83,7 +83,6 @@ class PFS0Encrypted
         if ($this->pfs0header != "PFS0") {
             return false;
         }
-
         $this->numFiles = unpack("V", substr($this->data, 4, 0x04))[1];
 		$this->stringTableSize = unpack("V", substr($this->data, 8, 0x04))[1];
 		fseek($this->fh, $this->startOffset);

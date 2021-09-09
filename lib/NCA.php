@@ -146,7 +146,9 @@ class NCA
 				}else{
 					$pfs0 = new PFS0Encrypted($this->fh,$this->fsEntrys[$i]->startOffset + $this->fileOffset,$this->fsEntrys[$i]->endOffset - $this->fsEntrys[$i]->startOffset,$pfs0offset,$pfs0size,$this->dectitlekey,$this->fsHeaders[$i]->ctr);
 					$pfs0->getHeader();
-					$this->pfs0 = $pfs0;
+					if($pfs0->filesList){
+						$this->pfs0 = $pfs0;
+					}
 					
 				}
             }

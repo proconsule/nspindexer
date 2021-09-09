@@ -27,6 +27,7 @@ class ROMFS{
 		$this->file_meta_size = unpack("P", substr($this->decData,0x40,8))[1];
 		$this->data_offset = unpack("P", substr($this->decData,0x48,8))[1];
 
+		/*
 		$dirsubber = ($this->dir_meta_offset)%16;	
 		fseek($this->fh,$this->romfsoffset+$this->dir_meta_offset-$dirsubber);
 		$this->decData = $this->aesctr->decrypt(fread($this->fh,$this->dir_meta_size+$dirsubber),$this->getCTROffset($this->romfsoffset-$this->encoffset + $this->dir_meta_offset-$dirsubber));
@@ -34,10 +35,11 @@ class ROMFS{
 		
 		$subber = ($this->file_meta_offset)%16;	
 		fseek($this->fh,$this->romfsoffset+$this->file_meta_offset-$subber); 
-
+		
 		
 	    $this->decData =  $this->aesctr->decrypt(fread($this->fh,$this->file_meta_size+$subber),$this->getCTROffset($this->romfsoffset-$this->encoffset + $this->file_meta_offset-$subber));
 		$tmpfdata = substr($this->decData,0+$subber,$this->file_meta_size);
+		*/
 		$this->Files = array();
 		$this->Directorys = array();
 		$lenred = 0;
@@ -188,24 +190,24 @@ class ROMFS{
 	}
 	
 	function extractFile($idx){
-		fseek($this->fh,$this->romfsoffset + $this->data_offset+$this->Files[$idx]->offset);
+		fseek($this->fh,$this->romfsoffset + $this->data_offset+$this->Files[$idx]["ofs"]);
 		
-		$size = $this->Files[$idx]->size;
+		$size = $this->Files[$idx]["size"];
 		$chunksize = 5 * (1024 * 1024);
 		header('Content-Type: application/octet-stream');
 		header('Content-Transfer-Encoding: binary');
 		header('Content-Length: '.$size);
-		header('Content-Disposition: attachment;filename="'.$this->Files[$idx]->name.'"');
+		header('Content-Disposition: attachment;filename="'.$this->Files[$idx]["name"].'"');
 		$tmpchunksize = $size;
 		$tmpchunkdone = 1;
 		if($size >= $chunksize)
 		{
-            $ctr = $this->getCTROffset(($this->romfsoffset-$this->encoffset)+$this->data_offset+$this->Files[idx]->offset);		
+            $ctr = $this->getCTROffset(($this->romfsoffset-$this->encoffset)+$this->data_offset+$this->Files[$idx]["ofs"]);		
 			while ($tmpchunksize>$chunksize)
 			{ 
 				echo $this->aesctr->decrypt(fread($this->fh,$chunksize),$ctr);
                 $tmpchunksize -=$chunksize;
-				$ctr = $this->getCTROffset(($this->romfsoffset-$this->encoffset)+$this->data_offset+$this->Files[idx]->offset+($chunksize*$tmpchunkdone));
+				$ctr = $this->getCTROffset(($this->romfsoffset-$this->encoffset)+$this->data_offset+$this->Files[$idx]["ofs"]+($chunksize*$tmpchunkdone));
 				$tmpchunkdone += 1;
 				ob_flush();
 				flush();
@@ -218,7 +220,7 @@ class ROMFS{
          
 		}
 		if($size < $chunksize){
-		  echo $this->aesctr->decrypt(fread($this->fh,$size),$this->getCTROffset(($this->romfsoffset-$this->encoffset)+$this->data_offset+$this->Files[$idx]->offset));
+		  echo $this->aesctr->decrypt(fread($this->fh,$size),$this->getCTROffset(($this->romfsoffset-$this->encoffset)+$this->data_offset+$this->Files[$idx]["ofs"]));
           ob_flush();
           flush();
 		}
