@@ -183,6 +183,33 @@ function matchTitleIds($files)
     );
 }
 
+function rewriteTitlesJson($jsonData){
+	$parsedjsonData =  json_decode($jsonData);
+	$retjson = array();
+	foreach($parsedjsonData as $key => $val) {
+		$tmpentry = new stdClass;
+		$tmpentry->id = strtoupper($val->id);
+		$tmpentry->name = $val->name;
+		$tmpentry->iconUrl = $val->iconUrl;
+		$tmpentry->bannerUrl = $val->bannerUrl;
+		$tmpentry->intro = $val->intro;
+		$tmpentry->size = $val->size;
+		$tmpentry->version = $val->version;
+		$tmpentry->releaseDate = $val->releaseDate;
+		$retjson[strtoupper($val->id)] = $tmpentry;
+	}
+	return $retjson;
+}
+
+function rewriteVersionsJson($jsonData){
+	$parsedjsonData =  json_decode($jsonData);
+	$retjson = array();
+	foreach($parsedjsonData as $key => $val) {
+		$retjson[strtoupper($key)] = $val;
+	}
+	return $retjson;
+}
+
 function getMetadata($type, $refresh = false)
 {
     if (!$refresh && file_exists(CACHE_DIR . "/" . $type . ".json")) {
@@ -195,15 +222,21 @@ function getMetadata($type, $refresh = false)
         curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ');
         $json = curl_exec($ch);
         curl_close($ch);
-        file_put_contents(CACHE_DIR . "/" . $type . ".json", $json);
+		
+		if($type != "versions"){
+			file_put_contents(CACHE_DIR . "/" . $type  . ".json", json_encode(rewriteTitlesJson($json),JSON_PRETTY_PRINT ));
+		}else{
+			file_put_contents(CACHE_DIR . "/" . $type  . ".json", json_encode(rewriteVersionsJson($json),JSON_PRETTY_PRINT ));
+		}
     }
     return json_decode($json, true);
 }
 
 function refreshMetadata()
 {
-    $refreshed = array();
-    foreach (array('versions', 'titles') as $type) {
+	$refreshed = array();
+	
+	foreach (array("versions","titles") as $type) {
         if (!file_exists(CACHE_DIR . "/" . $type . ".json") || filemtime(CACHE_DIR . "/" . $type . ".json") < (time() - 60 * 5)) {
             getMetadata($type, true);
             array_push($refreshed, $type);
@@ -237,53 +270,54 @@ function outputTitles($forceUpdate = false)
         $versionsJson = getMetadata("versions");
         $titlesJson = getMetadata("titles");
         $titles = matchTitleIds(getFileList($gameDir));
-        $output = array();
+		$output = array();
         foreach ($titles['titles'] as $titleId => $title) {
             $latestVersion = 0;
             $updateTitleId = substr_replace($titleId, "800", -3);
-            if (array_key_exists($updateTitleId, $titlesJson)) {
+            if (array_key_exists(strtoupper($updateTitleId), $titlesJson)) {
 				if($titlesJson[$updateTitleId]["version"] != null){
-					$latestVersion = $titlesJson[$updateTitleId]["version"];
+					$latestVersion = $titlesJson[strtoupper($updateTitleId)]["version"];
 				}
 				
             }
-            $realeaseDate = DateTime::createFromFormat('Ynd', $titlesJson[$titleId]["releaseDate"]);
+            $realeaseDate = DateTime::createFromFormat('Ynd', $titlesJson[strtoupper($titleId)]["releaseDate"]);
             $latestVersionDate = $realeaseDate->format('Y-m-d');
-            if (array_key_exists(strtolower($titleId), $versionsJson)) {
-                $latestVersionDate = $versionsJson[strtolower($titleId)][$latestVersion];
+            if (array_key_exists(strtoupper(strtoupper($titleId)), $versionsJson)) {
+                $latestVersionDate = $versionsJson[strtoupper($titleId)][$latestVersion];
             }
+			
             $game = array(
                 "path" => $title["path"],
                 "fileType" => guessFileType($gameDir . "/" . $title["path"]),
-                "name" => $titlesJson[$titleId]["name"],
-                "thumb" => $titlesJson[$titleId]["iconUrl"],
-                "banner" => $titlesJson[$titleId]["bannerUrl"],
-                "intro" => $titlesJson[$titleId]["intro"],
+                "name" => $titlesJson[strtoupper($titleId)]["name"],
+                "thumb" => $titlesJson[strtoupper($titleId)]["iconUrl"],
+                "banner" => $titlesJson[strtoupper($titleId)]["bannerUrl"],
+                "intro" => $titlesJson[strtoupper($titleId)]["intro"],
                 "latest_version" => $latestVersion,
                 "latest_date" => $latestVersionDate,
-                "size" => $titlesJson[$titleId]["size"],
+                "size" => $titlesJson[strtoupper($titleId)]["size"],
                 "size_real" => getFileSize($gameDir . "/" . $title["path"])
             );
             $updates = array();
             foreach ($title["updates"] as $updateVersion => $update) {
                 $updates[(int)$updateVersion] = array(
                     "path" => $update["path"],
-                    "date" => $versionsJson[strtolower($titleId)][$updateVersion],
+                    "date" => $versionsJson[strtoupper($titleId)][$updateVersion],
                     "size_real" => getFileSize($gameDir . "/" . $update["path"])
                 );
             }
             $game['updates'] = $updates;
             $dlcs = array();
             foreach ($title["dlc"] as $dlcId => $d) {
-                $dlcs[$dlcId] = array(
+                $dlcs[strtoupper($dlcId)] = array(
                     "path" => $d["path"],
-                    "name" => $titlesJson[$dlcId]["name"],
-                    "size" => $titlesJson[$dlcId]["size"],
+                    "name" => $titlesJson[strtoupper($dlcId)]["name"],
+                    "size" => $titlesJson[strtoupper($dlcId)]["size"],
                     "size_real" => getFileSize($gameDir . "/" . $d["path"])
                 );
             }
             $game['dlc'] = $dlcs;
-            $output[$titleId] = $game;
+            $output[strtoupper($titleId)] = $game;
         }
         $json = json_encode(array(
             'titles' => $output,
