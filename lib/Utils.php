@@ -205,7 +205,7 @@ function romFileListContents($romfilename,$romfile){
 		
 		$ncafilesList = array();
 		
-		if($ncafile->pfs0){
+		if($ncafile->pfs0idx >-1){
 			$ncafilesList["pfs0"] = $ncafile->pfs0->filesList;
 		}
 		if($ncafile->romfsidx>-1){
@@ -213,6 +213,43 @@ function romFileListContents($romfilename,$romfile){
 			$ncafilesList["romfs"] = $ncafile->romfs->Files;
 		}
 		$nsp->close();
+		return $ncafilesList;
+		
+	}
+	
+	if(guessFileType($romfilename) == "XCI"){
+		$xci = new XCI(realpath($romfilename), $keyList);
+		
+		
+		$xci->getMasterPartitions();
+		$xci->getSecurePartition();
+		$fileidx = -1;
+		for($i=0;$i<count($xci->securepartition->filesList);$i++){
+			if($xci->securepartition->filesList[$i]->name == $romfile){
+				$fileidx = $i;
+				break;
+			}
+		}
+		if($fileidx == -1){
+			die();
+		}
+		
+		fseek($xci->fh, $xci->securepartition->rawdataoffset + $xci->securepartition->file_array[$fileidx]->fileoffset);
+		$ncafile = new NCA($xci->fh, $xci->securepartition->rawdataoffset + $xci->securepartition->file_array[$fileidx]->fileoffset, $xci->securepartition->file_array[$fileidx]->filesize, $keyList,null);
+		
+		$ncafile->readHeader();
+		$ncafile->getFs();
+		
+		$ncafilesList = array();
+		
+		if($ncafile->pfs0){
+			$ncafilesList["pfs0"] = $ncafile->pfs0->filesList;
+		}
+		if($ncafile->romfsidx>-1){
+			$ncafile->getRomfs($ncafile->romfsidx);
+			$ncafilesList["romfs"] = $ncafile->romfs->Files;
+		}
+		$xci->close();
 		return $ncafilesList;
 		
 	}

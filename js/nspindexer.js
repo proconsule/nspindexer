@@ -558,6 +558,8 @@ function modalRomInfo(path,romData){
 				console.log(data);
 				modalRomContents(data);
 				$('#modalRomContents').modal('show');	
+			}else{
+				alert(data.msg);
 			}
 			
 		});

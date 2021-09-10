@@ -24,6 +24,7 @@ Hope you enjoy it!
 - NCA Header Signature Check
 - XCI Header Signature Check
 - Download of individual internal file (NCA TIK XML CERT)
+- Extraction of files inside NCA
 - Download of Switch FW Update from XCI file (as a single tar file)
 - File Rename Based on TitleID & Version
 

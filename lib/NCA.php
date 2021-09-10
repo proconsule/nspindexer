@@ -18,6 +18,8 @@ class NCA
         $this->fileSize = $fileSize;
         $this->keys = $keys;
 		$this->enctitlekey = $enctitlekey;
+		$this->romfsidx = -1;
+		$this->pfs0idx = -1;
     }
 
     function readHeader()
@@ -126,7 +128,6 @@ class NCA
             $this->fsHeaders[] = $tmpFsHeaderEntry;
         }
 
-		$this->romfsidx = -1;
         for ($i = 0; $i < 4; $i++) {
             if ($this->fsEntrys[$i]->startOffset == 0) continue;
             if ($this->fsHeaders[$i]->hashType == 3) {
@@ -139,10 +140,13 @@ class NCA
                 $blocksize = unpack("V", substr($this->fsHeaders[$i]->superBlock, 0x20, 4))[1];
                 $pfs0offset = unpack("P", substr($this->fsHeaders[$i]->superBlock, 0x38, 8))[1];
                 $pfs0size = unpack("P", substr($this->fsHeaders[$i]->superBlock, 0x40, 8))[1];
+				$this->pfs0idx = $i;
 				if($this->rightsId == "00000000000000000000000000000000"){
 					$pfs0 = new PFS0Encrypted($this->fh,$this->fsEntrys[$i]->startOffset + $this->fileOffset,$this->fsEntrys[$i]->endOffset - $this->fsEntrys[$i]->startOffset,$pfs0offset,$pfs0size,$this->deckeyArea[2],$this->fsHeaders[$i]->ctr);
 					$pfs0->getHeader();
-					$this->pfs0 = $pfs0;
+					if(property_exists($pfs0,"filesList")){
+						$this->pfs0 = $pfs0;
+					}
 				}else{
 					$pfs0 = new PFS0Encrypted($this->fh,$this->fsEntrys[$i]->startOffset + $this->fileOffset,$this->fsEntrys[$i]->endOffset - $this->fsEntrys[$i]->startOffset,$pfs0offset,$pfs0size,$this->dectitlekey,$this->fsHeaders[$i]->ctr);
 					$pfs0->getHeader();

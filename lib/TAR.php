@@ -11,27 +11,27 @@ class TAR
 	{
 		$chunksize = 5*(1024*1024);
 		$entry = $this->getTarHeaderFooter($filename,$size,0);
-		echo $entry[0];
+		print($entry[0]);
 		$tmpsize = $size;
 		
 		fseek($fh,$offset);
 		
 		while($tmpsize>0){
 			if($tmpsize > $chunksize){
-				echo fread($fh,$chunksize);
+				print(fread($fh,$chunksize));
 				$tmpsize -= $chunksize;
 				flush();
 				ob_flush();
 			}else
 			{
-				echo fread($fh,$tmpsize);
+				print(fread($fh,$tmpsize));
 				$tmpsize=0;
 				flush();
 				ob_flush();
 			}
 			
 		}
-		echo $entry[1];
+		print($entry[1]);
 		flush();
 		ob_flush();
 		

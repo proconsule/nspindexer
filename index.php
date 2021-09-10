@@ -340,7 +340,9 @@ function outputRomFileContents($romfilecontents,$romfile){
 			));
 			
 		}else{
-			return json_encode(array('int' => -1));
+			return json_encode(array('int' => -1
+			,'msg' => "Unable to open selected file"
+			));
 		}
 }
 

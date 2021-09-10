@@ -189,47 +189,7 @@ class ROMFS{
 		return $filecontents;
 	}
 	
-#File extraction (WOW it works!)	
-/*
-	function extractFile($idx){
-		fseek($this->fh,$this->romfsoffset + $this->data_offset+$this->Files[$idx]["ofs"]);
-		
-		$parts = explode('/', $this->Files[$idx]["name"]);
-		
-		$size = $this->Files[$idx]["size"];
-		$chunksize = 5 * (1024 * 1024);
-		header('Content-Type: application/octet-stream');
-		header('Content-Transfer-Encoding: binary');
-		header('Content-Length: '.$size);
-		header('Content-Disposition: attachment;filename="'.$parts[count($parts)-1].'"');
-		$tmpchunksize = $size;
-		$tmpchunkdone = 1;
-		if($size >= $chunksize)
-		{
-            $ctr = $this->getCTROffset(($this->romfsoffset-$this->encoffset)+$this->data_offset+$this->Files[$idx]["ofs"]);		
-			while ($tmpchunksize>$chunksize)
-			{ 
-				echo $this->aesctr->decrypt(fread($this->fh,$chunksize),$ctr);
-                $tmpchunksize -=$chunksize;
-				$ctr = $this->getCTROffset(($this->romfsoffset-$this->encoffset)+$this->data_offset+$this->Files[$idx]["ofs"]+($chunksize*$tmpchunkdone));
-				$tmpchunkdone += 1;
-				ob_flush();
-				flush();
-			}
-			if($tmpchunksize>0){
-			echo $this->aesctr->decrypt(fread($this->fh,$tmpchunksize),$ctr);
-			ob_flush();
-			flush();
-			}
-         
-		}
-		if($size < $chunksize){
-		  echo $this->aesctr->decrypt(fread($this->fh,$size),$this->getCTROffset(($this->romfsoffset-$this->encoffset)+$this->data_offset+$this->Files[$idx]["ofs"]));
-          ob_flush();
-          flush();
-		}
-	}
-*/
+
 	function extractFile($idx){
 		
 		$subber = ($this->romfsoffset + $this->data_offset+$this->Files[$idx]["ofs"])%16;
