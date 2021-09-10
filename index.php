@@ -167,11 +167,13 @@ function matchTitleIds($files)
         } else {
             $baseTitleId = getBaseTitleId($titleId);
             // add DLC only if the Base TitleId for it exists
-            if ($titles[$baseTitleId]) {
-                $titles[$baseTitleId]['dlc'][$titleId] = array(
-                    "path" => $file
-                );
-            }
+			if(array_key_exists($baseTitleId,$titles)){
+				if ($titles[$baseTitleId]) {
+					$titles[$baseTitleId]['dlc'][$titleId] = array(
+						"path" => $file
+					);
+				}
+			}
         }
 
     }
@@ -338,10 +340,7 @@ function outputRomFileContents($romfilecontents,$romfile){
 			));
 			
 		}else{
-			return json_encode(array(
-			"int" =>  -1,
-			"Message" => "AAAA"
-			));
+			return json_encode(array('int' => -1));
 		}
 }
 

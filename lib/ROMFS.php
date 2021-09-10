@@ -93,7 +93,7 @@ class ROMFS{
 		
 		for($i=0;$i<count($this->Files);$i++){
 			$parts = explode('.', $this->Files[$i]["name"]);
-			if($parts[1] == "nacp"){
+			if($parts[count($parts)-1] == "nacp"){
 				$this->nacp = new NACP($this->getFile($i));
 			}
 			
@@ -190,6 +190,7 @@ class ROMFS{
 	}
 	
 #File extraction (WOW it works!)	
+/*
 	function extractFile($idx){
 		fseek($this->fh,$this->romfsoffset + $this->data_offset+$this->Files[$idx]["ofs"]);
 		
@@ -227,6 +228,52 @@ class ROMFS{
           ob_flush();
           flush();
 		}
+	}
+*/
+	function extractFile($idx){
+		
+		$subber = ($this->romfsoffset + $this->data_offset+$this->Files[$idx]["ofs"])%16;
+		
+		fseek($this->fh, $this->romfsoffset + $this->data_offset+$this->Files[$idx]["ofs"]-$subber);
+		
+		$size = $this->Files[$idx]["size"];
+		$tmpchunksize = $size+$subber;
+		$parts = explode('/', $this->Files[$idx]["name"]);
+		$chunksize = 5 * (1024 * 1024);
+		header('Content-Type: application/octet-stream');
+		header('Content-Transfer-Encoding: binary');
+		header('Content-Length: '.$size);
+		header('Content-Disposition: attachment;filename="'.$parts[count($parts)-1].'"');
+		$tmpchunksize = $size+$subber;
+		$tmpchunkdone = 0;
+		while ($tmpchunksize>$chunksize)
+		{ 
+			$ctr = $this->getCTROffset(($this->romfsoffset-$this->encoffset)+$this->data_offset+$this->Files[$idx]["ofs"]-$subber+($chunksize*$tmpchunkdone));
+			$outdata =  $this->aesctr->decrypt(fread($this->fh,$chunksize),$ctr);
+			if($tmpchunkdone == 0){
+				print(substr($outdata,$subber));
+			}else{
+				print($outdata);
+			}
+            $tmpchunksize -=$chunksize;
+			$tmpchunkdone += 1;
+				
+			ob_flush();
+			flush();
+		}
+			
+		if($tmpchunksize<=$chunksize){
+			$ctr = $this->getCTROffset(($this->romfsoffset-$this->encoffset)+$this->data_offset+$this->Files[$idx]["ofs"]-$subber+($chunksize*$tmpchunkdone));
+			$outdata = $this->aesctr->decrypt(fread($this->fh,$tmpchunksize),$ctr);
+			if($tmpchunkdone == 0){
+				print(substr($outdata,$subber));
+			}else{
+				print($outdata);	
+			}
+			ob_flush();
+			flush();
+		}
+		
 	}
 	
 }

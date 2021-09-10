@@ -442,6 +442,10 @@ function modalRomContents(ncaData){
 	
 }
 
+$("#modalRomContents").on("hidden.bs.modal", function () {
+    $("#modalRomInfoContents").empty();
+});
+
 
 function modalRomInfo(path,romData){
 	$("#modalRomInfoBody").empty();
@@ -467,7 +471,7 @@ function modalRomInfo(path,romData){
 				sigcheck: (romData.filesList[i].sigcheck == false) ? "Sig Warning" : "Sig OK",
 				fileSize: bytesToHuman(romData.filesList[i].filesize),
 				contentType: ncacontentType(romData.filesList[i].contentType),
-				isnca: "",
+				isnca: (romData.filesList[i].name.endsWith(".ncz") == false) ? "" : "d-none",
 				path: path
 			});
 		}else{

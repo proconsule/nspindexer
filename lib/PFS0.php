@@ -131,7 +131,8 @@ class PFS0Encrypted
 	}
 	
 	function extractFile($idx){
-		$subber = ($this->fileBodyOffset+$this->filesList[$idx]->offset)%16;
+		$subber = ($this->fileBodyOffset+$this->filesList[$idx]->offset+$this->pfs0Offset)%16;
+		$tmpchunksize = $size+$subber;
 		fseek($this->fh, $this->startOffset+$this->fileBodyOffset+$this->filesList[$idx]->offset-$subber);
 		
 		$size = $this->filesList[$idx]->size;
@@ -140,31 +141,34 @@ class PFS0Encrypted
 		header('Content-Transfer-Encoding: binary');
 		header('Content-Length: '.$size);
 		header('Content-Disposition: attachment;filename="'.$this->filesList[$idx]->name.'"');
-		$tmpchunksize = $size;
-		$tmpchunkdone = 1;
-		if($size >= $chunksize)
-		{
-            $ctr = $this->getCTROffset($this->pfs0Offset+$this->fileBodyOffset+$this->filesList[$idx]->offset-$subber);		
-			while ($tmpchunksize>$chunksize)
-			{ 
-				echo $this->aesctr->decrypt(fread($this->fh,$chunksize),$ctr);
-                $tmpchunksize -=$chunksize;
-				$ctr = $this->getCTROffset($this->pfs0Offset+$this->fileBodyOffset+$this->filesList[$idx]->offset-$subber+($chunksize*$tmpchunkdone));
-				$tmpchunkdone += 1;
-				ob_flush();
-				flush();
+		$tmpchunksize = $size+$subber;
+		$tmpchunkdone = 0;
+		while ($tmpchunksize>$chunksize)
+		{ 
+			$ctr = $this->getCTROffset($this->pfs0Offset+$this->fileBodyOffset+$this->filesList[$idx]->offset-$subber+($chunksize*$tmpchunkdone));
+			$outdata =  $this->aesctr->decrypt(fread($this->fh,$chunksize),$ctr);
+			if($tmpchunkdone == 0){
+				print(substr($outdata,$subber));
+			}else{
+				print($outdata);
 			}
-			if($tmpchunksize>0){
-			echo $this->aesctr->decrypt(fread($this->fh,$tmpchunksize),$ctr);
+            $tmpchunksize -=$chunksize;
+			$tmpchunkdone += 1;
+				
 			ob_flush();
 			flush();
-			}
-         
 		}
-		if($size < $chunksize){
-		  echo $this->aesctr->decrypt(fread($this->fh,$this->filesList[$idx]->size+$subber),$this->getCTROffset($this->fileBodyOffset+$this->filesList[$idx]->offset-$subber));
-          ob_flush();
-          flush();
+			
+		if($tmpchunksize<=$chunksize){
+			$ctr = $this->getCTROffset($this->pfs0Offset+$this->fileBodyOffset+$this->filesList[$idx]->offset-$subber+($chunksize*$tmpchunkdone));
+			$outdata = $this->aesctr->decrypt(fread($this->fh,$tmpchunksize),$ctr);
+			if($tmpchunkdone == 0){
+				print(substr($outdata,$subber));
+			}else{
+				print($outdata);	
+			}
+			ob_flush();
+			flush();
 		}
 		
 	}

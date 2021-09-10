@@ -193,7 +193,8 @@ function romFileListContents($romfilename,$romfile){
 			}
 		}
 		if($fileidx == -1){
-			die();
+			$nsp->close();
+			return false;
 		}
 		
 		fseek($nsp->fh, $nsp->fileBodyOffset + $nsp->filesList[$fileidx]->fileoffset);
@@ -211,6 +212,7 @@ function romFileListContents($romfilename,$romfile){
 			$ncafile->getRomfs($ncafile->romfsidx);
 			$ncafilesList["romfs"] = $ncafile->romfs->Files;
 		}
+		$nsp->close();
 		return $ncafilesList;
 		
 	}
