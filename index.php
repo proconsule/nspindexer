@@ -224,9 +224,13 @@ function getMetadata($type, $refresh = false)
         curl_close($ch);
 		
 		if($type != "versions"){
-			file_put_contents(CACHE_DIR . "/" . $type  . ".json", json_encode(rewriteTitlesJson($json),JSON_PRETTY_PRINT ));
+			$retjson = rewriteTitlesJson($json);
+			file_put_contents(CACHE_DIR . "/" . $type  . ".json", json_encode($retjson,JSON_PRETTY_PRINT ));
+			return $retjson;
 		}else{
-			file_put_contents(CACHE_DIR . "/" . $type  . ".json", json_encode(rewriteVersionsJson($json),JSON_PRETTY_PRINT ));
+			$retjson = rewriteVersionsJson($json);
+			file_put_contents(CACHE_DIR . "/" . $type  . ".json", json_encode($retjson,JSON_PRETTY_PRINT ));
+			return $retjson;
 		}
     }
     return json_decode($json, true);
