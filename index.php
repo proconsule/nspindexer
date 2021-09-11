@@ -225,13 +225,13 @@ function getMetadata($type, $refresh = false)
         curl_close($ch);
 		
 		if($type != "versions"){
-			$retjson = rewriteTitlesJson($json);
-			file_put_contents(CACHE_DIR . "/" . $type  . ".json", json_encode($retjson,JSON_PRETTY_PRINT ));
-			return $retjson;
+			$retjson = json_encode(rewriteTitlesJson($json),JSON_PRETTY_PRINT );
+			file_put_contents(CACHE_DIR . "/" . $type  . ".json", $retjson);
+			return json_decode($retjson, true);
 		}else{
-			$retjson = rewriteVersionsJson($json);
-			file_put_contents(CACHE_DIR . "/" . $type  . ".json", json_encode($retjson,JSON_PRETTY_PRINT ));
-			return $retjson;
+			$retjson = json_encode(rewriteVersionsJson($json),JSON_PRETTY_PRINT );
+			file_put_contents(CACHE_DIR . "/" . $type  . ".json", $retjson);
+			return json_decode($retjson, true);
 		}
     }
     return json_decode($json, true);
