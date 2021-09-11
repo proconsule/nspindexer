@@ -51,7 +51,7 @@ Hope you enjoy it!
 - jQuery Lazy http://jquery.eisbehr.de/lazy/
 - LightBox2 https://lokeshdhakar.com/projects/lightbox2/
 - pspseclib https://github.com/phpseclib/phpseclib
-- some small parts of code was taken by forum/articles around the web, references is inside the code
+- some small parts of code was taken from forums/articles around the web, references is inside the code
 
 # Thanks to
 - SciresM for aes128.py we ported to PHP for NCA decryption
