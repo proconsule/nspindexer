@@ -196,6 +196,7 @@ function rewriteTitlesJson($jsonData){
 		$tmpentry->size = $val->size;
 		$tmpentry->version = $val->version;
 		$tmpentry->releaseDate = $val->releaseDate;
+		$tmpentry->screenshots = $val->screenshots;
 		$retjson[strtoupper($val->id)] = $tmpentry;
 	}
 	return $retjson;
@@ -279,7 +280,7 @@ function outputTitles($forceUpdate = false)
             $latestVersion = 0;
             $updateTitleId = substr_replace($titleId, "800", -3);
             if (array_key_exists(strtoupper($updateTitleId), $titlesJson)) {
-				if($titlesJson[$updateTitleId]["version"] != null){
+				if($titlesJson[strtoupper($updateTitleId)]["version"] != null){
 					$latestVersion = $titlesJson[strtoupper($updateTitleId)]["version"];
 				}
 				
@@ -300,7 +301,8 @@ function outputTitles($forceUpdate = false)
                 "latest_version" => $latestVersion,
                 "latest_date" => $latestVersionDate,
                 "size" => $titlesJson[strtoupper($titleId)]["size"],
-                "size_real" => getFileSize($gameDir . "/" . $title["path"])
+                "size_real" => getFileSize($gameDir . "/" . $title["path"]),
+				"screenshots" => $titlesJson[strtoupper($titleId)]["screenshots"]
             );
             $updates = array();
             foreach ($title["updates"] as $updateVersion => $update) {
