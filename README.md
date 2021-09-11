@@ -14,6 +14,7 @@ Hope you enjoy it!
 
 # Features
 - List NSP, XCI, NSZ and XCZ titles in a fancy way (Base Games, DLCs and Updates)
+- Icon,Banner and Screenshot of titles
 - Check For latest Update version of game file (if any)
 - Compatible with tinfoil Custom Index JSON (if called with `index.php/?tinfoil`)
 - Compatible with DBI plaintext list (if called with `index.php/?DBI`)
@@ -43,6 +44,14 @@ Hope you enjoy it!
 **Q:** I found a bug, where i can report that?
 
 **A:** Here on github as usual, or on GBAtemp forum here https://gbatemp.net/threads/nsp-indexer.591541/
+
+# third-party libraries used
+- Bootstrap https://getbootstrap.com/
+- jQuery https://jquery.com/
+- jQuery Lazy http://jquery.eisbehr.de/lazy/
+- LightBox2 https://lokeshdhakar.com/projects/lightbox2/
+- pspseclib https://github.com/phpseclib/phpseclib
+- some small parts of code was taken by forum/articles around the web, references is inside the code
 
 # Thanks to
 - SciresM for aes128.py we ported to PHP for NCA decryption
