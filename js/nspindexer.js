@@ -190,6 +190,26 @@ function enableListTriggers() {
     });
 }
 
+function enablescreenshotListTriggers() {
+    $('.contentscreenshotListTrigger').on('click', function (event) {
+        event.preventDefault();
+        var target = $(this).siblings('.screenshotList')[0];
+        $(target).slideToggle();
+        $(event.target).parents('span').find('.listChevron').toggleClass("bi-chevron-down bi-chevron-up");
+		$(event.target).parents('span').find('.introText').toggleClass("noWrap wordWrap");
+		
+		$('.lazy').Lazy({
+        visibleOnly: true,
+        bind: 'event',
+        scrollDirection: 'vertical',
+        effect: 'fadeIn',
+        effectTime: 500
+        });
+		
+    });
+}
+
+
 function enableNetInstall() {
     $('.btnNetInstall').on('click', function () {
         $(this).blur();
@@ -249,6 +269,7 @@ function enablePopovers() {
 function init() {
     lazyLoad();
     enableListTriggers();
+	enablescreenshotListTriggers();
     enableNetInstall();
 	enableRomInfo();
     enableAnalyze();
@@ -309,13 +330,24 @@ function createCard(titleId, title) {
     var countUpdates = Object.keys(title.updates).length;
     var countDlc = Object.keys(title.dlc).length;
     var cardTemplate = $('#cardTemplate');
+	var screenshotTemplate = $('#screenshotListTemplate').html();
+	var screenshotstmpl = tmpl(screenshotTemplate, {
+		screen0: title.screenshots[0],
+		screen1: title.screenshots[1],
+		screen2: title.screenshots[2],
+		screen3: title.screenshots[3]
+	});
+		
+	
     var card = tmpl(cardTemplate.html(), {
         titleId: titleId,
 		fileType: title.fileType,
         thumbUrl: title.thumb,
+		screenshotthumbUrl: title.screenshots[0],
         bannerUrl: title.banner,
         name: title.name,
         intro: title.intro,
+		screenshotList: screenshotstmpl,
         enableNetInstall: (netInstallEnabled) ? "" : "d-none",
 		enableRename: (renameEnabled) ? "" : "d-none",
 		enableRomInfo: (romInfoEnabled) ? "": "d-none",

@@ -30,6 +30,12 @@ body {
     white-space: nowrap;
 }
 
+.wordWrap {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: break-spaces;
+}
+
 .fill {
     display: flex;
     justify-content: center;
@@ -56,4 +62,14 @@ body {
 
 .jconfirm-content div {
     overflow-y: hidden;
+}
+
+.screenshotList{
+	display: none;
+}
+
+.screenshot-thumb {
+  
+    width: 100px !important;
+	min-width: 100px !important;
 }

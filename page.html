@@ -9,7 +9,7 @@
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/bootstrap-icons.css" rel="stylesheet">
     <link href="css/jquery-confirm.min.css" rel="stylesheet">
-    <link href="css/nspindexer.css" rel="stylesheet">
+    <link href="css/nspindexer.css?random=<?= uniqid() ?>"" rel="stylesheet">
 	
 	
 </head>
@@ -139,6 +139,13 @@
 <script src="js/jquery-confirm.min.js"></script>
 <script src="js/nspindexer.js?random=<?= uniqid() ?>"></script>
 
+<script id="screenshotListTemplate" type="text/x-template">
+		<span><img data-src="<%=screen0%>" class="img-fluid lazy screenshot-thumb"></span>
+		<span><img data-src="<%=screen1%>" class="img-fluid lazy screenshot-thumb"></span>
+		<span><img data-src="<%=screen2%>" class="img-fluid lazy screenshot-thumb"></span>
+		<span><img data-src="<%=screen3%>" class="img-fluid lazy screenshot-thumb"></span>
+		
+</script>
 
 <script id="cardTemplate" type="text/x-template">
     <div class="row gx-2 mb-4">
@@ -154,14 +161,23 @@
                 </div>
                 <div class="card-body rounded cardBody">
                     <h5 class="card-title"><strong><%=name%></strong>
-                        <button type="button" title="Net Install"
+					    <button type="button" title="Net Install"
                                 class="btn btn-sm btn-primary float-end btnNetInstall <%=enableNetInstall%>"
                                 data-title-id="<%=titleId%>" data-bs-toggle="tooltip" data-bs-placement="left">
                             <i class="bi-cloud-arrow-up-fill"></i>
                         </button>
                     </h5>
                     <div class="card-text">
-                        <p class="small noWrap"><%=intro%></p>
+						<span class="contentscreenshotListTrigger">
+						<span class="float-end ">
+                                    <i class="listChevron bi-chevron-down text-dark"></i>
+                                </span>
+                        
+                        <p class="small introText noWrap"><%=intro%></p>
+						</span>
+						<div class="my-3 screenshotList">
+                                    <%=screenshotList%>
+                         </div>
                         <p class="small">
                             <strong>Latest Version:</strong>
                             <span class="badge <%=updateClass%>">v<%=latestVersion%></span> <span class="text-muted">(<%=latestDate%>)</span>
