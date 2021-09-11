@@ -10,6 +10,7 @@
     <link href="css/bootstrap-icons.css" rel="stylesheet">
     <link href="css/jquery-confirm.min.css" rel="stylesheet">
     <link href="css/nspindexer.css?random=<?= uniqid() ?>"" rel="stylesheet">
+	<link href="css/lightbox.min.css" rel="stylesheet">
 	
 	
 </head>
@@ -137,13 +138,14 @@
 <script src="js/bootstrap.bundle.min.js"></script>
 <script src="js/jquery.lazy.min.js"></script>
 <script src="js/jquery-confirm.min.js"></script>
+<script src="js/lightbox.min.js"></script>
 <script src="js/nspindexer.js?random=<?= uniqid() ?>"></script>
 
 <script id="screenshotListTemplate" type="text/x-template">
-		<span><img data-src="<%=screen0%>" class="img-fluid lazy screenshot-thumb"></span>
-		<span><img data-src="<%=screen1%>" class="img-fluid lazy screenshot-thumb"></span>
-		<span><img data-src="<%=screen2%>" class="img-fluid lazy screenshot-thumb"></span>
-		<span><img data-src="<%=screen3%>" class="img-fluid lazy screenshot-thumb"></span>
+		<span><a href="<%=screen0%>" data-lightbox="<%=galleryID%>"><img data-src="<%=screen0%>" class="img-fluid lazy screenshot-thumb"></a></span>
+		<span><a href="<%=screen1%>" data-lightbox="<%=galleryID%>"><img data-src="<%=screen1%>" class="img-fluid lazy screenshot-thumb"></a></span>
+		<span><a href="<%=screen2%>" data-lightbox="<%=galleryID%>"><img data-src="<%=screen2%>" class="img-fluid lazy screenshot-thumb"></a></span>
+		<span><a href="<%=screen3%>" data-lightbox="<%=galleryID%>"><img data-src="<%=screen3%>" class="img-fluid lazy screenshot-thumb"></a></span>
 		
 </script>
 

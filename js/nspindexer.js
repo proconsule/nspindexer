@@ -332,6 +332,7 @@ function createCard(titleId, title) {
     var cardTemplate = $('#cardTemplate');
 	var screenshotTemplate = $('#screenshotListTemplate').html();
 	var screenshotstmpl = tmpl(screenshotTemplate, {
+		galleryID: titleId,
 		screen0: title.screenshots[0],
 		screen1: title.screenshots[1],
 		screen2: title.screenshots[2],
