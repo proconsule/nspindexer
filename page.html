@@ -300,9 +300,16 @@
 			
 			<div id="modalrominfofilesCheckContainer" class="container">
 			<p>Internal File List:</p>
-				<ul class="list-group">
-					<%=filescheck%>
-				</ul>	
+				<div class="table-responsive">
+				<table class="table table-borderless">
+					<thead>
+						<tr><th style="text-align:right">Type</th><th style="text-align:center">Name</th><th>Signature & Size</th><th></th></tr>
+					</thead>
+					<tbody>
+						<%=filescheck%>
+					</tbody>
+				</table>
+				</div>	
 		    </div>
 		
 		</dl>
@@ -349,7 +356,8 @@
 			      <%=langcombo%>
 		</select>
 		</div>
-		</div>	 
+		</div>	
+		<div>
         <dl class="row shadow-sm p-3 mb-5 bg-body rounded">
             <dt class="col-sm-3">ID</dt>
             <dd class="col-sm-9"><%=titleId%></dd>
@@ -380,8 +388,8 @@
 	        <dt class="col-sm-3">Title Key</dt>
             <dd class="col-sm-9"><%=titleKey%></dd>
 			</dl>
-			<div class="container-fluid">		
-			<img id="rominfoIcon" src="<%=imgData%>" class="img-thumbnail mx-auto d-block shadow-sm p-3 mb-5 bg-body rounded" width="256" height="256" <%=showThumb%>"/>		
+			<div class="d-flex justify-content-center">		
+			<img id="rominfoIcon" src="<%=imgData%>" class="rominfoIcon"<%=showThumb%>"/>		
 			</div>
 			<div class="<%=xciupdatepartition%>"><p>Update Partition</p>
 			<ul class="list-group">
@@ -397,27 +405,63 @@
 			</div>
 			<div id="modalrominfofilesCheckContainer" class="container shadow-sm p-3 mb-5 bg-body rounded">
 			<p>Internal File List:</p>
-				<ul class="list-group">
-					<%=filescheck%>
-				</ul>	
+				<div class="table-responsive">
+				<table class="table table-borderless">
+					<thead>
+						<tr><th style="text-align:right">Type</th><th style="text-align:center">Name</th><th>Signature & Size</th><th></th></tr>
+					</thead>
+					<tbody>
+						<%=filescheck%>
+					</tbody>
+				</table>
+				</div>
 		    </div>
         
     </div>
 </script>
 
 <script id="romInfofilesCheckTemplate" type="text/x-template">
-			<li class="list-group-item"><div class=""><span class="badge bg-primary"><%=contentType%></span> <%=fileName%><span class="float-end">
+	
+	<tr>
+		<td>
+		<span class="float-end">
+			<span class="badge bg-info">
+						<%=contentType%>
+			</span>
+		</span>
+		</td>
+		<td>
+			<%=fileName%>
+		</td>
+			
+		<td>
+			<span class="badge <%=sigcheckcolor%>">
+				<%=sigcheck%>
+			</span>
+			<span class="float-end">
+			<span class="badge bg-secondary">
+				<%=fileSize%>
+			</span>
+			</span>
+			
+			<td>
 			<button data-nca-name="<%=fileName%>" data-path="<%=path%>" title="Download"
-                    class="btnRomFile btn btn-sm bg-primary text-light"
-                    data-bs-toggle="tooltip" data-bs-placement="left">
-                <i class="bi-file-earmark-binary"></i>
-            </button>
+						class="btnRomFile btn btn-sm bg-primary text-light"
+						data-bs-toggle="tooltip" data-bs-placement="left">
+						<i class="bi-file-earmark-binary"></i>
+			</button>
 			<button data-nca-name="<%=fileName%>" data-path="<%=path%>" title="Show Contents"
-                    class="btnRomFileContents btn btn-sm bg-primary text-light <%=isnca%>"
-                    data-bs-toggle="tooltip" data-bs-placement="left" data-toggle="modal">
-                <i class="bi-file-code"></i>
-            </button>
-			<span class="badge bg-secondary"><%=fileSize%></span> <span class="badge <%=sigcheckcolor%>"><%=sigcheck%></span></span></div></h6></li>
+						class="btnRomFileContents btn btn-sm bg-primary text-light <%=isnca%>"
+						data-bs-toggle="tooltip" data-bs-placement="left" data-toggle="modal">
+						<i class="bi-file-code"></i>
+			</button>
+		</td>
+			
+			
+		</td>
+		
+	</tr>
+
 </script>
 
 <script id="netInstallTemplate" type="text/x-template">

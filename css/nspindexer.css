@@ -94,3 +94,18 @@ transform: scale(1.02);
 	transform: translateY(-5px);
 }
 
+.rominfoIcon {
+	width: 256 !important;
+	min-width: 256px !important;
+	height: 256px !important;
+	min-height: 256px !important;
+	margin-left: auto;
+	margin-right: auto;
+	box-shadow: 0 15px 15px rgba(72,78,85,.6);
+	-webkit-transform: translateY(-5px);
+	-moz-transform: translateY(-5px);
+	-ms-transform: translateY(-5px);
+	-o-transform: translateY(-5px);
+	transform: translateY(-5px);
+}
+

@@ -222,6 +222,8 @@ function enableNetInstall() {
 function enableRomInfo() {
     $('.btnRomInfo').on('click', function () {
         var path = $(this).data('path');
+		var me = this;
+		$(this).html("<div class=\"spinner-border spinner-border-sm\" role=\"status\"><span class=\"visually-hidden\">Loading...</span></div>");
         $.getJSON("index.php?rominfo=" + encodeURIComponent(path), function (data) {
             if (data.titleId) {
                 modalRomInfo(path,data);
@@ -231,7 +233,9 @@ function enableRomInfo() {
                     content: 'ROM Info could not be read.',
                 });
             }
+			$(me).html("<i class=\"bi-file-earmark-binary\"></i>");
         });
+		
     });
 }
 
@@ -586,8 +590,10 @@ function modalRomInfo(path,romData){
 	
 	$('.btnRomFileContents').on('click', function () {
         var path = $(this).data('path');
+		var me = this;
 		var ncaname = $(this).data('nca-name');
-		$.getJSON("index.php?romfilecontents=" + encodeURIComponent(path) + "&romfile=" + ncaname, function (data) {
+		$(this).html("<div class=\"spinner-border spinner-border-sm\" role=\"status\"><span class=\"visually-hidden\">Loading...</span></div>");
+        $.getJSON("index.php?romfilecontents=" + encodeURIComponent(path) + "&romfile=" + ncaname, function (data) {
             if (data.int >= 0) {
 				console.log(data);
 				modalRomContents(data);
@@ -595,6 +601,7 @@ function modalRomInfo(path,romData){
 			}else{
 				alert(data.msg);
 			}
+			$(me).html("<i class=\"bi-file-code\"></i>");
 			
 		});
 		

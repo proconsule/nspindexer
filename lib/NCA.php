@@ -34,6 +34,7 @@ class NCA
 		$this->rsa1 = bin2hex(substr($decHeader, 0, 0x100));
         $this->rsa2 = bin2hex(substr($decHeader, 0x100, 0x100));
         $this->magic = substr($decHeader, 0x200, 4);
+		if($this->magic != "NCA3")return false;
 		
 		$rsapss = new NCARSAPSS(substr($this->decHeader,0x200,0x200),hex2bin($this->rsa1));
 		$this->sigcheck = $rsapss->verify();
@@ -90,6 +91,7 @@ class NCA
 			$keytitleAes = new AESECB(hex2bin($this->keys[$this->keyidstring]));
 			$this->dectitlekey = bin2hex($keytitleAes->decrypt(hex2bin($this->enctitlekey))); 
 		}
+		return true;
     }
 
     function getFs()
