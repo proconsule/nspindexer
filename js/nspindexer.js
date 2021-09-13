@@ -443,22 +443,14 @@ function modalRomContents(ncaData){
 	}	
 		
 	}
-	if(ncaData.ret.romfs){
-		haveromfs= true;
-		for (var i = 0; i < ncaData.ret.romfs.length; i++) {
-			romfsfilelisttmpt += tmpl(contentItemTemplate, {
-			fileName: ncaData.ret.romfs[i].name,
-			fileSize: bytesToHuman(ncaData.ret.romfs[i].size),
-			path: ncaData.path,
-			type: "romfs",
-			fileidx: i,
-			ncaName: ncaData.ncaName
-	});
-	}
-	}
 	
+		if(ncaData.ret.romfs){
+			haveromfs= true;
+			var treeview = new bsfiletreeview(ncaData.path,ncaData.ncaName,"romfs",ncaData.ret.romfs);
+		   romfsfilelisttmpt = treeview.out;
+		}
 	
-	var romtmpl = tmpl(contentTemplate, {
+		var romtmpl = tmpl(contentTemplate, {
 		pfs0fileslist: psf0filelisttmpt,
 		romfsfileslist: romfsfilelisttmpt,
 		havepfs0: (havepfs0 == false) ? "d-none": "",
@@ -466,6 +458,16 @@ function modalRomContents(ncaData){
 	});
 	
 	$("#modalRomInfoContents").append(romtmpl);
+	
+	$(".list-group-tree").on('click', "[data-toggle=collapse]", function(){
+				$(this).toggleClass('in')
+				$(this).find("i").toggleClass("bi-folder2 bi-folder2-open")
+				$(this).find("i").toggleClass("text-dark text-primary")
+				
+				
+				$(this).next(".list-group.collapse").collapse('toggle');
+				return false;
+	})
 	
 	
 	$('.btnRomDownloadContents').on('click', function () {
@@ -509,7 +511,7 @@ function modalRomInfo(path,romData){
 				sigcheck: (romData.filesList[i].sigcheck == false) ? "Sig Warning" : "Sig OK",
 				fileSize: bytesToHuman(romData.filesList[i].filesize),
 				contentType: ncacontentType(romData.filesList[i].contentType),
-				isnca: (romData.filesList[i].name.endsWith(".ncz") == false) ? "" : "d-none",
+				isnca: (romData.filesList[i].name.endsWith(".ncz") == false) ? "" : "disabled",
 				path: path
 			});
 		}else{
@@ -521,7 +523,7 @@ function modalRomInfo(path,romData){
 				fileSize: bytesToHuman(romData.filesList[i].filesize),
 				contentType: fileExt.toUpperCase(),
 				path: path,
-				isnca: "d-none"
+				isnca: "disabled"
 			});
 		}
 	}
@@ -620,6 +622,7 @@ function modalRomInfo(path,romData){
         });
     });
 	
+	if(romData.mediaType != 130){
 	$("#rominfoTitle").html(romData.langs[$("#rominfolanguage").val()].title);
 	$("#rominfoPublisher").html(romData.langs[$("#rominfolanguage").val()].publisher);
 	$("#rominfoIcon").attr("src","data:image/jpeg;base64,"+romData.langs[$("#rominfolanguage").val()].gameIcon);
@@ -629,7 +632,7 @@ function modalRomInfo(path,romData){
 		$("#rominfoPublisher").html(romData.langs[$( this ).val()].publisher);
 		$("#rominfoIcon").attr("src","data:image/jpeg;base64,"+romData.langs[$( this ).val()].gameIcon);
 	});
-	
+	}
 	
 	
 }

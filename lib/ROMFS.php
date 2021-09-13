@@ -26,70 +26,12 @@ class ROMFS{
 		$this->file_meta_offset = unpack("P", substr($this->decData,0x38,8))[1];
 		$this->file_meta_size = unpack("P", substr($this->decData,0x40,8))[1];
 		$this->data_offset = unpack("P", substr($this->decData,0x48,8))[1];
-
-		/*
-		$dirsubber = ($this->dir_meta_offset)%16;	
-		fseek($this->fh,$this->romfsoffset+$this->dir_meta_offset-$dirsubber);
-		$this->decData = $this->aesctr->decrypt(fread($this->fh,$this->dir_meta_size+$dirsubber),$this->getCTROffset($this->romfsoffset-$this->encoffset + $this->dir_meta_offset-$dirsubber));
-		$tmpfdirdata = substr($this->decData,0+$dirsubber,$this->dir_meta_size);
 		
-		$subber = ($this->file_meta_offset)%16;	
-		fseek($this->fh,$this->romfsoffset+$this->file_meta_offset-$subber); 
-		
-		
-	    $this->decData =  $this->aesctr->decrypt(fread($this->fh,$this->file_meta_size+$subber),$this->getCTROffset($this->romfsoffset-$this->encoffset + $this->file_meta_offset-$subber));
-		$tmpfdata = substr($this->decData,0+$subber,$this->file_meta_size);
-		*/
 		$this->Files = array();
 		$this->Directorys = array();
 		$lenred = 0;
 		$idx = 0;
 		$this->parsedir(0);
-		/*
-		while($lenred<=strlen($tmpfdirdata)){
-			$tmpfentry = new stdClass();
-			//$tmpfentry->fileparent = unpack("V", substr($tmpfdirdata,$lenred,4))[1];
-			$tmpfentry->sibiling = unpack("V", substr($tmpfdirdata,$lenred,4))[1];
-			$tmpfentry->child = unpack("V", substr($tmpfdirdata,$lenred+4,4))[1];
-			$tmpfentry->file = unpack("V", substr($tmpfdirdata,$lenred+0x08,4))[1];
-			$tmpfentry->hashfile = substr($tmpfdirdata,$lenred+0x0c,4);
-			$tmpfentry->name_size = unpack("V", substr($tmpfdirdata,$lenred+0x10,4))[1];
-			$tmpfentry->name= substr($tmpfdirdata,$lenred+0x14,$tmpfentry->name_size);
-			$lenred = $tmpfentry->sibiling;
-			$this->Directorys[] = $tmpfentry;
-			$idx++;
-		}
-		
-		while($lenred<=strlen($tmpfdata)){
-			$tmpfentry = new stdClass();
-			$tmpfentry->fileparent = unpack("V", substr($tmpfdata,$lenred,4))[1];
-			$tmpfentry->sibiling = unpack("V", substr($tmpfdata,$lenred+4,4))[1];
-			$tmpfentry->offset = unpack("P", substr($tmpfdata,$lenred+8,8))[1];
-			$tmpfentry->size = unpack("P", substr($tmpfdata,$lenred+0x10,8))[1];
-			$tmpfentry->hashfile = substr($tmpfdata,$lenred+0x18,4);
-			$tmpfentry->name_size = unpack("V", substr($tmpfdata,$lenred+0x1c,4))[1];
-			$tmpfentry->name= substr($tmpfdata,$lenred+0x20,$tmpfentry->name_size);
-			$lenred = $tmpfentry->sibiling;
-			$this->Files[] = $tmpfentry;
-			$idx++;
-		}
-		
-		$lenred = 0;
-		while($lenred<=strlen($tmpfdirdata)){
-			$tmpfentry = new stdClass();
-			//$tmpfentry->fileparent = unpack("V", substr($tmpfdirdata,$lenred,4))[1];
-			$tmpfentry->sibiling = unpack("V", substr($tmpfdirdata,$lenred,4))[1];
-			$tmpfentry->child = unpack("V", substr($tmpfdirdata,$lenred+4,4))[1];
-			$tmpfentry->file = unpack("V", substr($tmpfdirdata,$lenred+0x08,4))[1];
-			$tmpfentry->hashfile = substr($tmpfdirdata,$lenred+0x0c,4);
-			$tmpfentry->name_size = unpack("V", substr($tmpfdirdata,$lenred+0x10,4))[1];
-			$tmpfentry->name= substr($tmpfdirdata,$lenred+0x14,$tmpfentry->name_size);
-			$lenred = $tmpfentry->sibiling;
-			$this->Directorys[] = $tmpfentry;
-			$idx++;
-		}
-		*/
-		
 		
 		for($i=0;$i<count($this->Files);$i++){
 			$parts = explode('.', $this->Files[$i]["name"]);

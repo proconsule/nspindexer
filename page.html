@@ -11,7 +11,7 @@
     <link href="css/jquery-confirm.min.css" rel="stylesheet">
     <link href="css/nspindexer.css?random=<?= uniqid() ?>"" rel="stylesheet">
 	<link href="css/lightbox.min.css" rel="stylesheet">
-	
+	<link href="css/bsfiletreeview.css?random=<?= uniqid() ?>" rel="stylesheet">
 	
 </head>
 <body>
@@ -139,6 +139,8 @@
 <script src="js/jquery.lazy.min.js"></script>
 <script src="js/jquery-confirm.min.js"></script>
 <script src="js/lightbox.min.js"></script>
+
+<script src="js/bsfiletreeview.js?random=<?= uniqid() ?>"></script>
 <script src="js/nspindexer.js?random=<?= uniqid() ?>"></script>
 
 <script id="screenshotListTemplate" type="text/x-template">
@@ -336,9 +338,9 @@
 			<%=pfs0fileslist%>
 	</ul>
 	<div class="<%=haveromfs%>">ROMFS</div>
-	<ul class="list-group list-group-scrol">
+	<div class="container">
 			<%=romfsfileslist%>
-	</ul>
+	</div>
 </script>
 
 
@@ -451,8 +453,8 @@
 						<i class="bi-file-earmark-binary"></i>
 			</button>
 			<button data-nca-name="<%=fileName%>" data-path="<%=path%>" title="Show Contents"
-						class="btnRomFileContents btn btn-sm bg-primary text-light <%=isnca%>"
-						data-bs-toggle="tooltip" data-bs-placement="left" data-toggle="modal">
+						class="btnRomFileContents btn btn-sm bg-primary text-light"
+						data-bs-toggle="tooltip" data-bs-placement="left" data-toggle="modal" <%=isnca%>>
 						<i class="bi-file-code"></i>
 			</button>
 		</td>

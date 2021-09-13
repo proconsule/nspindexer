@@ -1,0 +1,30 @@
+
+.list-group.list-group-tree > a, .list-group.list-group-tree > a:hover, .list-group.list-group-tree > a:focus, .list-group.list-group-tree > a:active {
+      text-decoration: none;
+      color: inherit;
+}
+
+.list-group.list-group-tree > .list-group > .list-group-item {
+  padding-left: 30px;
+}
+.list-group.list-group-tree > .list-group > .list-group > .list-group-item {
+  padding-left: 45px;
+}
+.list-group.list-group-tree > .list-group > .list-group > .list-group-item > .list-group-item {
+  padding-left: 60px;
+}
+.list-group.list-group-tree > .list-group > .list-group > .list-group-item > .list-group-item > .list-group-item {
+  padding-left: 75px;
+}
+.list-group.list-group-tree > .list-group > .list-group > .list-group-item > .list-group-item > .list-group-item > .list-group-item {
+  padding-left: 90px;
+}
+.list-group.list-group-tree > .list-group > .list-group > .list-group-item > .list-group-item > .list-group-item > .list-group-item > .list-group-item{
+  padding-left: 105px;
+}
+.list-group.list-group-tree > .list-group > .list-group > .list-group-item > .list-group-item > .list-group-item > .list-group-item > .list-group-item > .list-group-item{
+  padding-left: 120px;
+}
+.list-group.list-group-tree > .list-group > .list-group > .list-group-item > .list-group-item > .list-group-item > .list-group-item > .list-group-item > .list-group-item > .list-group-item{
+  padding-left: 135px;
+}
