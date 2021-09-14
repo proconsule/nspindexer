@@ -82,7 +82,11 @@ function getFileList($path)
     foreach ($files as $file) {
         $parts = explode('.', $file);
         if (!$file->isDir() && in_array(strtolower(array_pop($parts)), $allowedExtensions)) {
-            array_push($arrFiles, str_replace($path . DIRECTORY_SEPARATOR, '', $file->getPathname()));
+			if (strtolower(PHP_SHLIB_SUFFIX) === 'dll'){
+            array_push($arrFiles, str_replace("\\","\\\\",(str_replace($path . DIRECTORY_SEPARATOR, '', $file->getPathname()))));
+			}else{
+			array_push($arrFiles, str_replace($path . DIRECTORY_SEPARATOR, '', $file->getPathname()));
+			}
         }
     }
     natcasesort($arrFiles);
@@ -346,6 +350,12 @@ function outputTinfoil()
     $output["files"] = array();
     $urlSchema = getURLSchema();
     foreach ($fileList as $file) {
+		
+		if (strtolower(PHP_SHLIB_SUFFIX) === 'dll'){
+			$file = str_replace("\\\\","/",$file);
+		}
+		
+		
         if (!is_32bit()) {
             $output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode("/", array_map('rawurlencode', explode("/", $contentUrl . "/" . $file))), 'size' => getFileSize($gameDir . DIRECTORY_SEPARATOR . $file)];
         } else {
@@ -364,8 +374,12 @@ function outputDbi()
     $fileList = getFileList($gameDir);
     $output = "";
     foreach ($fileList as $file) {
-        $output .= $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode("/", array_map('rawurlencode', explode("/", $contentUrl . "/" . $file))) . "\n";
-    }
+		if (strtolower(PHP_SHLIB_SUFFIX) === 'dll'){
+			$file = str_replace("\\\\","/",$file);
+		}
+		$output .= $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode("/", array_map('rawurlencode', explode("/", $contentUrl . "/" . $file))) . "\n";	
+		
+	}
     return $output;
 }
 
