@@ -347,9 +347,9 @@ function outputTinfoil()
     $urlSchema = getURLSchema();
     foreach ($fileList as $file) {
         if (!is_32bit()) {
-            $output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode(DIRECTORY_SEPARATOR, array_map('rawurlencode', explode(DIRECTORY_SEPARATOR, $contentUrl . DIRECTORY_SEPARATOR . $file))), 'size' => getFileSize($gameDir . DIRECTORY_SEPARATOR . $file)];
+            $output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode("/", array_map('rawurlencode', explode("/", $contentUrl . "/" . $file))), 'size' => getFileSize($gameDir . DIRECTORY_SEPARATOR . $file)];
         } else {
-            $output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode(DIRECTORY_SEPARATOR, array_map('rawurlencode', explode(DIRECTORY_SEPARATOR, $contentUrl . DIRECTORY_SEPARATOR . $file))), 'size' => floatval(getFileSize($gameDir . DIRECTORY_SEPARATOR . $file))];
+            $output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode("/", array_map('rawurlencode', explode("/", $contentUrl . "/" . $file))), 'size' => floatval(getFileSize($gameDir . DIRECTORY_SEPARATOR . $file))];
         }
     }
     $output['success'] = "NSP Indexer";
@@ -364,7 +364,7 @@ function outputDbi()
     $fileList = getFileList($gameDir);
     $output = "";
     foreach ($fileList as $file) {
-        $output .= $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode(DIRECTORY_SEPARATOR, array_map('rawurlencode', explode(DIRECTORY_SEPARATOR, $contentUrl . DIRECTORY_SEPARATOR . $file))) . "\n";
+        $output .= $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode("/", array_map('rawurlencode', explode("/", $contentUrl . "/" . $file))) . "\n";
     }
     return $output;
 }
