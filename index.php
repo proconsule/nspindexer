@@ -67,7 +67,7 @@ $version = trim(file_get_contents('./VERSION'));
 function outputRomInfo($path)
 {
     global $gameDir;
-    if ($romInfo = romInfo($gameDir . '/' . $path)) {
+    if ($romInfo = romInfo($gameDir . DIRECTORY_SEPARATOR . $path)) {
         return json_encode($romInfo);
     } else {
         return json_encode(array('int' => -1));
@@ -82,7 +82,7 @@ function getFileList($path)
     foreach ($files as $file) {
         $parts = explode('.', $file);
         if (!$file->isDir() && in_array(strtolower(array_pop($parts)), $allowedExtensions)) {
-            array_push($arrFiles, str_replace($path . '/', '', $file->getPathname()));
+            array_push($arrFiles, str_replace($path . DIRECTORY_SEPARATOR, '', $file->getPathname()));
         }
     }
     natcasesort($arrFiles);
@@ -226,11 +226,11 @@ function getMetadata($type, $refresh = false)
 		
 		if($type != "versions"){
 			$retjson = json_encode(rewriteTitlesJson($json),JSON_PRETTY_PRINT );
-			file_put_contents(CACHE_DIR . "/" . $type  . ".json", $retjson);
+			file_put_contents(CACHE_DIR . DIRECTORY_SEPARATOR . $type  . ".json", $retjson);
 			return json_decode($retjson, true);
 		}else{
 			$retjson = json_encode(rewriteVersionsJson($json),JSON_PRETTY_PRINT );
-			file_put_contents(CACHE_DIR . "/" . $type  . ".json", $retjson);
+			file_put_contents(CACHE_DIR . DIRECTORY_SEPARATOR . $type  . ".json", $retjson);
 			return json_decode($retjson, true);
 		}
     }
@@ -242,7 +242,7 @@ function refreshMetadata()
 	$refreshed = array();
 	
 	foreach (array("versions","titles") as $type) {
-        if (!file_exists(CACHE_DIR . "/" . $type . ".json") || filemtime(CACHE_DIR . "/" . $type . ".json") < (time() - 60 * 5)) {
+        if (!file_exists(CACHE_DIR . DIRECTORY_SEPARATOR . $type . ".json") || filemtime(CACHE_DIR . DIRECTORY_SEPARATOR . $type . ".json") < (time() - 60 * 5)) {
             getMetadata($type, true);
             array_push($refreshed, $type);
         }
@@ -291,9 +291,11 @@ function outputTitles($forceUpdate = false)
                 $latestVersionDate = $versionsJson[strtoupper($titleId)][$latestVersion];
             }
 			
+			
+			
             $game = array(
                 "path" => $title["path"],
-                "fileType" => guessFileType($gameDir . "/" . $title["path"]),
+                "fileType" => guessFileType($gameDir . DIRECTORY_SEPARATOR  . $title["path"]),
                 "name" => $titlesJson[strtoupper($titleId)]["name"],
                 "thumb" => $titlesJson[strtoupper($titleId)]["iconUrl"],
                 "banner" => $titlesJson[strtoupper($titleId)]["bannerUrl"],
@@ -301,7 +303,7 @@ function outputTitles($forceUpdate = false)
 				"latest_version" => $latestVersion,
                 "latest_date" => $latestVersionDate,
                 "size" => $titlesJson[strtoupper($titleId)]["size"],
-                "size_real" => getFileSize($gameDir . "/" . $title["path"]),
+                "size_real" => getFileSize($gameDir . DIRECTORY_SEPARATOR . $title["path"]),
 				"screenshots" => $titlesJson[strtoupper($titleId)]["screenshots"]
             );
             $updates = array();
@@ -309,7 +311,7 @@ function outputTitles($forceUpdate = false)
                 $updates[(int)$updateVersion] = array(
                     "path" => $update["path"],
                     "date" => $versionsJson[strtoupper($titleId)][$updateVersion],
-                    "size_real" => getFileSize($gameDir . "/" . $update["path"])
+                    "size_real" => getFileSize($gameDir . DIRECTORY_SEPARATOR . $update["path"])
                 );
             }
             $game['updates'] = $updates;
@@ -319,7 +321,7 @@ function outputTitles($forceUpdate = false)
                     "path" => $d["path"],
                     "name" => $titlesJson[strtoupper($dlcId)]["name"],
                     "size" => $titlesJson[strtoupper($dlcId)]["size"],
-                    "size_real" => getFileSize($gameDir . "/" . $d["path"])
+                    "size_real" => getFileSize($gameDir . DIRECTORY_SEPARATOR . $d["path"])
                 );
             }
             $game['dlc'] = $dlcs;
@@ -345,9 +347,9 @@ function outputTinfoil()
     $urlSchema = getURLSchema();
     foreach ($fileList as $file) {
         if (!is_32bit()) {
-            $output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode('/', array_map('rawurlencode', explode('/', $contentUrl . '/' . $file))), 'size' => getFileSize($gameDir . '/' . $file)];
+            $output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode(DIRECTORY_SEPARATOR, array_map('rawurlencode', explode(DIRECTORY_SEPARATOR, $contentUrl . DIRECTORY_SEPARATOR . $file))), 'size' => getFileSize($gameDir . DIRECTORY_SEPARATOR . $file)];
         } else {
-            $output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode('/', array_map('rawurlencode', explode('/', $contentUrl . '/' . $file))), 'size' => floatval(getFileSize($gameDir . '/' . $file))];
+            $output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode(DIRECTORY_SEPARATOR, array_map('rawurlencode', explode(DIRECTORY_SEPARATOR, $contentUrl . DIRECTORY_SEPARATOR . $file))), 'size' => floatval(getFileSize($gameDir . DIRECTORY_SEPARATOR . $file))];
         }
     }
     $output['success'] = "NSP Indexer";
@@ -362,14 +364,14 @@ function outputDbi()
     $fileList = getFileList($gameDir);
     $output = "";
     foreach ($fileList as $file) {
-        $output .= $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode('/', array_map('rawurlencode', explode('/', $contentUrl . '/' . $file))) . "\n";
+        $output .= $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode(DIRECTORY_SEPARATOR, array_map('rawurlencode', explode(DIRECTORY_SEPARATOR, $contentUrl . DIRECTORY_SEPARATOR . $file))) . "\n";
     }
     return $output;
 }
 
 function outputRomFileContents($romfilecontents,$romfile){
 		global $gameDir;
-		$path = $gameDir . '/' . $romfilecontents;
+		$path = $gameDir . DIRECTORY_SEPARATOR . $romfilecontents;
 		$ret = romFileListContents($path,$romfile);
 		if($ret){
 			return json_encode(array(
@@ -386,23 +388,43 @@ function outputRomFileContents($romfilecontents,$romfile){
 		}
 }
 
+function outputncafileAnalyze($ncafileanalyze,$romfile){
+		global $gameDir;
+		$path = $gameDir . DIRECTORY_SEPARATOR . $ncafileanalyze;
+		$ret = ncaFileAnalyze($path,$romfile);
+		if($ret){
+			return json_encode(array(
+			"int" =>  0,
+			"ret" => $ret,
+			"path" => $ncafileanalyze,
+			"ncaName" => $romfile
+			));
+			
+		}else{
+			return json_encode(array('int' => -1
+			,'msg' => "Unable to open selected file"
+			));
+		}
+}
+
+
 function outputRomFile($romfilename,$romfile)
 {
 	    global $gameDir;
-		$path = $gameDir . '/' . $romfilename;
+		$path = $gameDir . DIRECTORY_SEPARATOR . $romfilename;
 		romFile($path,$romfile);
 }
 
 function outputFWFile($xcifile,$fwfilename)
 {
 		global $gameDir;
-	    $path = $gameDir . '/' . $xcifile;
+	    $path = $gameDir . DIRECTORY_SEPARATOR . $xcifile;
 		XCIUpdatePartition($path,$fwfilename);
 }
 function outputDownloadRomFileContents($romfilename,$romfile,$type,$fileidx)
 {
 		global $gameDir;
-	    $path = $gameDir . '/' . $romfilename;
+	    $path = $gameDir . DIRECTORY_SEPARATOR . $romfilename;
 		downloadromFileContents($path,$romfile,$type,$fileidx);
 }
 
@@ -442,6 +464,9 @@ if (isset($_GET["config"])) {
     header("Content-Type: application/json");
     echo outputDownloadRomFileContents(rawurldecode($_GET['downloadfilecontents']),$_GET['romfile'],$_GET['type'],$_GET['fileidx']);
     die();
+}elseif (!empty($_GET['ncafileanalyze'])) {
+    header("Content-Type: application/json");
+    echo outputncafileAnalyze(rawurldecode($_GET['ncafileanalyze']),$_GET['romfile']);
+    die();
 }
-
 require 'page.html';

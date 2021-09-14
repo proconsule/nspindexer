@@ -38,7 +38,6 @@ class ROMFS{
 			if($parts[count($parts)-1] == "nacp"){
 				$this->nacp = new NACP($this->getFile($i));
 			}
-			
 		}
 		
 		for($i=0;$i<count($this->Files);$i++){
@@ -48,8 +47,6 @@ class ROMFS{
 				$this->nacp->langs[$fileidx]->iconFilename = $this->Files[$i]["name"];
 			}
 		}
-		
-	
 	}
 	
 	function parsefile($off, $path = ''){
@@ -69,12 +66,7 @@ class ROMFS{
 			$filearray["name"] = $path.$tmpfilename;
 			$off = $filearray["sibling"];
 			$this->Files[] = $filearray;
-			//var_dump( $filearray);
-			//die();
 		}
-		//echo "FILE";
-		//var_dump( $filearray);
-		
 	}
 	
 	
@@ -110,10 +102,6 @@ class ROMFS{
 		if ($dirarray["child"] != 0xFFFFFFFF){
 			$this->parsedir($dirarray["child"], $newpath);
 		}
-		
-		//echo "DIR";
-		//var_dump( $dirarray);
-		
 		
 	}
 	
@@ -174,10 +162,8 @@ class ROMFS{
 			}
 			ob_flush();
 			flush();
-		}
-		
+		}	
 	}
-	
 }
 
 class NACP{
@@ -186,8 +172,6 @@ class NACP{
 	
 	function __construct($ncapcontents){
 		$this->langs = array();
-		
-		
 		for($i=0;$i<15;$i++){
 			$langtmp = new stdClass();
 			$langtmp->title = trim(substr($ncapcontents,0+(0x300*$i),0x200));
@@ -211,6 +195,5 @@ class NACP{
 				$this->langs[$i]->present = true;
 			}
 		}
-		
 	}
 }

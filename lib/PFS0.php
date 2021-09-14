@@ -3,6 +3,7 @@
 # Partial Implementation just to match our needs
 
 include_once "AES.php";
+include_once "NPDM.php";
 
 class PFS0
 {
@@ -18,7 +19,6 @@ class PFS0
         if ($this->pfs0header != "PFS0") {
             return false;
         }
-
         $this->numFiles = unpack("V", substr($this->data, 4, 0x04))[1];
 		$this->stringTableSize = unpack("V", substr($this->data, 8, 0x04))[1];
         $this->stringTableOffset = 0x10 + 0x18 * $this->numFiles;
@@ -45,11 +45,8 @@ class PFS0
                 $this->cnmt = new CNMT(substr($this->data, $this->fileBodyOffset + $dataOffset, $dataSize), $dataSize);
             }
             $this->filesList[] = $file;
-
         }
-
     }
-
 }
 
 # Test Class for decrypt on the fly contents and not store in memeory (make possibile to extract big files if needed) 
@@ -66,6 +63,7 @@ class PFS0Encrypted
 		$this->startOffset = $encdataOffset+$pfs0Offset;
 		$this->pfs0Offset = $pfs0Offset;
 		$this->dataSize = $pfs0Size;
+		$this->isexefs = false;
 		
     }
 	
@@ -103,7 +101,7 @@ class PFS0Encrypted
                 $n++;
             }
             $parts = explode('.', strtolower($filename));
-            $file = new stdClass();
+			$file = new stdClass();
             $file->name = $filename;
             $file->size = $dataSize;
             $file->offset = $dataOffset;
@@ -112,21 +110,21 @@ class PFS0Encrypted
             if ($parts[count($parts) - 1] == "cnmt") {
                 $this->cnmt = new CNMT($this->getFile($i),$dataSize);
             }
-            
-
+			if ($parts[count($parts) - 1] == "npdm") {
+				$this->isexefs = true;
+				$this->npdm = new NPDM($this->getFile($i),$dataSize);
+			}
         }
-
     }
 	
 # In memory extraction use on small file only
 	function getFile($idx){
 		$subber = ($this->fileBodyOffset+$this->filesList[$idx]->offset)%16;
 		fseek($this->fh, $this->startOffset+$this->fileBodyOffset+$this->filesList[$idx]->offset-$subber);
-		if(($this->fileBodyOffset+$this->filesList[$idx]->offset)%16 == 0){
-			$decfile = $this->aesctr->decrypt(fread($this->fh,$this->filesList[$idx]->size+$subber),$this->getCTROffset($this->pfs0Offset+$this->fileBodyOffset+$this->filesList[$idx]->offset-$subber));
-			$decfile = substr($decfile,$subber,$this->filesList[$idx]->size+$subber);
-			return $decfile;
-		}
+		
+		$decfile = $this->aesctr->decrypt(fread($this->fh,$this->filesList[$idx]->size+$subber),$this->getCTROffset($this->pfs0Offset+$this->fileBodyOffset+$this->filesList[$idx]->offset-$subber));
+		$decfile = substr($decfile,$subber,$this->filesList[$idx]->size+$subber);
+		return $decfile;
 		
 	}
 	
@@ -169,10 +167,8 @@ class PFS0Encrypted
 			}
 			ob_flush();
 			flush();
-		}
-		
+		}	
 	}
-
 }
 
 # mediaType 0x80	Application (Base Game), 0x81 Patch Update , 0x82 AddOnContent (DLC)
@@ -189,5 +185,4 @@ class CNMT
         $this->reqsysversion = unpack("V", (substr($data, 0x28, 0x4)))[1];
 
     }
-
 }

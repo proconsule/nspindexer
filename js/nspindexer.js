@@ -7,6 +7,11 @@ var romInfoEnabled = false;
 
 var langFlags = ["🇺🇸","🇬🇧","🇯🇵","🇫🇷","🇩🇪","🇪🇸","🇪🇸","🇮🇹","🇩🇪","🇨🇦","🇵🇹","🇷🇺","🇰🇷","🇨🇳","🇨🇳"];
 
+lightbox.option({
+      albumLabel: "Screenshot %1 of %2",
+	  wrapAround: true
+})
+
 $(document).ready(function () {
     $("#keyword").val("");
     loadConfig();
@@ -312,7 +317,7 @@ function createCard(titleId, title) {
             path: encodeURI(update.path),
             size: bytesToHuman(update.size_real),
             enableRename: (renameEnabled) ? "": "d-none",
-            enableRomInfo: (romInfoEnabled) ? "": "d-none"
+            enableRomInfo: (romInfoEnabled) ? "": "disabled"
         });
     });
     var dlcTemplate = $('#dlcTemplate').html();
@@ -324,7 +329,7 @@ function createCard(titleId, title) {
             path: encodeURI(dlc.path),
             size: bytesToHuman(dlc.size_real),
             enableRename: (renameEnabled) ? "": "d-none",
-            enableRomInfo: (romInfoEnabled) ? "": "d-none"
+            enableRomInfo: (romInfoEnabled) ? "": "disabled"
         });
     });
     var updateClass = 'bg-danger';
@@ -356,7 +361,7 @@ function createCard(titleId, title) {
 		screenshotList: screenshotstmpl,
         enableNetInstall: (netInstallEnabled) ? "" : "d-none",
 		enableRename: (renameEnabled) ? "" : "d-none",
-		enableRomInfo: (romInfoEnabled) ? "": "d-none",
+		enableRomInfo: (romInfoEnabled) ? "": "disabled",
         latestVersion: title.latest_version == null ? "?" : title.latest_version,
         latestDate: title.latest_date == null ? "?" : title.latest_date,
         updateClass: updateClass,
@@ -439,15 +444,13 @@ function modalRomContents(ncaData){
 			type: "pfs0",
 			fileidx: i,
 			ncaName: ncaData.ncaName
-	});
-	}	
-		
+			});
+		}	
 	}
-	
 		if(ncaData.ret.romfs){
 			haveromfs= true;
 			var treeview = new bsfiletreeview(ncaData.path,ncaData.ncaName,"romfs",ncaData.ret.romfs);
-		   romfsfilelisttmpt = treeview.out;
+			romfsfilelisttmpt = treeview.out;
 		}
 	
 		var romtmpl = tmpl(contentTemplate, {
@@ -606,8 +609,7 @@ function modalRomInfo(path,romData){
 			$(me).html("<i class=\"bi-file-code\"></i>");
 			
 		});
-		
-		//window.open("index.php?romfilecontents=" + encodeURIComponent(path) + "&romfile=" + ncaname)
+
     });
 	
 	$('.btnFWDownload').on('click', function () {

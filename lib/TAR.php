@@ -42,7 +42,7 @@ class TAR
 		$return = pack("a100a8a8a8a12a12", $filename, 644, 0, 0, decoct($filesize), decoct($filemtime));
 		$checksum = 8*32; // space for checksum itself
 		for ($i=0; $i < strlen($return); $i++) {
-			$checksum += ord($return{$i});
+			$checksum += ord($return[$i]);
 		}
 		$return .= sprintf("%06o", $checksum) . "\0 ";
 		return array(

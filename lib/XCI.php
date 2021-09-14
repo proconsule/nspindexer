@@ -84,12 +84,9 @@ class XCI
 						
 						break;
 					}
-            
 			}
-			
 		}
 		return true;
-		
 	}
 
     function getSecurePartition()
@@ -132,7 +129,6 @@ class XCI
                 }
             }
         }
-
     }
 
     function getInfo()
@@ -155,7 +151,6 @@ class XCI
 		$infoobj->reqsysversion = (($this->cnmtncafile->pfs0->cnmt->reqsysversion  >> 26) & 0x3F) . "." . (($this->cnmtncafile->pfs0->cnmt->reqsysversion  >> 20) & 0x3F) . "." . (($this->cnmtncafile->pfs0->cnmt->reqsysversion  >> 16) & 0x3F);
         return $infoobj;
     }
-
 }
 
 
@@ -202,7 +197,6 @@ class HFS0
         }
         return true;
     }
-
 }
 
 # Debug Example

@@ -98,8 +98,12 @@
         <div id="modalRomInfoContentesContent" class="modal-content">
             <div class="modal-header bg-dark">
                 <h5 class="modal-title text-white" id="modalRomContentsLabel">ROM Contents</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+				<div class="ml-auto">
+					<button type="button" class="btn btn-light" ><i class="bi bi-collection text-dark" disabled></i> Analyze</button>
+				
+					<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
+				</div>
             </div>
             <div class="modal-body">
                 <div id="modalRomInfoContents"></div>
@@ -194,8 +198,8 @@
                                         <span class="badge bg-secondary"><%=size%></span>
 										<button data-title-id="<%=titleId%>" data-path="<%=path%>"
                                                 title="ROM Info"
-                                                class="btnRomInfo btn btn-sm bg-primary text-light <%=enableRomInfo%>"
-                                                data-bs-toggle="tooltip" data-bs-placement="left">
+                                                class="btnRomInfo btn btn-sm bg-primary text-light"
+                                                data-bs-toggle="tooltip" data-bs-placement="left" <%=enableRomInfo%>>
                                             <i class="bi-file-earmark-binary"></i>
                                         </button>
                                         <button data-title-id="<%=titleId%>" data-path="<%=path%>"
@@ -248,8 +252,8 @@
         <span class="float-end">
             <span class="badge bg-secondary"><%=size%></span>
             <button data-title-id="<%=titleId%>" data-version="<%=version%>" data-path="<%=path%>" title="ROM Info"
-                    class="btnRomInfo btn btn-sm bg-primary text-light <%=enableRomInfo%>"
-                    data-bs-toggle="tooltip" data-bs-placement="left">
+                    class="btnRomInfo btn btn-sm bg-primary text-light "
+                    data-bs-toggle="tooltip" data-bs-placement="left" <%=enableRomInfo%>>
                 <i class="bi-file-earmark-binary"></i>
             </button>
 			<button data-title-id="<%=titleId%>" data-version="<%=version%>" data-path="<%=path%>"
@@ -271,8 +275,8 @@
         <span class="float-end">
             <span class="badge bg-secondary"><%=size%></span>
 			<button data-title-id="<%=titleId%>" data-path="<%=path%>" title="ROM Info"
-                    class="btnRomInfo btn btn-sm bg-primary text-light <%=enableRomInfo%>"
-                    data-bs-toggle="tooltip" data-bs-placement="left">
+                    class="btnRomInfo btn btn-sm bg-primary text-light"
+                    data-bs-toggle="tooltip" data-bs-placement="left" <%=enableRomInfo%>>
                 <i class="bi-file-earmark-binary"></i>
             </button>
             <button data-title-id="<%=titleId%>" data-path="<%=path%>" title="Check Filename"
@@ -334,9 +338,11 @@
 
 <script id="romfileContentsTemplate" type="text/x-template">
 	<div class="<%=havepfs0%>">PFS0</div>
+	<div class="container">
 	<ul class="list-group list-group-scrol">
 			<%=pfs0fileslist%>
 	</ul>
+	</div>
 	<div class="<%=haveromfs%>">ROMFS</div>
 	<div class="container">
 			<%=romfsfileslist%>

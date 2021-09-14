@@ -177,6 +177,34 @@ function downloadromFileContents($romfilename,$romfile,$type,$downfileidx){
 	
 }
 
+function ncaFileAnalyze($romfilename,$romfile){
+	global $keyList;
+	global $gameDir;
+	
+	if(guessFileType($romfilename) == "NSP"){	
+		$nsp = new NSP(realpath($romfilename), $keyList);
+		$nsp->getHeaderInfo();
+		$fileidx = -1;
+		for($i=0;$i<count($nsp->filesList);$i++){
+			if($nsp->filesList[$i]->name == $romfile){
+				$fileidx = $i;
+				break;
+			}
+		}
+		if($fileidx == -1){
+			$nsp->close();
+			return false;
+		}
+		
+		fseek($nsp->fh, $nsp->fileBodyOffset + $nsp->filesList[$fileidx]->fileoffset);
+		$ncafile = new NCA($nsp->fh, $nsp->fileBodyOffset + $nsp->filesList[$fileidx]->fileoffset, $nsp->filesList[$fileidx]->filesize, $keyList,$nsp->ticket->titleKey);
+		return $ncafile->Analyze();
+		
+	}
+	
+}
+	
+
 function romFileListContents($romfilename,$romfile){
 	global $keyList;
 	global $gameDir;
@@ -352,12 +380,7 @@ function romFile($romfilename,$romfile){
 		}
 		fclose($xci->fh);
 		die();
-		
-		
 	}
-	
-	
-	
 }
 
 function renameRom($oldName, $preview = true)
@@ -440,7 +463,5 @@ function XCIUpdatePartition($xcifilename,$tarfilename){
 		$tar->AddFile($xci->updatepartition->filesList[$i]->name,$xci->fh,$xci->updatepartition->filesList[$i]->offset,$xci->updatepartition->filesList[$i]->filesize);
 	}
 	die();
-	
-	
 }
 

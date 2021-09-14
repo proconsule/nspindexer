@@ -13,7 +13,7 @@ class NCARSAPSS{
 	
 	const Exponent = [1, 0, 1];
 	
-	const NCAHeaderSignature = [ /* Fixed RSA key used to validate NCA signature 0. */
+	const NCAHeaderPublicKey = [ /* Fixed RSA key used to validate NCA signature 0. */
         0xBF, 0xBE, 0x40, 0x6C, 0xF4, 0xA7, 0x80, 0xE9, 0xF0, 0x7D, 0x0C, 0x99, 0x61, 0x1D, 0x77, 0x2F,
         0x96, 0xBC, 0x4B, 0x9E, 0x58, 0x38, 0x1B, 0x03, 0xAB, 0xB1, 0x75, 0x49, 0x9F, 0x2B, 0x4D, 0x58,
         0x34, 0xB0, 0x05, 0xA3, 0x75, 0x22, 0xBE, 0x1A, 0x3F, 0x03, 0x73, 0xAC, 0x70, 0x68, 0xD1, 0x16,
@@ -32,8 +32,9 @@ class NCARSAPSS{
         0x04, 0x40, 0x1A, 0x9E, 0x9A, 0x67, 0xF6, 0x72, 0x29, 0xFA, 0x04, 0xF0, 0x9D, 0xE4, 0xF4, 0x03    
     ];
 	
-	function __construct($data,$signature)
+	function __construct($data,$signature,$externalkey = "")
     {
+		$this->externalkey = $externalkey;
 		$e = $this->getExponent();
 		$n = $this->getModulo();
 		$this->rsa = new RSA();
@@ -58,10 +59,15 @@ class NCARSAPSS{
 	
 	function getModulo(){
 		$string = "";
-		for($i=0;$i<count(self::NCAHeaderSignature);$i++){
-				$string .= chr(self::NCAHeaderSignature[$i]);
+		for($i=0;$i<count(self::NCAHeaderPublicKey);$i++){
+				$string .= chr(self::NCAHeaderPublicKey[$i]);
+		}
+		if($this->externalkey != ""){
+			$string = $this->externalkey;
+			
 		}
 		return $string;
+		
 	}
 	
 	function verify(){

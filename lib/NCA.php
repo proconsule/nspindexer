@@ -4,14 +4,13 @@ include_once "AES.php";
 include_once "ROMFS.php";
 include_once "IVFC.php";
 include_once "PFS0.php";
-
 include_once "N-RSA.php";
 
 
 class NCA
 {
-
-    function __construct($fh, $fileOffset, $fileSize, $keys , $enctitlekey = "")
+ 
+	function __construct($fh, $fileOffset, $fileSize, $keys , $enctitlekey = "")
     {
         $this->fh = $fh;
         $this->fileOffset = $fileOffset;
@@ -73,6 +72,9 @@ class NCA
             $keyAreakeyidxstring .= "system_";
 
         }
+		$this->enckeyArea = array("00000000000000000000000000000000","00000000000000000000000000000000","00000000000000000000000000000000","00000000000000000000000000000000");
+		$this->deckeyArea = array("00000000000000000000000000000000","00000000000000000000000000000000","00000000000000000000000000000000","00000000000000000000000000000000");
+		$this->dectitlekey = "";
 		
 		if($this->rightsId == "00000000000000000000000000000000"){
 			$keyAreakeyidxstring .= sprintf('%02x', $this->crypto_type);
@@ -80,11 +82,9 @@ class NCA
 			$enckeyArea = substr($decHeader, 0x300, 0x40);
 			$keyareaAes = new AESECB(hex2bin($this->keys[$keyAreakeyidxstring]));
 			$deckeyArea = $keyareaAes->decrypt($enckeyArea);
-			$this->enckeyArea = array();
-			$this->deckeyArea = array();
 			for ($i = 0; $i < 4; $i++) {
-				$this->enckeyArea[] = bin2hex(substr($enckeyArea, 0 + ($i * 0x10), 0x10));
-				$this->deckeyArea[] = bin2hex(substr($deckeyArea, 0 + ($i * 0x10), 0x10));
+				$this->enckeyArea[$i] = bin2hex(substr($enckeyArea, 0 + ($i * 0x10), 0x10));
+				$this->deckeyArea[$i] = bin2hex(substr($deckeyArea, 0 + ($i * 0x10), 0x10));
 			}
 		}else{
 			$this->keyidstring =  "titlekek_" . sprintf('%02x', $this->crypto_type);
@@ -171,18 +171,54 @@ class NCA
 			$this->romfs->getHeader();
 		}
     }
+	
+	function Analyze(){
+		
+		$this->readHeader();
+		$this->getFs();
+		$ncafilesList = array();
+		if($this->pfs0idx >-1){
+			$ncafilesList["pfs0"] = $this->pfs0->filesList;
+		}
+		if($this->romfsidx>-1){
+			$this->getRomfs($this->romfsidx);
+			$ncafilesList["romfs"] = $this->romfs->Files;
+		}
+		
+		$retinfo = new stdClass;
+		$retinfo->rsa1 = strtoupper($this->rsa1);
+		$retinfo->rsa2 = strtoupper($this->rsa2);
+		$retinfo->magic = $this->magic;
+		$retinfo->sigcheckrsa1 = $this->sigcheck;
+		$retinfo->sigcheckrsa2 = null;
+		$retinfo->distributionType =  $this->distributionType;
+        $retinfo->contentType = $this->contentType;
+		$retinfo->contentSize =  $this->contentSize;
+        $retinfo->programId =  strtoupper($this->programId);
+		$retinfo->rightsId = strtoupper(strrev($this->rightsId));
+        $retinfo->contentIndex =  $this->contentIndex;
+		$retinfo->sdkArray = $this->sdkArray;
+		$retinfo->crypto_type = $this->crypto_type;
+		
+		$retinfo->enckeyArea = $this->enckeyArea;
+		$retinfo->deckeyArea = $this->deckeyArea;
+		$retinfo->enctitlekey = $this->enctitlekey;
+		$retinfo->dectitlekey = $this->dectitlekey;
+		$retinfo->ncafilesList = $ncafilesList;
+		$retinfo->pfs0idx =  $this->pfs0idx;
+		$retinfo->romfsidx =  $this->romfsidx;
+		
+		$retinfo->exefs = false;
+		
+		if($this->pfs0idx > -1){
+			if($this->pfs0->isexefs){
+				$retinfo->exefs = true;
+				$rsapss = new NCARSAPSS(substr($this->decHeader,0x200,0x200),hex2bin($this->rsa2),hex2bin($this->pfs0->npdm->acid->rsa2));
+				$retinfo->sigcheckrsa2 = $rsapss->verify();
+			}
+		}
+		
+		return $retinfo;
+		
+	}
 }
-
-/*
-$mykeys = parse_ini_file("/root/.switch/prod.keys");
-$fh = fopen($argv[1],'r');
-$test = new NCA($fh,0,1,$mykeys,$argv[2]);
-$test->readHeader();
-$test->getFs();
-var_dump( $test->pfs0->filesList);
-if($test->romfsidx>-1){
-	$test->getRomfs($test->romfsidx);
-	var_dump($test->romfs->Files);
-	var_dump($test->romfs->nacp);
-}
-*/
