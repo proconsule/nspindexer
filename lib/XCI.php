@@ -80,8 +80,10 @@ class XCI
 					$ncafile->readHeader();
 					if($ncafile->programId == "0100000000000809"){
 						$ncafile->getFs();
-						$this->updatepartition->fwversion = (($ncafile->pfs0->cnmt->version  >> 26) & 0x3F) . "." . (($ncafile->pfs0->cnmt->version  >> 20) & 0x3F) . "." . (($ncafile->pfs0->cnmt->version  >> 16) & 0x3F);
-						
+						if($ncafile->pfs0idx >-1){
+							$ncafile->getPFS0Enc($ncafile->pfs0idx);
+							$this->updatepartition->fwversion = (($ncafile->pfs0->cnmt->version  >> 26) & 0x3F) . "." . (($ncafile->pfs0->cnmt->version  >> 20) & 0x3F) . "." . (($ncafile->pfs0->cnmt->version  >> 16) & 0x3F);
+						}
 						break;
 					}
 			}
@@ -115,18 +117,18 @@ class XCI
                 $cnmtncafile = new NCA($this->fh, $this->securepartition->rawdataoffset + $this->securepartition->file_array[$i]->fileoffset, $this->securepartition->file_array[$i]->filesize, $this->keys);
                 $cnmtncafile->readHeader();
                 $cnmtncafile->getFs();
-                $this->cnmtncafile = $cnmtncafile;
+                if($cnmtncafile->pfs0idx >-1){
+					$cnmtncafile->getPFS0Enc($cnmtncafile->pfs0idx);
+					$this->cnmtncafile = $cnmtncafile;
+				}
             }
 
             if ($ncafile->contentType == 2) {
-                $ncafile->getFs();
-                if ($ncafile->contentType == 2) {
-					$ncafile->getFs();
-					if($ncafile->romfsidx >-1){
-						$ncafile->getRomfs($ncafile->romfsidx);
-						$this->ncafile = $ncafile;
-					}
-                }
+				$ncafile->getFs();
+				if($ncafile->romfsidx >-1){
+					$ncafile->getRomfs($ncafile->romfsidx);
+					$this->ncafile = $ncafile;
+				}
             }
         }
     }

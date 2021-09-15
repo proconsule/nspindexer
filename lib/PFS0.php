@@ -7,10 +7,17 @@ include_once "NPDM.php";
 
 class PFS0
 {
-    function __construct($data, $mydataOffset, $mydataSize)
+    function __construct($fh, $dataOffset, $dataSize, $pfs0Offset, $pfs0Size)
     {
-        $this->data = substr($data, $mydataOffset, $mydataSize);
-		$this->dataSize = $mydataSize; 
+        $this->fh  = $fh;
+		$this->dataOffset = $dataOffset;
+		$this->dataSize = $dataSize; 
+		$this->pfs0Offset = $pfs0Offset;
+		$this->pfs0Size = $pfs0Size;
+		$this->startOffset = $dataOffset+$pfs0Offset;
+		fseek($this->fh, $dataOffset+ $pfs0Offset);
+		$this->data = fread($this->fh,0x10);
+		
     }
 
     function getHeader()
@@ -21,13 +28,21 @@ class PFS0
         }
         $this->numFiles = unpack("V", substr($this->data, 4, 0x04))[1];
 		$this->stringTableSize = unpack("V", substr($this->data, 8, 0x04))[1];
+		fseek($this->fh, $this->startOffset);
+		
+		$this->stringTableOffset = 0x10 + 0x18 * $this->numFiles;
+        $this->fileBodyOffset = $this->stringTableOffset + $this->stringTableSize;
+		$this->data = fread($this->fh,$this->fileBodyOffset);
+		
+		
+		
         $this->stringTableOffset = 0x10 + 0x18 * $this->numFiles;
         $this->fileBodyOffset = $this->stringTableOffset + $this->stringTableSize;
 		$this->filesList = [];
         for ($i = 0; $i < $this->numFiles; $i++) {
-            $dataOffset = unpack("P", substr($this->data, 0x10 + (0x20 * $i), 0x08))[1];
-            $dataSize = unpack("P", substr($this->data, 0x18 + (0x20 * $i), 0x08))[1];
-            $stringOffset = unpack("V", substr($this->data, 0x1c + (0x20 * $i), 0x04))[1];
+            $dataOffset = unpack("P", substr($this->data, 0x10 + (0x18 * $i), 0x08))[1];
+            $dataSize = unpack("P", substr($this->data, 0x10+ 0x08 + (0x18 * $i), 0x08))[1];
+            $stringOffset = unpack("V", substr($this->data, 0x10+0x08+0x08 + (0x18 * $i), 0x04))[1];
             $filename = "";
             $n = 0;
             while (true && $this->stringTableOffset + $stringOffset + $n < $this->dataSize-1) {
@@ -37,16 +52,43 @@ class PFS0
                 $n++;
             }
             $parts = explode('.', strtolower($filename));
-            $file = new stdClass();
+			$file = new stdClass();
             $file->name = $filename;
             $file->size = $dataSize;
             $file->offset = $dataOffset;
-            if ($parts[count($parts) - 1] == "cnmt") {
-                $this->cnmt = new CNMT(substr($this->data, $this->fileBodyOffset + $dataOffset, $dataSize), $dataSize);
-            }
-            $this->filesList[] = $file;
+			$this->filesList[] = $file;
+			
         }
     }
+	
+	function extractFile($idx){
+		fseek($this->fh, $this->startOffset+$this->fileBodyOffset+$this->filesList[$idx]->offset);
+		
+		$size = $this->filesList[$idx]->size;
+		$chunksize = 5 * (1024 * 1024);
+		header('Content-Type: application/octet-stream');
+		header('Content-Transfer-Encoding: binary');
+		header('Content-Length: '.$size);
+		header('Content-Disposition: attachment;filename="'.$this->filesList[$idx]->name.'"');
+		$tmpchunksize = $size;
+		$tmpchunkdone = 0;
+		while ($tmpchunksize>$chunksize)
+		{ 
+			$outdata =  fread($this->fh,$chunksize);
+			print($outdata);
+			$tmpchunksize -=$chunksize;
+			$tmpchunkdone += 1;
+				
+			ob_flush();
+			flush();
+		}
+		if($tmpchunksize<=$chunksize){
+			$outdata = fread($this->fh,$tmpchunksize);
+			print($outdata);	
+			ob_flush();
+			flush();
+		}	
+	}
 }
 
 # Test Class for decrypt on the fly contents and not store in memeory (make possibile to extract big files if needed) 

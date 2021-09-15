@@ -430,9 +430,11 @@ function modalRomContents(ncaData){
 	
 	var psf0filelisttmpt = [];
 	var romfsfilelisttmpt = [];
+	var psf0Logofilelisttmpt = [];
 	
 	var havepfs0 = false;
 	var haveromfs = false;
+	var havepfs0Logo = false;
 	
 	if(ncaData.ret.pfs0){
 		havepfs0= true;
@@ -447,17 +449,35 @@ function modalRomContents(ncaData){
 			});
 		}	
 	}
-		if(ncaData.ret.romfs){
-			haveromfs= true;
-			var treeview = new bsfiletreeview(ncaData.path,ncaData.ncaName,"romfs",ncaData.ret.romfs);
-			romfsfilelisttmpt = treeview.out;
-		}
+	if(ncaData.ret.romfs){
+		haveromfs= true;
+		var treeview = new bsfiletreeview(ncaData.path,ncaData.ncaName,"romfs",ncaData.ret.romfs);
+		romfsfilelisttmpt = treeview.out;
+	}
 	
-		var romtmpl = tmpl(contentTemplate, {
+	if(ncaData.ret.pfs0Logo){
+		havepfs0Logo= true;
+		for (var i = 0; i < ncaData.ret.pfs0Logo.length; i++) {
+			psf0Logofilelisttmpt += tmpl(contentItemTemplate, {
+			fileName: ncaData.ret.pfs0Logo[i].name,
+			fileSize: bytesToHuman(ncaData.ret.pfs0Logo[i].size),
+			path: ncaData.path,
+			type: "pfs0Logo",
+			fileidx: i,
+			ncaName: ncaData.ncaName
+			});
+		}	
+	}
+	
+	
+	
+	var romtmpl = tmpl(contentTemplate, {
 		pfs0fileslist: psf0filelisttmpt,
 		romfsfileslist: romfsfilelisttmpt,
+		pfs0Logofileslist: psf0Logofilelisttmpt,
 		havepfs0: (havepfs0 == false) ? "d-none": "",
-		haveromfs: (haveromfs == false) ? "d-none": ""
+		haveromfs: (haveromfs == false) ? "d-none": "",
+		havepfs0Logo: (havepfs0Logo == false) ? "d-none": ""
 	});
 	
 	$("#modalRomInfoContents").append(romtmpl);

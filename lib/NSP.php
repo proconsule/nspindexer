@@ -103,7 +103,11 @@ class NSP
                         $cnmtncafile->readHeader();
 						$file->sigcheck = $ncafile->sigcheck;
                         $cnmtncafile->getFs();
-                        $this->cnmtncafile = $cnmtncafile;
+						if($cnmtncafile->pfs0idx >-1){
+							$cnmtncafile->getPFS0Enc($cnmtncafile->pfs0idx);
+							$this->cnmtncafile = $cnmtncafile;
+						}
+                        
                     }
 
                     if ($ncafile->contentType == 2) {

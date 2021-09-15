@@ -19,6 +19,7 @@ class NCA
 		$this->enctitlekey = $enctitlekey;
 		$this->romfsidx = -1;
 		$this->pfs0idx = -1;
+		$this->pfs0Logoidx = -1;
     }
 
     function readHeader()
@@ -134,32 +135,63 @@ class NCA
             if ($this->fsEntrys[$i]->startOffset == 0) continue;
             if ($this->fsHeaders[$i]->hashType == 3) {
                 $ivfc = new IVFC($this->fsHeaders[$i]->superBlock);
+				$this->fsHeaders[$i]->ivfc = $ivfc;
 				$this->romfsidx = $i;
                 $this->fsEntrys[$i]->romfsoffset = $this->fsEntrys[$i]->startOffset + $ivfc->sboffset;
             }
-			if ($this->fsHeaders[$i]->hashType == 2) {
-                $shahash = substr($this->fsHeaders[$i]->superBlock, 0, 0x20)[1];
+			
+			/* PFS0 without encryption is Logo Partition */
+			if ($this->fsHeaders[$i]->hashType == 2 && $this->fsHeaders[$i]->encryptionType == 1) {
+				
+				$shahash = substr($this->fsHeaders[$i]->superBlock, 0, 0x20);
                 $blocksize = unpack("V", substr($this->fsHeaders[$i]->superBlock, 0x20, 4))[1];
                 $pfs0offset = unpack("P", substr($this->fsHeaders[$i]->superBlock, 0x38, 8))[1];
                 $pfs0size = unpack("P", substr($this->fsHeaders[$i]->superBlock, 0x40, 8))[1];
-				$this->pfs0idx = $i;
-				if($this->rightsId == "00000000000000000000000000000000"){
-					$pfs0 = new PFS0Encrypted($this->fh,$this->fsEntrys[$i]->startOffset + $this->fileOffset,$this->fsEntrys[$i]->endOffset - $this->fsEntrys[$i]->startOffset,$pfs0offset,$pfs0size,$this->deckeyArea[2],$this->fsHeaders[$i]->ctr);
-					$pfs0->getHeader();
-					if(property_exists($pfs0,"filesList")){
-						$this->pfs0 = $pfs0;
-					}
-				}else{
-					$pfs0 = new PFS0Encrypted($this->fh,$this->fsEntrys[$i]->startOffset + $this->fileOffset,$this->fsEntrys[$i]->endOffset - $this->fsEntrys[$i]->startOffset,$pfs0offset,$pfs0size,$this->dectitlekey,$this->fsHeaders[$i]->ctr);
-					$pfs0->getHeader();
-					if(property_exists($pfs0,"filesList")){
-						$this->pfs0 = $pfs0;
-					}
-					
+				$this->fsHeaders[$i]->shahash = $shahash;
+				$this->fsHeaders[$i]->blocksize = $blocksize;
+				$this->fsHeaders[$i]->pfs0offset = $pfs0offset;
+				$this->fsHeaders[$i]->pfs0size = $pfs0size;
+				$this->pfs0Logoidx = $i;
+				$pfs0 = new PFS0($this->fh,$this->fsEntrys[$i]->startOffset + $this->fileOffset,$this->fsEntrys[$i]->endOffset - $this->fsEntrys[$i]->startOffset,$pfs0offset,$pfs0size);
+				$pfs0->getHeader();
+				if(property_exists($pfs0,"filesList")){
+					$this->pfs0Logo = $pfs0;
 				}
+			}
+			
+			if ($this->fsHeaders[$i]->hashType == 2 && $this->fsHeaders[$i]->encryptionType != 1) {
+                $shahash = substr($this->fsHeaders[$i]->superBlock, 0, 0x20);
+                $blocksize = unpack("V", substr($this->fsHeaders[$i]->superBlock, 0x20, 4))[1];
+                $pfs0offset = unpack("P", substr($this->fsHeaders[$i]->superBlock, 0x38, 8))[1];
+                $pfs0size = unpack("P", substr($this->fsHeaders[$i]->superBlock, 0x40, 8))[1];
+				
+				$this->fsHeaders[$i]->shahash = $shahash;
+				$this->fsHeaders[$i]->blocksize = $blocksize;
+				$this->fsHeaders[$i]->pfs0offset = $pfs0offset;
+				$this->fsHeaders[$i]->pfs0size = $pfs0size;
+				$this->pfs0idx = $i;
+				
             }
         }
     }
+	
+	function getPFS0Enc($idx)
+    {
+		if($this->rightsId == "00000000000000000000000000000000"){
+			$pfs0 = new PFS0Encrypted($this->fh,$this->fsEntrys[$idx]->startOffset + $this->fileOffset,$this->fsEntrys[$idx]->endOffset - $this->fsEntrys[$idx]->startOffset,$this->fsHeaders[$idx]->pfs0offset,$this->fsHeaders[$idx]->pfs0size,$this->deckeyArea[2],$this->fsHeaders[$idx]->ctr);
+			$pfs0->getHeader();
+			if(property_exists($pfs0,"filesList")){
+				$this->pfs0 = $pfs0;
+			}
+		}else{
+			$pfs0 = new PFS0Encrypted($this->fh,$this->fsEntrys[$idx]->startOffset + $this->fileOffset,$this->fsEntrys[$idx]->endOffset - $this->fsEntrys[$idx]->startOffset,$this->fsHeaders[$idx]->pfs0offset,$this->fsHeaders[$idx]->pfs0size,$this->dectitlekey,$this->fsHeaders[$idx]->ctr);
+			$pfs0->getHeader();
+			if(property_exists($pfs0,"filesList")){
+				$this->pfs0 = $pfs0;
+			}
+			
+		}
+	}
 
     function getRomfs($idx)
     {
@@ -178,6 +210,7 @@ class NCA
 		$this->getFs();
 		$ncafilesList = array();
 		if($this->pfs0idx >-1){
+			$this->getPFS0Enc($this->pfs0idx);
 			$ncafilesList["pfs0"] = $this->pfs0->filesList;
 		}
 		if($this->romfsidx>-1){
@@ -217,6 +250,48 @@ class NCA
 				$retinfo->sigcheckrsa2 = $rsapss->verify();
 			}
 		}
+		
+		$retinfo->sections = array(false,false,false,false);
+		if($this->pfs0idx > -1){
+			$tmpsectionobj = new stdClass;
+			$tmpsectionobj->offset = $this->fsEntrys[$this->pfs0idx]->startOffset;
+			$tmpsectionobj->size = $this->fsEntrys[$this->pfs0idx]->endOffset-$this->fsEntrys[$this->pfs0idx]->startOffset;
+			$tmpsectionobj->partitionType = "PFS0";
+			if($this->pfs0->isexefs){
+				$tmpsectionobj->partitionType = "ExeFS";
+			}
+			$tmpsectionobj->ctr = $this->fsHeaders[$this->pfs0idx]->ctr;
+			$tmpsectionobj->shahash = strtoupper(bin2hex($this->fsHeaders[$this->pfs0idx]->shahash));
+			$tmpsectionobj->pfs0offset = $this->fsHeaders[$this->pfs0idx]->pfs0offset;
+			$tmpsectionobj->pfs0size = $this->fsHeaders[$this->pfs0idx]->pfs0size;
+			$retinfo->sections[$this->pfs0idx] = $tmpsectionobj;
+			
+		}
+		
+		if($this->romfsidx > -1){
+			$tmpsectionobj = new stdClass;
+			$tmpsectionobj->partitionType = "ROMFS";
+			$tmpsectionobj->offset = $this->fsEntrys[$this->romfsidx]->startOffset;
+			$tmpsectionobj->size = $this->fsEntrys[$this->romfsidx]->endOffset-$this->fsEntrys[$this->romfsidx]->startOffset;
+			$tmpsectionobj->ivfc = $this->fsHeaders[$this->romfsidx]->ivfc;
+			
+			
+			$retinfo->sections[$this->romfsidx] = $tmpsectionobj;
+		}
+		
+		if($this->pfs0Logoidx > -1){
+			$tmpsectionobj = new stdClass;
+			$tmpsectionobj->offset = $this->fsEntrys[$this->pfs0Logoidx]->startOffset;
+			$tmpsectionobj->size = $this->fsEntrys[$this->pfs0Logoidx]->endOffset-$this->fsEntrys[$this->pfs0Logoidx]->startOffset;
+			$tmpsectionobj->partitionType = "PFS0";
+			$tmpsectionobj->ctr = $this->fsHeaders[$this->pfs0Logoidx]->ctr;
+			$tmpsectionobj->shahash = strtoupper(bin2hex($this->fsHeaders[$this->pfs0Logoidx]->shahash));
+			$tmpsectionobj->pfs0offset = $this->fsHeaders[$this->pfs0Logoidx]->pfs0offset;
+			$tmpsectionobj->pfs0size = $this->fsHeaders[$this->pfs0Logoidx]->pfs0size;
+			$retinfo->sections[$this->pfs0Logoidx] = $tmpsectionobj;
+			
+		}
+		
 		
 		return $retinfo;
 		

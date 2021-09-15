@@ -159,17 +159,19 @@ function downloadromFileContents($romfilename,$romfile,$type,$downfileidx){
 		$ncafile->readHeader();
 		$ncafile->getFs();
 		
-		if($ncafile->romfsidx>-1){
-			$ncafile->getRomfs($ncafile->romfsidx);
-			
-		}
 		
 		if($type == "romfs"){
+			$ncafile->getRomfs($ncafile->romfsidx);
 			$ncafile->romfs->extractFile($downfileidx);
 		}
 		
 		if($type == "pfs0"){
+			$ncafile->getPFS0Enc($ncafile->pfs0idx);
 			$ncafile->pfs0->extractFile($downfileidx);
+		}
+		
+		if($type == "pfs0Logo"){
+			$ncafile->pfs0Logo->extractFile($downfileidx);
 		}
 	
 		$nsp->close();
@@ -234,7 +236,11 @@ function romFileListContents($romfilename,$romfile){
 		$ncafilesList = array();
 		
 		if($ncafile->pfs0idx >-1){
+			$ncafile->getPFS0Enc($ncafile->pfs0idx);
 			$ncafilesList["pfs0"] = $ncafile->pfs0->filesList;
+		}
+		if($ncafile->pfs0Logoidx >-1){
+			$ncafilesList["pfs0Logo"] = $ncafile->pfs0Logo->filesList;
 		}
 		if($ncafile->romfsidx>-1){
 			$ncafile->getRomfs($ncafile->romfsidx);
@@ -270,12 +276,16 @@ function romFileListContents($romfilename,$romfile){
 		
 		$ncafilesList = array();
 		
-		if($ncafile->pfs0){
+		if($ncafile->pfs0idx >-1){
+			$ncafile->getPFS0Enc($ncafile->pfs0idx);
 			$ncafilesList["pfs0"] = $ncafile->pfs0->filesList;
 		}
 		if($ncafile->romfsidx>-1){
 			$ncafile->getRomfs($ncafile->romfsidx);
 			$ncafilesList["romfs"] = $ncafile->romfs->Files;
+		}
+		if($ncafile->pfs0Logoidx >-1){
+			$ncafilesList["pfs0Logo"] = $ncafile->pfs0Logo->filesList;
 		}
 		$xci->close();
 		return $ncafilesList;
