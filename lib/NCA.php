@@ -134,10 +134,10 @@ class NCA
         for ($i = 0; $i < 4; $i++) {
             if ($this->fsEntrys[$i]->startOffset == 0) continue;
             if ($this->fsHeaders[$i]->hashType == 3) {
-                $ivfc = new IVFC($this->fsHeaders[$i]->superBlock);
+				$ivfc = new IVFC($this->fsHeaders[$i]->superBlock);
 				$this->fsHeaders[$i]->ivfc = $ivfc;
 				$this->romfsidx = $i;
-                $this->fsEntrys[$i]->romfsoffset = $this->fsEntrys[$i]->startOffset + $ivfc->sboffset;
+				$this->fsEntrys[$i]->romfsoffset = $this->fsEntrys[$i]->startOffset + $ivfc->sboffset;
             }
 			
 			/* PFS0 without encryption is Logo Partition */
@@ -218,6 +218,10 @@ class NCA
 			$ncafilesList["romfs"] = $this->romfs->Files;
 		}
 		
+		if($this->pfs0Logoidx>-1){
+			$ncafilesList["pfs0Logo"] = $this->pfs0Logo->filesList;
+		}
+		
 		$retinfo = new stdClass;
 		$retinfo->rsa1 = strtoupper($this->rsa1);
 		$retinfo->rsa2 = strtoupper($this->rsa2);
@@ -240,6 +244,7 @@ class NCA
 		$retinfo->ncafilesList = $ncafilesList;
 		$retinfo->pfs0idx =  $this->pfs0idx;
 		$retinfo->romfsidx =  $this->romfsidx;
+		$retinfo->pfs0Logoidx =  $this->pfs0Logoidx;
 		
 		$retinfo->exefs = false;
 		
@@ -272,10 +277,12 @@ class NCA
 			$tmpsectionobj = new stdClass;
 			$tmpsectionobj->partitionType = "ROMFS";
 			$tmpsectionobj->offset = $this->fsEntrys[$this->romfsidx]->startOffset;
+			$tmpsectionobj->ctr = $this->fsHeaders[$this->romfsidx]->ctr;
+			//$tmpsectionobj->shahash = strtoupper(bin2hex($this->fsHeaders[$this->romfsidx]->shahash));
 			$tmpsectionobj->size = $this->fsEntrys[$this->romfsidx]->endOffset-$this->fsEntrys[$this->romfsidx]->startOffset;
 			$tmpsectionobj->ivfc = $this->fsHeaders[$this->romfsidx]->ivfc;
-			
-			
+			$tmpsectionobj->ivfc->shahash = strtoupper(bin2hex($tmpsectionobj->ivfc->shahash));
+			$tmpsectionobj->shahash = $tmpsectionobj->ivfc->shahash;
 			$retinfo->sections[$this->romfsidx] = $tmpsectionobj;
 		}
 		

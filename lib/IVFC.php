@@ -17,5 +17,6 @@ class IVFC
             $tmplevel->blockSize = 1 << unpack("V", substr($superBlock, $sofs + 0x08 + 0x08, 4))[1];
             $this->levels[] = $tmplevel;
         }
+		$this->shahash = substr($superBlock, 0xc0, 0x20);
     }
 }

@@ -422,6 +422,188 @@ function ncacontentType(contentType){
 	}
 }
 
+function showAnalyzeModal(data){
+		
+	$('#ncaanalyzeModal').modal('show');	
+	$("#ncaanalyzeModalBody").empty();
+			
+	var contentTypeVar = ["Program","Meta","Control","Manual","Data","PublicData"];
+	var keyrevisionVar = [ "1.0.0", "Unused", "2.0.0","3.0.1", "4.0.0", "5.0.0", "6.0.0", "6.2.0", "7.0.0", "8.1.0", "9.0.0", "9.1.0", "12.1.0"];
+	var distributionTypeVar = ["System NCA", "Gamecard NCA"];
+	var ncaanalyzeHeaderTemplate = $('#ncaanalyzeHeaderTemplate').html();
+					
+	var ncaheadertmpl = tmpl(ncaanalyzeHeaderTemplate, {
+		rsa1: data.ret.rsa1,
+		sigcheckrsa1: (data.ret.sigcheckrsa1 == false) ? "Warning" : "OK",
+		sigcheckrsa1color: (data.ret.sigcheckrsa1 == false) ? "bg-warning" : "bg-success",
+		rsa2: data.ret.rsa2,
+		haversa2: (data.ret.exefs == false) ? "d-none": "",
+		sigcheckrsa2: (data.ret.sigcheckrsa2 == false) ? "Warning" : "OK",
+		sigcheckrsa2color: (data.ret.sigcheckrsa2 == false) ? "bg-warning" : "bg-success",
+		contentSize: data.ret.contentSize ,
+		humancontentSize: bytesToHuman(data.ret.contentSize),
+		sdkVersion: data.ret.sdkArray[3] +"." + data.ret.sdkArray[2] +"." + data.ret.sdkArray[1] +"." + data.ret.sdkArray[0],
+		titleID: data.ret.programId,
+		enctype: (data.ret.rightsId == "00000000000000000000000000000000") ? "Standard crypto":"Titlekey crypto",
+		contentType: contentTypeVar[data.ret.contentType],
+		distributionType: distributionTypeVar[data.ret.distributionType],
+		masterkeyrevision: "0x" + data.ret.crypto_type.toString(16) + " (" + keyrevisionVar[data.ret.crypto_type] + ")",
+		standardcrypto: (data.ret.rightsId == "00000000000000000000000000000000") ? "": "d-none",
+		titlecrypto: (data.ret.rightsId == "00000000000000000000000000000000") ? "d-none": "",
+				
+		enckeyArea0: "<strong>Key 0:</strong> " +data.ret.enckeyArea[0].toUpperCase(),
+		enckeyArea1: "<strong>Key 1:</strong> " +data.ret.enckeyArea[1].toUpperCase(),
+		enckeyArea2: "<strong>Key 2:</strong> " +data.ret.enckeyArea[2].toUpperCase(),
+		enckeyArea3: "<strong>Key 3:</strong> " +data.ret.enckeyArea[3].toUpperCase(),
+		deckeyArea0: "<strong>Key 0:</strong> " +data.ret.deckeyArea[0].toUpperCase(),
+		deckeyArea1: "<strong>Key 1:</strong> " +data.ret.deckeyArea[1].toUpperCase(),
+		deckeyArea2: "<strong>Key 2:</strong> " +data.ret.deckeyArea[2].toUpperCase(),
+		deckeyArea3: "<strong>Key 3:</strong> " +data.ret.deckeyArea[3].toUpperCase(),
+				
+		enctitlekey: data.ret.enctitlekey.toUpperCase(),
+		dectitlekey: data.ret.dectitlekey.toUpperCase(),
+				
+		havesection0: (data.ret.sections[0] == false) ? "d-none" :"",
+		havesection1: (data.ret.sections[1] == false) ? "d-none" :"",
+		havesection2: (data.ret.sections[2] == false) ? "d-none" :"",
+		havesection3: (data.ret.sections[3] == false) ? "d-none" :"",
+				
+		section0offset: (data.ret.sections[0] == false) ? "" : "0x" + data.ret.sections[0].offset.toString(16),
+		section0size: (data.ret.sections[0] == false) ? "" : "0x" + data.ret.sections[0].size.toString(16),
+		humansection0size: (data.ret.sections[0] == false) ? "" : bytesToHuman(data.ret.sections[0].size),
+		section0ctr: (data.ret.sections[0] == false) ? "" : data.ret.sections[0].ctr,
+		section0hash: (data.ret.sections[0] == false) ? "" : data.ret.sections[0].shahash,
+		section0type: (data.ret.sections[0] == false) ? "" : data.ret.sections[0].partitionType,
+	
+		section1offset: (data.ret.sections[1] == false) ? "" : "0x" + data.ret.sections[1].offset.toString(16),
+		section1size: (data.ret.sections[1] == false) ? "" : "0x" + data.ret.sections[1].size.toString(16),
+		humansection1size: (data.ret.sections[1] == false) ? "" : bytesToHuman(data.ret.sections[1].size),
+		section1ctr: (data.ret.sections[1] == false) ? "" : data.ret.sections[1].ctr,
+		section1hash: (data.ret.sections[1] == false) ? "" : data.ret.sections[1].shahash,
+		section1type: (data.ret.sections[1] == false) ? "" : data.ret.sections[1].partitionType,
+		
+		section2offset: (data.ret.sections[2] == false) ? "" : "0x" + data.ret.sections[2].offset.toString(16),
+		section2size: (data.ret.sections[2] == false) ? "" : "0x" + data.ret.sections[2].size.toString(16),
+		humansection2size: (data.ret.sections[2] == false) ? "" : bytesToHuman(data.ret.sections[2].size),
+		section2ctr: (data.ret.sections[2] == false) ? "" : data.ret.sections[2].ctr,
+		section2hash: (data.ret.sections[2] == false) ? "" : data.ret.sections[2].shahash,
+		section2type: (data.ret.sections[2] == false) ? "" : data.ret.sections[2].partitionType,
+				
+		section3offset: (data.ret.sections[3] == false) ? "" : "0x" + data.ret.sections[3].offset.toString(16),
+		section3size: (data.ret.sections[3] == false) ? "" : "0x" + data.ret.sections[3].size.toString(16),
+		humansection3size: (data.ret.sections[3] == false) ? "" : bytesToHuman(data.ret.sections[3].size),
+		section3ctr: (data.ret.sections[3] == false) ? "" : data.ret.sections[3].ctr,
+		section3hash: (data.ret.sections[3] == false) ? "" : data.ret.sections[3].shahash,
+		section3type: (data.ret.sections[3] == false) ? "" : data.ret.sections[3].partitionType,
+			
+				
+			
+	});
+			
+	
+	
+	var ncaanalyzeContentesTemplate = $("#ncaanalyzeContentesTemplate").html();
+	var contentTemplate = $("#romfileContentsTemplate").html();
+	var contentItemTemplate = $("#romfileContentsItemTemplate").html();
+	
+	
+	var psf0filelisttmpt = [];
+	var romfsfilelisttmpt = [];
+	var psf0Logofilelisttmpt = [];
+	
+	var havepfs0 = false;
+	var haveromfs = false;
+	var havepfs0Logo = false;
+	
+	if(data.ret.ncafilesList.pfs0){
+		havepfs0= true;
+		for (var i = 0; i < data.ret.ncafilesList.pfs0.length; i++) {
+			psf0filelisttmpt += tmpl(contentItemTemplate, {
+			fileName: data.ret.ncafilesList.pfs0[i].name,
+			fileSize: bytesToHuman(data.ret.ncafilesList.pfs0[i].size),
+			path: data.path,
+			type: "pfs0",
+			fileidx: i,
+			ncaName: data.ncaName
+			});
+		}	
+	}
+	if(data.ret.ncafilesList.romfs){
+		haveromfs= true;
+		var treeview = new bsfiletreeview(data.path,data.ncaName,"romfs",data.ret.ncafilesList.romfs);
+		romfsfilelisttmpt = treeview.out;
+	}
+	
+	if(data.ret.ncafilesList.pfs0Logo){
+		havepfs0Logo= true;
+		for (var i = 0; i < data.ret.ncafilesList.pfs0Logo.length; i++) {
+			psf0Logofilelisttmpt += tmpl(contentItemTemplate, {
+			fileName: data.ret.ncafilesList.pfs0Logo[i].name,
+			fileSize: bytesToHuman(data.ret.ncafilesList.pfs0Logo[i].size),
+			path: data.path,
+			type: "pfs0Logo",
+			fileidx: i,
+			ncaName: data.ncaName
+			});
+		}	
+	}
+	
+	
+	
+	var romtmpl = tmpl(contentTemplate, {
+		pfs0fileslist: psf0filelisttmpt,
+		romfsfileslist: romfsfilelisttmpt,
+		pfs0Logofileslist: psf0Logofilelisttmpt,
+		havepfs0: (havepfs0 == false) ? "d-none": "",
+		haveromfs: (haveromfs == false) ? "d-none": "",
+		havepfs0Logo: (havepfs0Logo == false) ? "d-none": ""
+	});
+			
+	var ncaanalyzeContentestmpl = tmpl(ncaanalyzeContentesTemplate, {
+			ncacontents: romtmpl
+	});		
+			
+		
+	$("#ncaanalyzeModalBody").append(ncaheadertmpl);
+	$("#ncaanalyzeModalBody").append(ncaanalyzeContentestmpl);
+			
+			
+	$('.btnncaanalyzeheadermodalChevron').on('click', function (event) {
+		event.preventDefault();
+		$(this).children().toggleClass("bi-chevron-up bi-chevron-down");
+	});
+			
+	$('.btnncaanalyzecontentsmodalChevron').on('click', function (event) {
+		event.preventDefault();
+		$(this).children().toggleClass("bi-chevron-up bi-chevron-down");
+	});
+			
+			
+			
+	$(".list-group-tree").on('click', "[data-toggle=collapse]", function(){
+		$(this).toggleClass('in')
+		$(this).find("i").toggleClass("bi-folder2 bi-folder2-open")
+		$(this).find("i").toggleClass("text-dark text-primary")
+					
+		$(this).next(".list-group.collapse").collapse('toggle');
+		return false;
+	})
+	$('.btnRomDownloadContents').on('click', function () {
+		var path = $(this).data('path');
+		var ncaname = $(this).data('nca-name');
+		var type = $(this).data('type');
+		var fileidx = $(this).data('fileidx');
+		
+		window.open("index.php?downloadfilecontents=" + encodeURIComponent(path) + "&romfile=" + ncaname + "&type=" + type +"&fileidx="+ fileidx);
+	});
+		
+}
+
+$("#ncaanalyzeModal").on("hidden.bs.modal", function () {
+			$("#ncaanalyzeModalBody").empty();
+});	
+
+
 function modalRomContents(ncaData){
 	$("#modalRomInfoContents").empty();
 	var contentTemplate = $("#romfileContentsTemplate").html();
@@ -501,7 +683,6 @@ function modalRomContents(ncaData){
 		
 		window.open("index.php?downloadfilecontents=" + encodeURIComponent(path) + "&romfile=" + ncaname + "&type=" + type +"&fileidx="+ fileidx);
     });
-	
 	
 }
 
@@ -620,7 +801,6 @@ function modalRomInfo(path,romData){
 		$(this).html("<div class=\"spinner-border spinner-border-sm\" role=\"status\"><span class=\"visually-hidden\">Loading...</span></div>");
         $.getJSON("index.php?romfilecontents=" + encodeURIComponent(path) + "&romfile=" + ncaname, function (data) {
             if (data.int >= 0) {
-				console.log(data);
 				modalRomContents(data);
 				$('#modalRomContents').modal('show');	
 			}else{
@@ -636,6 +816,21 @@ function modalRomInfo(path,romData){
         var path = $(this).data('path');
 		var fwname = $(this).data('fw-name');
 		window.open("index.php?xcifile=" + encodeURIComponent(path) + "&fwfilename=" + fwname +".tar");
+    });
+	
+	$('.btnncaanalyzeFile').on('click', function () {
+        var path = $(this).data('path');
+		var ncaname = $(this).data('nca-name');
+		var me = this;
+		$(this).html("<div class=\"spinner-border spinner-border-sm\" role=\"status\"><span class=\"visually-hidden\">Loading...</span></div>");
+        $.getJSON("index.php?ncafileanalyze=" + encodeURIComponent(path) + "&romfile=" + ncaname, function (data) {
+			if (data.int >= 0) {
+				showAnalyzeModal(data);
+			}else{
+				alert(data.msg);	
+			}
+			$(me).html("<i class=\"bi-file-code\"></i>");
+		});
     });
 	
 	$('#modalRomInfoBody [data-bs-toggle="tooltip"]').each(function () {
