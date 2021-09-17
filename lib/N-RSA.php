@@ -7,8 +7,6 @@ include_once('extlibs/Hash.php');
 use phpseclib\Math\BigInteger;
 use phpseclib\Crypt\RSA;
 
-
-
 class NCARSAPSS{
 	
 	const Exponent = [1, 0, 1];
@@ -43,7 +41,6 @@ class NCARSAPSS{
 		$modulus  = new BigInteger($n, 256);
 		$exponent = new BigInteger($e, 256);
 		$this->rsa->loadKey(['n' => $modulus, 'e' => $exponent]);
-		
 		$this->data = $data;
 		$this->signature = $signature;
 
@@ -67,15 +64,12 @@ class NCARSAPSS{
 			
 		}
 		return $string;
-		
 	}
 	
 	function verify(){
 		return $this->rsa->verify($this->data, $this->signature);
 	}
-	
 }
-
 
 class XCIRSAPKCS1 {
 	const Exponent = [1, 0, 1];
@@ -112,7 +106,6 @@ class XCIRSAPKCS1 {
 		$this->rsa->loadKey(['n' => $modulus, 'e' => $exponent]);
 		$this->data = $data;
 		$this->signature = $signature;
-
 	}
 	
 	function getExponent(){

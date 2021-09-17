@@ -104,6 +104,8 @@ class NCA
             $entrystartOffset = 0x240 + ($i * 0x10);
             $tmpFsEntry->startOffset = unpack("V", substr($decHeader, $entrystartOffset, 4))[1] * 0x200;
             $tmpFsEntry->endOffset = unpack("V", substr($decHeader, $entrystartOffset + 0x04, 4))[1] * 0x200;
+			$tmpFsEntry->Offset0x8 = unpack("V", substr($decHeader, $entrystartOffset + 0x08, 4))[1] * 0x200;
+			$tmpFsEntry->Offset0xc = unpack("V", substr($decHeader, $entrystartOffset + 0x0c, 4))[1] * 0x200;
             $this->fsEntrys[] = $tmpFsEntry;
         }
         $this->fsHeaders = array();
@@ -119,8 +121,14 @@ class NCA
             if ($tmpFsHeaderEntry->hashType == 3) {
                 $tmpFsHeaderEntry->superBlockHash = bin2hex(substr($tmpFsHeaderEntry->superBlock, 0xc0, 0x20));
             }
+			$tmpFsHeaderEntry->sparseInfo = substr($decHeader, $entrystartOffset + 0x148, 0x30);
+			$tmpFsHeaderEntry->sparseInfooffset = unpack("P", substr($tmpFsHeaderEntry->sparseInfo, 0x0, 8))[1];
+			$tmpFsHeaderEntry->sparseInfosize = unpack("P", substr($tmpFsHeaderEntry->sparseInfo, 0x08, 8))[1];
             $tmpFsHeaderEntry->section_ctr = substr($decHeader, $entrystartOffset + 0x140, 0x08);
-            $ofs = $this->fsEntrys[$i]->startOffset >> 4;
+            if(intval(bin2hex($tmpFsHeaderEntry->sparseInfo))!= 0){
+				return false; //Not implemented needs info not documented
+			}
+			$ofs = $this->fsEntrys[$i]->startOffset >> 4;
             $tmpFsHeaderEntry->ctr = "0000000000000000";
             for ($j = 0; $j < 0x8; $j++) {
                 $tmpFsHeaderEntry->ctr[$j] = $tmpFsHeaderEntry->section_ctr[0x8 - $j - 1];
@@ -173,6 +181,7 @@ class NCA
 				
             }
         }
+		return true;
     }
 	
 	function getPFS0Enc($idx)
@@ -186,6 +195,7 @@ class NCA
 		}else{
 			$pfs0 = new PFS0Encrypted($this->fh,$this->fsEntrys[$idx]->startOffset + $this->fileOffset,$this->fsEntrys[$idx]->endOffset - $this->fsEntrys[$idx]->startOffset,$this->fsHeaders[$idx]->pfs0offset,$this->fsHeaders[$idx]->pfs0size,$this->dectitlekey,$this->fsHeaders[$idx]->ctr);
 			$pfs0->getHeader();
+			$this->pfs0 = $pfs0;
 			if(property_exists($pfs0,"filesList")){
 				$this->pfs0 = $pfs0;
 			}
@@ -303,4 +313,31 @@ class NCA
 		return $retinfo;
 		
 	}
+	/* DUMP FUNCTION FOR DEBUG!
+	function DumpDec(){
+		fseek($this->fh,$this->fsEntrys[1]->startOffset + $this->fileOffset);
+		$ctr = new CTRCOUNTER_GMP(hex2bin(strtoupper($this->fsHeaders[1]->ctr)));
+		$aesctr = new AESCTR(hex2bin(strtoupper($this->dectitlekey)),$ctr->getCtr(),true);
+		while(!feof($this->fh)){
+			print($aesctr->decrypt(fread($this->fh,0x3E80),$ctr->getCtr()));
+			flush();
+			$ctr->add(1000);
+		}
+		
+	}
+	*/
 }
+
+/*
+$fh = fopen($argv[1],"r");
+$keys = parse_ini_file("/root/.switch/prod.keys");
+
+$test = new NCA($fh,0,filesize($argv[1]),$keys,$argv[2]);
+$test->readHeader();
+$ret = $test->getFs();
+//$test->getRomfs($test->romfsidx);
+//echo $ret;
+//$test->DumpDec();
+
+var_dump($test);
+*/

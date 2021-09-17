@@ -24,8 +24,9 @@ Hope you enjoy it!
 - NSP & XCI File Decryption
 - NCA Header Signature Check
 - XCI Header Signature Check
+- NCA Analyzer (Show relevant info of NCA)
 - Download of individual internal file (NCA TIK XML CERT)
-- Extraction of files inside NCA
+- Extraction of files inside NCA (PFS0 an RomFS support)
 - Download of Switch FW Update from XCI file (as a single tar file)
 - File Rename Based on TitleID & Version
 
@@ -49,6 +50,7 @@ Hope you enjoy it!
 - Bootstrap https://getbootstrap.com/
 - jQuery https://jquery.com/
 - jQuery Lazy http://jquery.eisbehr.de/lazy/
+- jQuery Confirm https://craftpip.github.io/jquery-confirm/
 - LightBox2 https://lokeshdhakar.com/projects/lightbox2/
 - pspseclib https://github.com/phpseclib/phpseclib
 - some small parts of code was taken from forums/articles around the web, references is inside the code

@@ -453,48 +453,47 @@
 <script id="romInfofilesCheckTemplate" type="text/x-template">
 	
 	<tr>
-		<td>
-		<span class="float-end">
-			<span class="badge bg-info">
-						<%=contentType%>
-			</span>
-		</span>
-		</td>
-		<td>
-			<%=fileName%>
-		</td>
-			
-		<td>
-			<span class="badge <%=sigcheckcolor%>">
-				<%=sigcheck%>
-			</span>
+		<td class="align-middle">
 			<span class="float-end">
-			<span class="badge bg-secondary">
-				<%=fileSize%>
+				<span class="badge bg-info">
+					<%=contentType%>
+				</span>
 			</span>
+		</td>
+		<td class="align-middle">
+			<%=fileName%>
+		</td>	
+		<td>
+			<span class"d-inline">
+				<span class="badge <%=sigcheckcolor%>">
+					<%=sigcheck%>
+				</span>
+				<span class="badge bg-secondary">
+					<%=fileSize%>
+				</span>
 			</span>
-			
-			<td>
-			<button data-nca-name="<%=fileName%>" data-path="<%=path%>" title="Download"
-						class="btnRomFile btn btn-sm bg-primary text-light"
+		</td>
+		<td>
+			<div class="btn-toolbar" role="toolbar" >
+				<div class="btn-group" role="group" >
+					<button data-nca-name="<%=fileName%>" data-path="<%=path%>" title="Download"
+						class="btnRomFile btn btn-sm bg-primary text-light d-inline"
 						data-bs-toggle="tooltip" data-bs-placement="left">
 						<i class="bi-file-earmark-binary"></i>
-			</button>
-			<button data-nca-name="<%=fileName%>" data-path="<%=path%>" title="Show Contents"
-						class="btnRomFileContents btn btn-sm bg-primary text-light"
+					</button>
+					<button data-nca-name="<%=fileName%>" data-path="<%=path%>" title="Show Contents"
+							class="btnRomFileContents btn btn-sm bg-primary text-light d-inline"
+							data-bs-toggle="tooltip" data-bs-placement="left" data-toggle="modal" <%=isnca%>>
+							<i class="bi-file-code"></i>
+					</button>
+					<button data-nca-name="<%=fileName%>" data-path="<%=path%>" title="Analyze"
+						class="btnncaanalyzeFile btn btn-sm bg-primary text-light d-inline"
 						data-bs-toggle="tooltip" data-bs-placement="left" data-toggle="modal" <%=isnca%>>
-						<i class="bi-file-code"></i>
-			</button>
-			<button data-nca-name="<%=fileName%>" data-path="<%=path%>" title="Analyze"
-						class="btnncaanalyzeFile btn btn-sm bg-primary text-light"
-						data-bs-toggle="tooltip" data-bs-placement="left" data-toggle="modal" <%=isnca%>>
-						<i class="bi-file-code"></i>
-			</button>
+						<i class="bi-calculator"></i>
+					</button>
+				</div>
+			</div>
 		</td>
-			
-			
-		</td>
-		
 	</tr>
 
 </script>
@@ -576,131 +575,130 @@
 			<ul class="list-group">
 				<li class="list-group-item d-flex justify-content-between align-items-start">
 					<div class="ms-2 me-auto">
-					<div class="fw-bold small">RSA 1 (Fixed Key Signature) <span class="badge <%=sigcheckrsa1color%>"><%=sigcheckrsa1%></span></div>
-					<div class="small text-break"><%=rsa1%></div>
+						<div class="fw-bold small">RSA 1 (Fixed Key Signature) <span class="badge <%=sigcheckrsa1color%>"><%=sigcheckrsa1%></span></div>
+						<div class="small text-break"><%=rsa1%></div>
 					</div>
-					</li>
+				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-start <%=haversa2%>">
-				<div class="ms-2 me-auto">
-					<div class="fw-bold small">RSA 2 (NPDM Signature) <span class="badge <%=sigcheckrsa2color%>"><%=sigcheckrsa2%></span></div>
-					<div class="small text-break"><%=rsa2%></div>
+					<div class="ms-2 me-auto">
+						<div class="fw-bold small">RSA 2 (NPDM Signature) <span class="badge <%=sigcheckrsa2color%>"><%=sigcheckrsa2%></span></div>
+						<div class="small text-break"><%=rsa2%></div>
 					</div>
 				</li>
 			    <li class="list-group-item d-flex justify-content-between align-items-start">
-				<div class="ms-2 me-auto">
-					<div class="fw-bold small">Content Size</div>
-					<div class="small text-break"><%=contentSize%> <span class="badge bg-secondary"><%=humancontentSize%></span></div>
+					<div class="ms-2 me-auto">
+						<div class="fw-bold small">Content Size</div>
+						<div class="small text-break"><%=contentSize%> <span class="badge bg-secondary"><%=humancontentSize%></span></div>
 					</div>				
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-start">
-				<div class="ms-2 me-auto">
-					<div class="fw-bold small">Title ID</div>
-					<div class="small text-break"><%=titleID%></div>
+					<div class="ms-2 me-auto">
+						<div class="fw-bold small">Title ID</div>
+						<div class="small text-break"><%=titleID%></div>
 					</div>			
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-start">
-				<div class="ms-2 me-auto">
-					<div class="fw-bold small">SDK Version</div>
-					<div class="small text-break"><%=sdkVersion%></div>
+					<div class="ms-2 me-auto">
+						<div class="fw-bold small">SDK Version</div>
+						<div class="small text-break"><%=sdkVersion%></div>
 					</div>						
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-start">
-				<div class="ms-2 me-auto">
-					<div class="fw-bold small">Distribution Type</div>
-					<div class="small text-break"><%=distributionType%></div>
+					<div class="ms-2 me-auto">
+						<div class="fw-bold small">Distribution Type</div>
+						<div class="small text-break"><%=distributionType%></div>
 					</div>			
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-start">
-				<div class="ms-2 me-auto">
-					<div class="fw-bold small">Content Type</div>
-					<div class="small text-break"><%=contentType%></div>
+					<div class="ms-2 me-auto">
+						<div class="fw-bold small">Content Type</div>
+						<div class="small text-break"><%=contentType%></div>
 					</div>		
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-start">
-				<div class="ms-2 me-auto">
-					<div class="fw-bold small">Master Key Revision</div>
-					<div class="small text-break"><%=masterkeyrevision%></div>
+					<div class="ms-2 me-auto">
+						<div class="fw-bold small">Master Key Revision</div>
+						<div class="small text-break"><%=masterkeyrevision%></div>
 					</div>	
-					</li>
+				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-start">
-				<div class="ms-2 me-auto">
-					<div class="fw-bold small">Encryption Type</div>
-					<div class="small text-break"><%=enctype%></div>
+					<div class="ms-2 me-auto">
+						<div class="fw-bold small">Encryption Type</div>
+						<div class="small text-break"><%=enctype%></div>
 					</div>	
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-start <%=standardcrypto%>">
-				<div class="ms-2 me-auto">
-					<div class="fw-bold small">Key Area Encryption Key</div>
-					<div class="small text-break"><%=enckeyArea0%></div>
-					<div class="small text-break"><%=enckeyArea1%></div>
-					<div class="small text-break"><%=enckeyArea2%></div>
-					<div class="small text-break"><%=enckeyArea3%></div>
-					<div class="fw-bold small">Decrypted</div>
-					<div class="small text-break"><%=deckeyArea0%></div>
-					<div class="small text-break"><%=deckeyArea1%></div>
-					<div class="small text-break"><%=deckeyArea2%></div>
-					<div class="small text-break"><%=deckeyArea3%></div>
+					<div class="ms-2 me-auto">
+						<div class="fw-bold small">Key Area Encryption Key</div>
+						<div class="small text-break"><%=enckeyArea0%></div>
+						<div class="small text-break"><%=enckeyArea1%></div>
+						<div class="small text-break"><%=enckeyArea2%></div>
+						<div class="small text-break"><%=enckeyArea3%></div>
+						<div class="fw-bold small">Decrypted</div>
+						<div class="small text-break"><%=deckeyArea0%></div>
+						<div class="small text-break"><%=deckeyArea1%></div>
+						<div class="small text-break"><%=deckeyArea2%></div>
+						<div class="small text-break"><%=deckeyArea3%></div>
 					</div>		
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-start <%=titlecrypto%>">
-				<div class="ms-2 me-auto">
-					<div class="fw-bold small">Title Key</div>
-					<div class="small text-break"><%=enctitlekey%></div>
-					<div class="fw-bold small">Decrypted</div>
-					<div class="small text-break"><%=dectitlekey%></div>
+					<div class="ms-2 me-auto">
+						<div class="fw-bold small">Title Key</div>
+						<div class="small text-break"><%=enctitlekey%></div>
+						<div class="fw-bold small">Decrypted</div>
+						<div class="small text-break"><%=dectitlekey%></div>
 					</div>
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-start">
-				<div class="fw-bold small">Sections</div>
-				<div class="ms-2 me-auto">
-				<ul class="list-group">
-				<li class="list-group-item d-flex justify-content-between align-items-start <%=havesection0%>">
-				<div class="ms-2 me-auto">
-					<div class="fw-bold small">Section 0</div>
-					<div class="small text-break"><strong>Offset: </strong><%=section0offset%></div>
-					<div class="small text-break"><strong>Size: </strong><%=section0size%> <span class="badge bg-secondary"><%=humansection0size%></div>
-					<div class="small text-break"><strong>Partition Type: </strong><%=section0type%></div>
-					<div class="small text-break"><strong>Section CTR: </strong><%=section0ctr%></div>
-					<div class="small text-break"><strong>Superblock Hash: </strong><%=section0hash%></div>
-				</div>	
-				</li>
-				<li class="list-group-item d-flex justify-content-between align-items-start <%=havesection1%>">
-				<div class="ms-2 me-auto">
-					<div class="fw-bold small">Section 1</div>
-					<div class="small text-break"><strong>Offset: </strong><%=section1offset%></div>
-					<div class="small text-break"><strong>Size: </strong><%=section0size%> <span class="badge bg-secondary"><%=humansection1size%></div>
-					<div class="small text-break"><strong>Partition Type: </strong><%=section1type%></div>
-					<div class="small text-break"><strong>Section CTR: </strong><%=section1ctr%></div>
-					<div class="small text-break"><strong>Superblock Hash: </strong><%=section1hash%></div>
-				</div>	
-				</li>
-				<li class="list-group-item d-flex justify-content-between align-items-start <%=havesection2%>">
-				<div class="ms-2 me-auto">
-					<div class="fw-bold small">Section 2</div>
-					<div class="small text-break"><strong>Offset: </strong><%=section2offset%></div>
-					<div class="small text-break"><strong>Size: </strong><%=section0size%> <span class="badge bg-secondary"><%=humansection2size%></div>
-					<div class="small text-break"><strong>Partition Type: </strong><%=section2type%></div>
-					<div class="small text-break"><strong>Section CTR: </strong><%=section2ctr%></div>
-					<div class="small text-break"><strong>Superblock Hash: </strong><%=section2hash%></div>
-				</div>	
-				</li>
-				<li class="list-group-item d-flex justify-content-between align-items-start <%=havesection3%>">
-				<div class="ms-2 me-auto">
-					<div class="fw-bold small">Section 3</div>
-					<div class="small text-break"><strong>Offset: </strong><%=section3offset%></div>
-					<div class="small text-break"><strong>Size: </strong><%=section0size%> <span class="badge bg-secondary"><%=humansection3size%></div>
-					<div class="small text-break"><strong>Partition Type: </strong><%=section3type%></div>
-					<div class="small text-break"><strong>Section CTR: </strong><%=section3ctr%></div>
-					<div class="small text-break"><strong>Superblock Hash: </strong><%=section3hash%></div>
-				</div>	
-				</li>
-				</ul>
-				</div>
+					<div class="fw-bold small">Sections</div>
+					<div class="ms-2 me-auto">
+						<ul class="list-group">
+							<li class="list-group-item d-flex justify-content-between align-items-start <%=havesection0%>">
+								<div class="ms-2 me-auto">
+									<div class="fw-bold small">Section 0</div>
+									<div class="small text-break"><strong>Offset: </strong><%=section0offset%></div>
+									<div class="small text-break"><strong>Size: </strong><%=section0size%> <span class="badge bg-secondary"><%=humansection0size%></div>
+									<div class="small text-break"><strong>Partition Type: </strong><%=section0type%></div>
+									<div class="small text-break"><strong>Section CTR: </strong><%=section0ctr%></div>
+									<div class="small text-break"><strong>Superblock Hash: </strong><%=section0hash%></div>
+								</div>	
+							</li>
+							<li class="list-group-item d-flex justify-content-between align-items-start <%=havesection1%>">
+								<div class="ms-2 me-auto">
+									<div class="fw-bold small">Section 1</div>
+									<div class="small text-break"><strong>Offset: </strong><%=section1offset%></div>
+									<div class="small text-break"><strong>Size: </strong><%=section0size%> <span class="badge bg-secondary"><%=humansection1size%></div>
+									<div class="small text-break"><strong>Partition Type: </strong><%=section1type%></div>
+									<div class="small text-break"><strong>Section CTR: </strong><%=section1ctr%></div>
+									<div class="small text-break"><strong>Superblock Hash: </strong><%=section1hash%></div>
+								</div>	
+							</li>
+							<li class="list-group-item d-flex justify-content-between align-items-start <%=havesection2%>">
+								<div class="ms-2 me-auto">
+									<div class="fw-bold small">Section 2</div>
+									<div class="small text-break"><strong>Offset: </strong><%=section2offset%></div>
+									<div class="small text-break"><strong>Size: </strong><%=section0size%> <span class="badge bg-secondary"><%=humansection2size%></div>
+									<div class="small text-break"><strong>Partition Type: </strong><%=section2type%></div>
+									<div class="small text-break"><strong>Section CTR: </strong><%=section2ctr%></div>
+									<div class="small text-break"><strong>Superblock Hash: </strong><%=section2hash%></div>
+								</div>	
+							</li>
+							<li class="list-group-item d-flex justify-content-between align-items-start <%=havesection3%>">
+								<div class="ms-2 me-auto">
+									<div class="fw-bold small">Section 3</div>
+									<div class="small text-break"><strong>Offset: </strong><%=section3offset%></div>
+									<div class="small text-break"><strong>Size: </strong><%=section0size%> <span class="badge bg-secondary"><%=humansection3size%></div>
+									<div class="small text-break"><strong>Partition Type: </strong><%=section3type%></div>
+									<div class="small text-break"><strong>Section CTR: </strong><%=section3ctr%></div>
+									<div class="small text-break"><strong>Superblock Hash: </strong><%=section3hash%></div>
+								</div>	
+							</li>
+						</ul>
+					</div>
 				</li>
 			</ul>
 		</div>
 	</div>
-		
 	</div>
 </script>	
 

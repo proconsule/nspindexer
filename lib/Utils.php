@@ -10,7 +10,6 @@ if (file_exists(dirname(__FILE__) . '/../config.php')) {
     require_once dirname(__FILE__) . '/../config.php';
 }
 
-
 function guessFileType($path, $internalcheck = false)
 {
     if ($internalcheck == true) {
@@ -157,7 +156,10 @@ function downloadromFileContents($romfilename,$romfile,$type,$downfileidx){
 		$ncafile = new NCA($nsp->fh, $nsp->fileBodyOffset + $nsp->filesList[$fileidx]->fileoffset, $nsp->filesList[$fileidx]->filesize, $keyList,$nsp->ticket->titleKey);
 		
 		$ncafile->readHeader();
-		$ncafile->getFs();
+		$ret = $ncafile->getFs();
+		if($ret == false){
+			return false;
+		}
 		
 		
 		if($type == "romfs"){
@@ -176,7 +178,6 @@ function downloadromFileContents($romfilename,$romfile,$type,$downfileidx){
 	
 		$nsp->close();
 	}
-	
 }
 
 function ncaFileAnalyze($romfilename,$romfile){
@@ -200,18 +201,14 @@ function ncaFileAnalyze($romfilename,$romfile){
 		
 		fseek($nsp->fh, $nsp->fileBodyOffset + $nsp->filesList[$fileidx]->fileoffset);
 		$ncafile = new NCA($nsp->fh, $nsp->fileBodyOffset + $nsp->filesList[$fileidx]->fileoffset, $nsp->filesList[$fileidx]->filesize, $keyList,$nsp->ticket->titleKey);
-		return $ncafile->Analyze();
-		
+		return $ncafile->Analyze();	
 	}
-	
 }
 	
 
 function romFileListContents($romfilename,$romfile){
 	global $keyList;
 	global $gameDir;
-	
-	
 	if(guessFileType($romfilename) == "NSP"){	
 		$nsp = new NSP(realpath($romfilename), $keyList);
 		$nsp->getHeaderInfo();
@@ -231,7 +228,10 @@ function romFileListContents($romfilename,$romfile){
 		$ncafile = new NCA($nsp->fh, $nsp->fileBodyOffset + $nsp->filesList[$fileidx]->fileoffset, $nsp->filesList[$fileidx]->filesize, $keyList,$nsp->ticket->titleKey);
 		
 		$ncafile->readHeader();
-		$ncafile->getFs();
+		$ret = $ncafile->getFs();
+		if($ret == false){
+			return false;
+		}
 		
 		$ncafilesList = array();
 		
@@ -248,9 +248,7 @@ function romFileListContents($romfilename,$romfile){
 		}
 		$nsp->close();
 		return $ncafilesList;
-		
 	}
-	
 	if(guessFileType($romfilename) == "XCI"){
 		$xci = new XCI(realpath($romfilename), $keyList);
 		
@@ -272,7 +270,10 @@ function romFileListContents($romfilename,$romfile){
 		$ncafile = new NCA($xci->fh, $xci->securepartition->rawdataoffset + $xci->securepartition->file_array[$fileidx]->fileoffset, $xci->securepartition->file_array[$fileidx]->filesize, $keyList,null);
 		
 		$ncafile->readHeader();
-		$ncafile->getFs();
+		$ret = $ncafile->getFs();
+		if($ret == false){
+			return false;
+		}
 		
 		$ncafilesList = array();
 		
@@ -345,8 +346,6 @@ function romFile($romfilename,$romfile){
 	}
 	if(guessFileType($romfilename) == "XCI" || guessFileType($romfilename) =="XCZ"){
 		$xci = new XCI(realpath($romfilename), $keyList);
-		
-		
 		$xci->getMasterPartitions();
 		$xci->getSecurePartition();
 		$fileidx = -1;
@@ -381,7 +380,6 @@ function romFile($romfilename,$romfile){
 			ob_flush();
 			flush();
 			}
-         
 		}
 		if($size < $chunksize){
 		  echo(fread($xci->fh, $tmpchunksize));
@@ -447,15 +445,11 @@ function renameRom($oldName, $preview = true)
 function XCIUpdatePartition($xcifilename,$tarfilename){
 	
 	global $gameDir, $enableDecryption, $keyList;
-	
 	$xci = new XCI(realpath($xcifilename),$keyList);
-	
 	$xci->getMasterPartitions();
 	$xci->getSecurePartition();
 	$xci->GetUpdatePartition();
-	
 	$tar = new TAR();
-	
 	$tarfinalsize = 0;
 	for($i=0;$i<count($xci->updatepartition->filesList);$i++){
 		$tarentry = $tar->getTarHeaderFooter($xci->updatepartition->filesList[$i]->name,$xci->updatepartition->filesList[$i]->filesize,0);
@@ -467,11 +461,8 @@ function XCIUpdatePartition($xcifilename,$tarfilename){
 	header( 'Content-Disposition: attachment; filename="' . basename( $tarfilename ) . '"'  );
 	header( 'Content-Transfer-Encoding: binary' );
 	header( 'Content-Length: ' . $tarfinalsize  );
-	
-	
 	for($i=0;$i<count($xci->updatepartition->filesList);$i++){
 		$tar->AddFile($xci->updatepartition->filesList[$i]->name,$xci->fh,$xci->updatepartition->filesList[$i]->offset,$xci->updatepartition->filesList[$i]->filesize);
 	}
 	die();
 }
-

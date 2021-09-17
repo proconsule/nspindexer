@@ -262,18 +262,10 @@ class AESXTSN
         while ($data) {
             $out .= sxor($tweak, $this->K1->decrypt_block_ecb(sxor(substr($data, 0, 0x10), $tweak)));
             $t = new BINSTRNUM(strrev($tweak));
-            //$_t = gmp_import(strrev($tweak),1,GMP_NATIVE_ENDIAN);
             $t->mult(2);
-            //$_t = gmp_mul($_t,gmp_pow(2,1));
-
-            //$checkbits = gmp_and($_t,gmp_init("340282366920938463463374607431768211456",10));
-            //if(gmp_strval($checkbits)){
             if (strlen($t->binstr) > 16) {
-                //echo bin2hex($tweak);
-                //$_t = gmp_xor($_t,gmp_init("340282366920938463463374607431768211591",10));
                 $t->binstr = sxor($t->binstr, hex2bin("0100000000000000000000000000000087"));
                 $t->binstr = substr($t->binstr, 1, strlen($t->binstr) - 1);
-
             }
             $tweak = strrev($t->binstr);
             $data = substr($data, 0x10, strlen($data) - 0x10);
@@ -384,8 +376,7 @@ class AESECB
         //assert(0 <= i and i < len(self.rcon_table))
         return self::rcon_table[$i];
     }
-
-
+	
     # Helper functions
 
     function encrypt($data)

@@ -259,7 +259,10 @@ function enableAnalyze() {
                     confirmRename(data.old, data.new);
                 }
             } else {
-                alert(data.msg);
+				$.alert({
+					title: 'Alert!',
+					content: data.msg,
+				});
             }
         }).done(function () {
             // foo
@@ -349,7 +352,6 @@ function createCard(titleId, title) {
 		screen3: title.screenshots[3]
 	});
 		
-	
     var card = tmpl(cardTemplate.html(), {
         titleId: titleId,
 		fileType: title.fileType,
@@ -378,7 +380,6 @@ function createCard(titleId, title) {
     $('#titleList').append(card);
 }
 
-
 function startNetInstall() {
     var listFiles = [];
     var dstAddr = $("#switchIp").val();
@@ -393,33 +394,15 @@ function startNetInstall() {
             if (status.int === 0) {
                 $('#modalNetInstall').modal('hide');
             } else {
-                alert(status.msg);
+				$.alert({
+					title: 'Alert!',
+					content: status.msg,
+				});
             }
         });
     } else {
         alert("Nothing to install");
     }
-}
-
-function ncacontentType(contentType){
-	if(contentType == 0){
-		return "Program";
-	}
-	if(contentType == 1){
-		return "Meta";
-	}
-	if(contentType == 2){
-		return "Control";
-	}
-	if(contentType == 3){
-		return "Manual";
-	}
-	if(contentType == 4){
-		return "Data";
-	}
-	if(contentType == 5){
-		return "PublicData";
-	}
 }
 
 function showAnalyzeModal(data){
@@ -500,12 +483,9 @@ function showAnalyzeModal(data){
 			
 	});
 			
-	
-	
 	var ncaanalyzeContentesTemplate = $("#ncaanalyzeContentesTemplate").html();
 	var contentTemplate = $("#romfileContentsTemplate").html();
 	var contentItemTemplate = $("#romfileContentsItemTemplate").html();
-	
 	
 	var psf0filelisttmpt = [];
 	var romfsfilelisttmpt = [];
@@ -547,9 +527,7 @@ function showAnalyzeModal(data){
 			});
 		}	
 	}
-	
-	
-	
+
 	var romtmpl = tmpl(contentTemplate, {
 		pfs0fileslist: psf0filelisttmpt,
 		romfsfileslist: romfsfilelisttmpt,
@@ -563,7 +541,6 @@ function showAnalyzeModal(data){
 			ncacontents: romtmpl
 	});		
 			
-		
 	$("#ncaanalyzeModalBody").append(ncaheadertmpl);
 	$("#ncaanalyzeModalBody").append(ncaanalyzeContentestmpl);
 			
@@ -578,8 +555,6 @@ function showAnalyzeModal(data){
 		$(this).children().toggleClass("bi-chevron-up bi-chevron-down");
 	});
 			
-			
-			
 	$(".list-group-tree").on('click', "[data-toggle=collapse]", function(){
 		$(this).toggleClass('in')
 		$(this).find("i").toggleClass("bi-folder2 bi-folder2-open")
@@ -588,6 +563,7 @@ function showAnalyzeModal(data){
 		$(this).next(".list-group.collapse").collapse('toggle');
 		return false;
 	})
+	
 	$('.btnRomDownloadContents').on('click', function () {
 		var path = $(this).data('path');
 		var ncaname = $(this).data('nca-name');
@@ -692,6 +668,9 @@ $("#modalRomContents").on("hidden.bs.modal", function () {
 
 
 function modalRomInfo(path,romData){
+	
+	var ncacontentType = ["Program","Meta","Control","Manual","Data","PublicData"];
+	
 	$("#modalRomInfoBody").empty();
     var contentTemplate = $("#romInfoTemplate").html();
 	var contentDlcTemplate = $("#romInfoDlcTemplate").html();
@@ -714,7 +693,7 @@ function modalRomInfo(path,romData){
 				sigcheckcolor: (romData.filesList[i].sigcheck == false) ? "bg-warning" : "bg-success",
 				sigcheck: (romData.filesList[i].sigcheck == false) ? "Sig Warning" : "Sig OK",
 				fileSize: bytesToHuman(romData.filesList[i].filesize),
-				contentType: ncacontentType(romData.filesList[i].contentType),
+				contentType: ncacontentType[romData.filesList[i].contentType],
 				isnca: (romData.filesList[i].name.endsWith(".ncz") == false) ? "" : "disabled",
 				path: path
 			});
@@ -804,7 +783,10 @@ function modalRomInfo(path,romData){
 				modalRomContents(data);
 				$('#modalRomContents').modal('show');	
 			}else{
-				alert(data.msg);
+				$.alert({
+					title: 'Alert!',
+					content: data.msg,
+				});
 			}
 			$(me).html("<i class=\"bi-file-code\"></i>");
 			
@@ -827,7 +809,10 @@ function modalRomInfo(path,romData){
 			if (data.int >= 0) {
 				showAnalyzeModal(data);
 			}else{
-				alert(data.msg);	
+				$.alert({
+					title: 'Alert!',
+					content: data.msg,
+				});	
 			}
 			$(me).html("<i class=\"bi-file-code\"></i>");
 		});
@@ -850,8 +835,6 @@ function modalRomInfo(path,romData){
 		$("#rominfoIcon").attr("src","data:image/jpeg;base64,"+romData.langs[$( this ).val()].gameIcon);
 	});
 	}
-	
-	
 }
 
 

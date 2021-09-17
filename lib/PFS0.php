@@ -33,9 +33,6 @@ class PFS0
 		$this->stringTableOffset = 0x10 + 0x18 * $this->numFiles;
         $this->fileBodyOffset = $this->stringTableOffset + $this->stringTableSize;
 		$this->data = fread($this->fh,$this->fileBodyOffset);
-		
-		
-		
         $this->stringTableOffset = 0x10 + 0x18 * $this->numFiles;
         $this->fileBodyOffset = $this->stringTableOffset + $this->stringTableSize;
 		$this->filesList = [];
@@ -57,7 +54,6 @@ class PFS0
             $file->size = $dataSize;
             $file->offset = $dataOffset;
 			$this->filesList[] = $file;
-			
         }
     }
 	
@@ -106,7 +102,6 @@ class PFS0Encrypted
 		$this->pfs0Offset = $pfs0Offset;
 		$this->dataSize = $pfs0Size;
 		$this->isexefs = false;
-		
     }
 	
 #offset must be a multiple of 0x10
@@ -225,6 +220,5 @@ class CNMT
         $this->mediaType = substr($data, 0x0c, 0x1);
         $this->otherId = bin2hex(strrev(substr($data, 0x20, 0x08)));
         $this->reqsysversion = unpack("V", (substr($data, 0x28, 0x4)))[1];
-
     }
 }

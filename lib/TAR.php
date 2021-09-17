@@ -29,12 +29,10 @@ class TAR
 				flush();
 				ob_flush();
 			}
-			
 		}
 		print($entry[1]);
 		flush();
 		ob_flush();
-		
 	}
 	
 	function getTarHeaderFooter($filename, $filesize, $filemtime)
@@ -50,7 +48,6 @@ class TAR
 			str_repeat("\0", 511 - ($filesize + 511) % 512)
 		);
 	}
-	
 }
 
 

@@ -9,16 +9,12 @@ class NPDM{
 		$this->MainThreadPriority = substr($data, 0x0e, 0x01);
 		$this->MainThreadCoreNumber = substr($data, 0x0f, 0x01);
 		$this->version = unpack("V", substr($data, 0x18, 0x04))[1];
-		
 		$this->AciOffset = unpack("V", substr($data, 0x70, 0x04))[1];
 		$this->AciSize = unpack("V", substr($data, 0x74, 0x04))[1];
 		$this->AcidOffset = unpack("V", substr($data, 0x78, 0x04))[1];
 		$this->AcidSize = unpack("V", substr($data, 0x7c, 0x04))[1];
 		$this->acid = new ACID(substr($data,$this->AcidOffset,$this->AcidSize),$this->AcidSize);
 	}
-	
-	
-	
 }
 
 class ACID{
@@ -28,7 +24,4 @@ class ACID{
 		$this->magic = substr($data, 0x200, 0x04);
 		$this->size = unpack("V", substr($data, 0x204, 0x04))[1];
 	}
-	
-	
-	
 }

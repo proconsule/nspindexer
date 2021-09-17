@@ -45,7 +45,6 @@ class NCZ
 			$tmpsection->cryptoCounter =  fread($this->fh,16);
 			$this->sections[] = $tmpsection;
 		}
-		
 	}
 }
 	

@@ -40,9 +40,7 @@ class XCI
         }
 		fseek($this->fh, 0x10D);
 		$this->romsize = fread($this->fh, 1);;
-		 
-		
-        fseek($this->fh, 0x130);
+		fseek($this->fh, 0x130);
         $this->hfs0offset = unpack("P", fread($this->fh, 8))[1];
         $this->hfs0size = unpack("P", fread($this->fh, 8))[1];
         $this->masterpartition = new HFS0($this->fh, $this->hfs0offset, $this->hfs0size);
@@ -65,7 +63,6 @@ class XCI
 			$this->updatepartition = null;
 			return false;
 		}
-		
 		for ($i = 0; $i < count($this->updatepartition->filenames); $i++) {
 			$file = new stdClass();
 			$file->name = $this->updatepartition->filenames[$i];
@@ -76,16 +73,16 @@ class XCI
 		for ($i = 0; $i < count($this->updatepartition->filesList); $i++) {
 			$parts = explode('.', strtolower($this->updatepartition->filesList[$i]->name));
 			if($parts[count($parts)-2] == "cnmt" && $parts[count($parts)-1] == "nca"){
-					$ncafile = new NCA($this->fh, $this->updatepartition->filesList[$i]->offset,$this->updatepartition->filesList[$i]->filesize, $this->keys);
-					$ncafile->readHeader();
-					if($ncafile->programId == "0100000000000809"){
-						$ncafile->getFs();
-						if($ncafile->pfs0idx >-1){
-							$ncafile->getPFS0Enc($ncafile->pfs0idx);
-							$this->updatepartition->fwversion = (($ncafile->pfs0->cnmt->version  >> 26) & 0x3F) . "." . (($ncafile->pfs0->cnmt->version  >> 20) & 0x3F) . "." . (($ncafile->pfs0->cnmt->version  >> 16) & 0x3F);
-						}
-						break;
+				$ncafile = new NCA($this->fh, $this->updatepartition->filesList[$i]->offset,$this->updatepartition->filesList[$i]->filesize, $this->keys);
+				$ncafile->readHeader();
+				if($ncafile->programId == "0100000000000809"){
+					$ncafile->getFs();
+					if($ncafile->pfs0idx >-1){
+						$ncafile->getPFS0Enc($ncafile->pfs0idx);
+						$this->updatepartition->fwversion = (($ncafile->pfs0->cnmt->version  >> 26) & 0x3F) . "." . (($ncafile->pfs0->cnmt->version  >> 20) & 0x3F) . "." . (($ncafile->pfs0->cnmt->version  >> 16) & 0x3F);
 					}
+					break;
+				}
 			}
 		}
 		return true;
@@ -100,8 +97,6 @@ class XCI
         $this->securepartition = new HFS0($this->fh, $this->masterpartition->rawdataoffset + $this->masterpartition->file_array[$this->secure_index]->fileoffset, $this->masterpartition->file_array[$this->secure_index]->filesize);
         $this->securepartition->getHeaderInfo();
 		$this->securepartition->filesList = [];
-		
-
         for ($i = 0; $i < count($this->securepartition->filenames); $i++) {
 			$file = new stdClass();
 			$file->name = $this->securepartition->filenames[$i];
@@ -122,7 +117,6 @@ class XCI
 					$this->cnmtncafile = $cnmtncafile;
 				}
             }
-
             if ($ncafile->contentType == 2) {
 				$ncafile->getFs();
 				if($ncafile->romfsidx >-1){

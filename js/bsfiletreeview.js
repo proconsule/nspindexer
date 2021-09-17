@@ -9,7 +9,6 @@ class bsfiletreeview{
 		this.ncaname = ncaname;
 		this.type = type;
 		var treedata = this.genTreeData(data);
-		console.log(treedata);
 		var out = "<div class=\"list-group list-group-tree well\">";
 		out = this.dirEle(treedata[0],out);
 		out += "</div>"
