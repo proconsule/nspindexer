@@ -4,6 +4,7 @@ var contentUrl;
 var netInstallEnabled = false;
 var renameEnabled = false;
 var romInfoEnabled = false;
+var zstdSupport = false;
 
 var langFlags = ["🇺🇸","🇬🇧","🇯🇵","🇫🇷","🇩🇪","🇪🇸","🇪🇸","🇮🇹","🇩🇪","🇨🇦","🇵🇹","🇷🇺","🇰🇷","🇨🇳","🇨🇳"];
 
@@ -74,6 +75,7 @@ function loadConfig() {
         netInstallEnabled = data.enableNetInstall;
 		renameEnabled = data.enableRename;
         romInfoEnabled = data.enableRomInfo;
+		zstdSupport = data.zstdSupport;
     });
 }
 
@@ -423,8 +425,13 @@ function showAnalyzeModal(data){
 		haversa2: (data.ret.exefs == false) ? "d-none": "",
 		sigcheckrsa2: (data.ret.sigcheckrsa2 == false) ? "Warning" : "OK",
 		sigcheckrsa2color: (data.ret.sigcheckrsa2 == false) ? "bg-warning" : "bg-success",
+		compressedLabel: (data.ret.useBlockCompression != null) ? "(Uncompressed)" : "",
 		contentSize: data.ret.contentSize ,
+		contentSizeCompressed : (data.ret.useBlockCompression != null) ? data.ret.compressedSize : "",
+		humancontentSizeCompressed: (data.ret.useBlockCompression != null) ? bytesToHuman(data.ret.compressedSize) : "",
 		humancontentSize: bytesToHuman(data.ret.contentSize),
+		isncz: (data.ret.useBlockCompression != null) ? "" : "d-none",
+		useBlockCompression: (data.ret.useBlockCompression != null) ? ((data.ret.useBlockCompression == false)? "False" : "True") : "",
 		sdkVersion: data.ret.sdkArray[3] +"." + data.ret.sdkArray[2] +"." + data.ret.sdkArray[1] +"." + data.ret.sdkArray[0],
 		titleID: data.ret.programId,
 		enctype: (data.ret.rightsId == "00000000000000000000000000000000") ? "Standard crypto":"Titlekey crypto",
@@ -443,8 +450,8 @@ function showAnalyzeModal(data){
 		deckeyArea2: "<strong>Key 2:</strong> " +data.ret.deckeyArea[2].toUpperCase(),
 		deckeyArea3: "<strong>Key 3:</strong> " +data.ret.deckeyArea[3].toUpperCase(),
 				
-		enctitlekey: data.ret.enctitlekey.toUpperCase(),
-		dectitlekey: data.ret.dectitlekey.toUpperCase(),
+		enctitlekey: (data.ret.enctitlekey != null)? data.ret.enctitlekey.toUpperCase() : "",
+		dectitlekey: (data.ret.dectitlekey != null)? data.ret.dectitlekey.toUpperCase(): "",
 				
 		havesection0: (data.ret.sections[0] == false) ? "d-none" :"",
 		havesection1: (data.ret.sections[1] == false) ? "d-none" :"",
@@ -493,6 +500,7 @@ function showAnalyzeModal(data){
 	
 	var havepfs0 = false;
 	var haveromfs = false;
+	var haveromfspatch = false;
 	var havepfs0Logo = false;
 	
 	if(data.ret.ncafilesList.pfs0){
@@ -512,6 +520,9 @@ function showAnalyzeModal(data){
 		haveromfs= true;
 		var treeview = new bsfiletreeview(data.path,data.ncaName,"romfs",data.ret.ncafilesList.romfs);
 		romfsfilelisttmpt = treeview.out;
+	}
+	if(data.ret.ncafilesList.romfspatch){
+		haveromfspatch = true;
 	}
 	
 	if(data.ret.ncafilesList.pfs0Logo){
@@ -534,6 +545,7 @@ function showAnalyzeModal(data){
 		pfs0Logofileslist: psf0Logofilelisttmpt,
 		havepfs0: (havepfs0 == false) ? "d-none": "",
 		haveromfs: (haveromfs == false) ? "d-none": "",
+		haveromfspatch: (haveromfspatch == false) ? "d-none": "",
 		havepfs0Logo: (havepfs0Logo == false) ? "d-none": ""
 	});
 			
@@ -592,6 +604,7 @@ function modalRomContents(ncaData){
 	
 	var havepfs0 = false;
 	var haveromfs = false;
+	var haveromfspatch = false;
 	var havepfs0Logo = false;
 	
 	if(ncaData.ret.pfs0){
@@ -611,6 +624,10 @@ function modalRomContents(ncaData){
 		haveromfs= true;
 		var treeview = new bsfiletreeview(ncaData.path,ncaData.ncaName,"romfs",ncaData.ret.romfs);
 		romfsfilelisttmpt = treeview.out;
+	}
+	
+	if(ncaData.ret.romfspatch){
+		haveromfspatch= true;
 	}
 	
 	if(ncaData.ret.pfs0Logo){
@@ -635,6 +652,7 @@ function modalRomContents(ncaData){
 		pfs0Logofileslist: psf0Logofilelisttmpt,
 		havepfs0: (havepfs0 == false) ? "d-none": "",
 		haveromfs: (haveromfs == false) ? "d-none": "",
+		haveromfspatch: (haveromfspatch == false) ? "d-none": "",
 		havepfs0Logo: (havepfs0Logo == false) ? "d-none": ""
 	});
 	
@@ -685,6 +703,7 @@ function modalRomInfo(path,romData){
 	}
 	
 	var filelisttmpt = [];
+	console.log(zstdSupport);
 	
 	for (var i = 0; i < romData.filesList.length; i++) {
 		if(romData.filesList[i].name.endsWith(".nca") || romData.filesList[i].name.endsWith(".ncz")){
@@ -694,7 +713,7 @@ function modalRomInfo(path,romData){
 				sigcheck: (romData.filesList[i].sigcheck == false) ? "Sig Warning" : "Sig OK",
 				fileSize: bytesToHuman(romData.filesList[i].filesize),
 				contentType: ncacontentType[romData.filesList[i].contentType],
-				isnca: (romData.filesList[i].name.endsWith(".ncz") == false) ? "" : "disabled",
+				isnca: (romData.filesList[i].name.endsWith(".ncz") == true && zstdSupport == false) ? "disabled" : "",
 				path: path
 			});
 		}else{
@@ -814,7 +833,7 @@ function modalRomInfo(path,romData){
 					content: data.msg,
 				});	
 			}
-			$(me).html("<i class=\"bi-file-code\"></i>");
+			$(me).html("<i class=\"bi-calculator\"></i>");
 		});
     });
 	

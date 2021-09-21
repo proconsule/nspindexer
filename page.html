@@ -365,6 +365,10 @@
 	<div class="container">
 			<%=romfsfileslist%>
 	</div>
+	<div class="<%=haveromfspatch%>">ROMFS Patching</div>
+	<div class="container <%=haveromfspatch%>">
+			<div>(Not Supported Yet)</div>
+	</div>
 	<div class="<%=havepfs0Logo%>">Logo Partition (PFS0)</div>
 	<div class="container">
 			<%=pfs0Logofileslist%>
@@ -587,8 +591,16 @@
 				</li>
 			    <li class="list-group-item d-flex justify-content-between align-items-start">
 					<div class="ms-2 me-auto">
-						<div class="fw-bold small">Content Size</div>
+						<div class="fw-bold small <%=isncz%>">Content Size (Compressed)</div>
+						<div class="small text-break <%=isncz%>"><%=contentSizeCompressed%> <span class="badge bg-secondary"><%=humancontentSizeCompressed%></span></div>
+						<div class="fw-bold small">Content Size <%=compressedLabel%></div>
 						<div class="small text-break"><%=contentSize%> <span class="badge bg-secondary"><%=humancontentSize%></span></div>
+					</div>				
+				</li>
+				<li class="list-group-item d-flex justify-content-between align-items-start <%=isncz%>">
+					<div class="ms-2 me-auto">
+						<div class="fw-bold small">Block Compression</div>
+						<div class="small text-break"><%=useBlockCompression%></div>
 					</div>				
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-start">

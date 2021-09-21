@@ -45,6 +45,8 @@ if (isset($_GET["tinfoil"])) {
 }
 
 $enableDecryption = false;
+$zstdSupport = false;
+
 if (!empty($keyFile) && file_exists($keyFile)) {
     $keyList = parse_ini_file($keyFile);
     if (count($keyList) > 0 && !is_32bit()) {
@@ -55,6 +57,10 @@ if (!empty($keyFile) && file_exists($keyFile)) {
 if (!extension_loaded('openssl') && $enableDecryption == true) {
     echo "openssl insn't installed please install it and refresh page";
     die();
+}
+
+if (extension_loaded('zstd') && $enableDecryption == true) {
+	$zstdSupport = true;
 }
 
 if (!function_exists('gmp_add') && $enableDecryption == true) {
@@ -259,13 +265,14 @@ function refreshMetadata()
 
 function outputConfig()
 {
-    global $contentUrl, $version, $enableNetInstall, $switchIp, $enableDecryption, $enableRename;
+    global $contentUrl, $version, $enableNetInstall, $switchIp, $enableDecryption, $enableRename, $zstdSupport;
     return json_encode(array(
         "contentUrl" => $contentUrl,
         "version" => $version,
         "enableNetInstall" => $enableNetInstall,
         "enableRename" => $enableRename,
         "enableRomInfo" => $enableDecryption,
+		"zstdSupport" => $zstdSupport,
         "switchIp" => $switchIp
     ));
 }
@@ -290,7 +297,10 @@ function outputTitles($forceUpdate = false)
 				
             }
             $realeaseDate = DateTime::createFromFormat('Ynd', $titlesJson[strtoupper($titleId)]["releaseDate"]);
-            $latestVersionDate = $realeaseDate->format('Y-m-d');
+            $latestVersionDate = "";
+			if(is_string($realeaseDate)){
+				$latestVersionDate = $realeaseDate->format('Y-m-d');
+			}
             if (array_key_exists(strtoupper(strtoupper($titleId)), $versionsJson)) {
                 $latestVersionDate = $versionsJson[strtoupper($titleId)][$latestVersion];
             }

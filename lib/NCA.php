@@ -17,7 +17,9 @@ class NCA
         $this->fileSize = $fileSize;
         $this->keys = $keys;
 		$this->enctitlekey = $enctitlekey;
+		$this->dectitlekey = "";
 		$this->romfsidx = -1;
+		$this->romfspatchidx = -1;
 		$this->pfs0idx = -1;
 		$this->pfs0Logoidx = -1;
     }
@@ -141,12 +143,22 @@ class NCA
 
         for ($i = 0; $i < 4; $i++) {
             if ($this->fsEntrys[$i]->startOffset == 0) continue;
-            if ($this->fsHeaders[$i]->hashType == 3) {
+            if ($this->fsHeaders[$i]->hashType == 3 && $this->fsHeaders[$i]->encryptionType ==3) {
 				$ivfc = new IVFC($this->fsHeaders[$i]->superBlock);
 				$this->fsHeaders[$i]->ivfc = $ivfc;
-				$this->romfsidx = $i;
 				$this->fsEntrys[$i]->romfsoffset = $this->fsEntrys[$i]->startOffset + $ivfc->sboffset;
+				$this->romfsidx = $i;
             }
+			
+			if ($this->fsHeaders[$i]->hashType == 3 && $this->fsHeaders[$i]->encryptionType ==4) {
+				$ivfc = new IVFC($this->fsHeaders[$i]->superBlock);
+				$this->fsHeaders[$i]->ivfc = $ivfc;
+				$this->fsEntrys[$i]->romfsoffset = $this->fsEntrys[$i]->startOffset + $ivfc->sboffset;
+				$this->romfspatchidx = $i;
+            }
+			
+			
+			
 			
 			/* PFS0 without encryption is Logo Partition */
 			if ($this->fsHeaders[$i]->hashType == 2 && $this->fsHeaders[$i]->encryptionType == 1) {
@@ -167,7 +179,7 @@ class NCA
 				}
 			}
 			
-			if ($this->fsHeaders[$i]->hashType == 2 && $this->fsHeaders[$i]->encryptionType != 1) {
+			if ($this->fsHeaders[$i]->hashType == 2 && $this->fsHeaders[$i]->encryptionType ==3) {
                 $shahash = substr($this->fsHeaders[$i]->superBlock, 0, 0x20);
                 $blocksize = unpack("V", substr($this->fsHeaders[$i]->superBlock, 0x20, 4))[1];
                 $pfs0offset = unpack("P", substr($this->fsHeaders[$i]->superBlock, 0x38, 8))[1];
@@ -180,6 +192,20 @@ class NCA
 				$this->pfs0idx = $i;
 				
             }
+			if ($this->fsHeaders[$i]->hashType == 2 && $this->fsHeaders[$i]->encryptionType ==4) {
+                $shahash = substr($this->fsHeaders[$i]->superBlock, 0, 0x20);
+                $blocksize = unpack("V", substr($this->fsHeaders[$i]->superBlock, 0x20, 4))[1];
+                $pfs0offset = unpack("P", substr($this->fsHeaders[$i]->superBlock, 0x38, 8))[1];
+                $pfs0size = unpack("P", substr($this->fsHeaders[$i]->superBlock, 0x40, 8))[1];
+				
+				$this->fsHeaders[$i]->shahash = $shahash;
+				$this->fsHeaders[$i]->blocksize = $blocksize;
+				$this->fsHeaders[$i]->pfs0offset = $pfs0offset;
+				$this->fsHeaders[$i]->pfs0size = $pfs0size;
+				
+				
+            }
+			
         }
 		return true;
     }
@@ -228,6 +254,10 @@ class NCA
 			$ncafilesList["romfs"] = $this->romfs->Files;
 		}
 		
+		if($this->romfspatchidx>-1){
+			$ncafilesList["romfspatch"] = true;
+		}
+		
 		if($this->pfs0Logoidx>-1){
 			$ncafilesList["pfs0Logo"] = $this->pfs0Logo->filesList;
 		}
@@ -255,6 +285,7 @@ class NCA
 		$retinfo->pfs0idx =  $this->pfs0idx;
 		$retinfo->romfsidx =  $this->romfsidx;
 		$retinfo->pfs0Logoidx =  $this->pfs0Logoidx;
+		$retinfo->romfspatchidx =  $this->romfspatchidx;
 		
 		$retinfo->exefs = false;
 		
@@ -294,6 +325,19 @@ class NCA
 			$tmpsectionobj->ivfc->shahash = strtoupper(bin2hex($tmpsectionobj->ivfc->shahash));
 			$tmpsectionobj->shahash = $tmpsectionobj->ivfc->shahash;
 			$retinfo->sections[$this->romfsidx] = $tmpsectionobj;
+		}
+		
+		if($this->romfspatchidx > -1){
+			$tmpsectionobj = new stdClass;
+			$tmpsectionobj->partitionType = "ROMFS Patch";
+			$tmpsectionobj->offset = $this->fsEntrys[$this->romfspatchidx]->startOffset;
+			$tmpsectionobj->ctr = $this->fsHeaders[$this->romfspatchidx]->ctr;
+			//$tmpsectionobj->shahash = strtoupper(bin2hex($this->fsHeaders[$this->romfsidx]->shahash));
+			$tmpsectionobj->size = $this->fsEntrys[$this->romfspatchidx]->endOffset-$this->fsEntrys[$this->romfspatchidx]->startOffset;
+			$tmpsectionobj->ivfc = $this->fsHeaders[$this->romfspatchidx]->ivfc;
+			$tmpsectionobj->ivfc->shahash = strtoupper(bin2hex($tmpsectionobj->ivfc->shahash));
+			$tmpsectionobj->shahash = $tmpsectionobj->ivfc->shahash;
+			$retinfo->sections[$this->romfspatchidx] = $tmpsectionobj;
 		}
 		
 		if($this->pfs0Logoidx > -1){

@@ -56,6 +56,8 @@ class NSP
         $this->HasTicketFile = false;
         $this->nspHasXmlFile = false;
         $this->ticket = new stdClass();
+		$this->nspHasTicketFile = false;
+		$this->ticket->titleKey = null;
 		$this->nczfile = null;
 
         $this->filesList = [];

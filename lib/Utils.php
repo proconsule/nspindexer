@@ -203,6 +203,55 @@ function ncaFileAnalyze($romfilename,$romfile){
 		$ncafile = new NCA($nsp->fh, $nsp->fileBodyOffset + $nsp->filesList[$fileidx]->fileoffset, $nsp->filesList[$fileidx]->filesize, $keyList,$nsp->ticket->titleKey);
 		return $ncafile->Analyze();	
 	}
+	
+	if(guessFileType($romfilename) == "NSZ"){	
+		$nsp = new NSP(realpath($romfilename), $keyList);
+		$nsp->getHeaderInfo();
+		$fileidx = -1;
+		for($i=0;$i<count($nsp->filesList);$i++){
+			if($nsp->filesList[$i]->name == $romfile){
+				$fileidx = $i;
+				break;
+			}
+		}
+		if($fileidx == -1){
+			$nsp->close();
+			return false;
+		}
+		
+		fseek($nsp->fh, $nsp->fileBodyOffset + $nsp->filesList[$fileidx]->fileoffset);
+		$parts = explode('.', strtolower($romfile));
+		if ($parts[count($parts) - 1] == "ncz") {
+			$nczfile = new NCZ($nsp->fh, $nsp->fileBodyOffset + $nsp->filesList[$fileidx]->fileoffset, $nsp->filesList[$fileidx]->filesize, $keyList,$nsp->ticket->titleKey);
+			return $nczfile->Analyze();	
+		}
+		if ($parts[count($parts) - 1] == "nca") {
+			$ncafile = new NCA($nsp->fh, $nsp->fileBodyOffset + $nsp->filesList[$fileidx]->fileoffset, $nsp->filesList[$fileidx]->filesize, $keyList,$nsp->ticket->titleKey);
+			return $ncafile->Analyze();	
+		}
+	}
+	
+	if(guessFileType($romfilename) == "XCI"){	
+		$xci = new XCI(realpath($romfilename), $keyList);
+		
+		
+		$xci->getMasterPartitions();
+		$xci->getSecurePartition();
+		$fileidx = -1;
+		for($i=0;$i<count($xci->securepartition->filesList);$i++){
+			if($xci->securepartition->filesList[$i]->name == $romfile){
+				$fileidx = $i;
+				break;
+			}
+		}
+		if($fileidx == -1){
+			die();
+		}
+		
+		fseek($xci->fh, $xci->securepartition->rawdataoffset + $xci->securepartition->file_array[$fileidx]->fileoffset);
+		$ncafile = new NCA($xci->fh, $xci->securepartition->rawdataoffset + $xci->securepartition->file_array[$fileidx]->fileoffset, $xci->securepartition->file_array[$fileidx]->filesize, $keyList,null);
+		return $ncafile->Analyze();	
+	}
 }
 	
 
@@ -233,7 +282,6 @@ function romFileListContents($romfilename,$romfile){
 			return false;
 		}
 		
-		$ncafilesList = array();
 		
 		if($ncafile->pfs0idx >-1){
 			$ncafile->getPFS0Enc($ncafile->pfs0idx);
@@ -245,6 +293,9 @@ function romFileListContents($romfilename,$romfile){
 		if($ncafile->romfsidx>-1){
 			$ncafile->getRomfs($ncafile->romfsidx);
 			$ncafilesList["romfs"] = $ncafile->romfs->Files;
+		}
+		if($ncafile->romfspatchidx>-1){
+			$ncafilesList["romfspatch"] = true;
 		}
 		$nsp->close();
 		return $ncafilesList;
@@ -275,7 +326,7 @@ function romFileListContents($romfilename,$romfile){
 			return false;
 		}
 		
-		$ncafilesList = array();
+		$ncafilesList = array("pfs0" => false,"romfs" => false,"romfspatch" => false,"pfs0Logo" => false);
 		
 		if($ncafile->pfs0idx >-1){
 			$ncafile->getPFS0Enc($ncafile->pfs0idx);
@@ -284,6 +335,9 @@ function romFileListContents($romfilename,$romfile){
 		if($ncafile->romfsidx>-1){
 			$ncafile->getRomfs($ncafile->romfsidx);
 			$ncafilesList["romfs"] = $ncafile->romfs->Files;
+		}
+		if($ncafile->romfspatchidx>-1){
+			$ncafilesList["romfspatch"] = true;
 		}
 		if($ncafile->pfs0Logoidx >-1){
 			$ncafilesList["pfs0Logo"] = $ncafile->pfs0Logo->filesList;
