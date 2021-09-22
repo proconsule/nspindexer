@@ -1,0 +1,14 @@
+version: '3.2'
+services:
+    web:
+     build: .
+     image: nsp-indexer
+     container_name: nsp-indexer
+     volumes:
+       - ../:/var/www/html/
+     environment:
+        NSPINDEXER_ABSPATH: /var/www/html/data/games
+        NSPINDEXER_WEBPATH: /data/games
+        NSPINDEXER_EXTPORT: 8000
+     ports:
+       - 8000:80

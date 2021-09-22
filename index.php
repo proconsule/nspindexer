@@ -365,12 +365,19 @@ function outputTinfoil()
 			$file = str_replace("\\\\","/",$file);
 		}
 		
-		
-        if (!is_32bit()) {
-            $output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode("/", array_map('rawurlencode', explode("/", $contentUrl . "/" . $file))), 'size' => getFileSize($gameDir . DIRECTORY_SEPARATOR . $file)];
-        } else {
-            $output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode("/", array_map('rawurlencode', explode("/", $contentUrl . "/" . $file))), 'size' => floatval(getFileSize($gameDir . DIRECTORY_SEPARATOR . $file))];
-        }
+		if(getenv('NSPINDEXER_EXTPORT')){
+			if (!is_32bit()) {
+				$output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME']. ":". getenv('NSPINDEXER_EXTPORT') . implode("/", array_map('rawurlencode', explode("/", $contentUrl . "/" . $file))), 'size' => getFileSize($gameDir . DIRECTORY_SEPARATOR . $file)];
+			} else {
+				$output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . ":". getenv('NSPINDEXER_EXTPORT') . implode("/", array_map('rawurlencode', explode("/", $contentUrl . "/" . $file))), 'size' => floatval(getFileSize($gameDir . DIRECTORY_SEPARATOR . $file))];
+			}
+		}else{	
+			if (!is_32bit()) {
+				$output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode("/", array_map('rawurlencode', explode("/", $contentUrl . "/" . $file))), 'size' => getFileSize($gameDir . DIRECTORY_SEPARATOR . $file)];
+			} else {
+				$output["files"][] = ['url' => $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode("/", array_map('rawurlencode', explode("/", $contentUrl . "/" . $file))), 'size' => floatval(getFileSize($gameDir . DIRECTORY_SEPARATOR . $file))];
+			}
+		}
     }
     $output['success'] = "NSP Indexer";
     return json_encode($output);
@@ -387,8 +394,11 @@ function outputDbi()
 		if (strtolower(PHP_SHLIB_SUFFIX) === 'dll'){
 			$file = str_replace("\\\\","/",$file);
 		}
-		$output .= $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode("/", array_map('rawurlencode', explode("/", $contentUrl . "/" . $file))) . "\n";	
-		
+		if(getenv('NSPINDEXER_EXTPORT')){
+			$output .= $urlSchema . '://' . $_SERVER['SERVER_NAME'] . ":". getenv('NSPINDEXER_EXTPORT') . implode("/", array_map('rawurlencode', explode("/", $contentUrl . "/" . $file))) . "\n";	
+		}else{
+			$output .= $urlSchema . '://' . $_SERVER['SERVER_NAME'] . implode("/", array_map('rawurlencode', explode("/", $contentUrl . "/" . $file))) . "\n";	
+		}
 	}
     return $output;
 }
