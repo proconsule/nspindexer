@@ -96,7 +96,7 @@ class BINSTRNUM
 class AESCTR
 {
 
-    function __construct($key, $ctr, $ssl = false)
+    function __construct($key, $ctr, $ssl = true)
     {
         $this->ssl = $ssl;
         if ($ssl == true) {
@@ -127,19 +127,27 @@ class AESCTR
 
     function encrypt($data, $ctr = null)
     {
-        if ($ctr == null) {
-            $ctr = $this->ctr;
-        }
-        $out = '';
-        $ln = strlen($data);
-        while ($ln) {
-            $xorpad = $this->aes->encrypt_block_ecb($ctr->getCtr());
-            $l = min(0x10, $ln);
-            $out .= sxor(substr($data, 0, $l), substr($xorpad, 0, $l));
-            $data = substr($data, $l, strlen($data) - $l);
-            $ln -= $l;
-            $ctr->add(1);
-        }
+		if ($this->ssl) {
+			if ($ctr == null) {
+				$ctr = $this->ctr;
+			}
+			$out = openssl_encrypt($data,'AES-128-CTR',$this->key,OPENSSL_RAW_DATA,$ctr);
+		}
+		else{
+			if ($ctr == null) {
+				$ctr = $this->ctr;
+			}
+			$out = '';
+			$ln = strlen($data);
+			while ($ln) {
+				$xorpad = $this->aes->encrypt_block_ecb($ctr->getCtr());
+				$l = min(0x10, $ln);
+				$out .= sxor(substr($data, 0, $l), substr($xorpad, 0, $l));
+				$data = substr($data, $l, strlen($data) - $l);
+				$ln -= $l;
+				$ctr->add(1);
+			}
+		}
         return $out;
     }
 }

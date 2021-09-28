@@ -349,6 +349,28 @@ function romFileListContents($romfilename,$romfile){
 	return false;
 }
 
+function decompressNSZ($compressedpath){
+	
+	global $gameDir;
+	global $keyList;
+	
+	$nsz = new NSZDecompress(realpath($compressedpath),$keyList);
+	
+	$finalsize = (filesize(realpath($compressedpath)) - $nsz->nszfile->filesList[0]->fileoffset) + ($nsz->ncadecompressedsize - $nsz->nszfile->filesList[$nsz->nszfile->nczfileidx]->filesize);
+		
+	$parts = explode(DIRECTORY_SEPARATOR, $compressedpath);	
+
+	$filename =  $parts[count($parts)-1];
+	$filename = substr($filename,0,strlen($filename)-1) . "p";
+	
+	header('Content-Type: application/octet-stream');
+	header('Content-Transfer-Encoding: binary');
+	header('Content-Length: '.$finalsize);
+	header('Content-Disposition: attachment;filename="'.$filename.'"');
+	$nsz->HeaderChange();
+	
+}
+
 function romFile($romfilename,$romfile){
 	global $keyList;
 	global $gameDir;

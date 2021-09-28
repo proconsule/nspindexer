@@ -10,6 +10,10 @@ Your filenames need to contain at least a Title ID in the format `[0100XXXXXXXXY
 
 For advanced features a 64 bit OS is needed!
 
+For NSZ decompression you need this https://github.com/proconsule/php-ugly-zstd
+
+If you want to do a quick test you can use docker, enter in docker directory and use docker-compose up
+
 Hope you enjoy it!
 
 # Features
@@ -28,6 +32,7 @@ Hope you enjoy it!
 - Download of individual internal file (NCA TIK XML CERT)
 - Extraction of files inside NCA (PFS0 an RomFS support)
 - Download of Switch FW Update from XCI file (as a single tar file)
+- NSZ on the fly Decompression (see FAQ)
 - File Rename Based on TitleID & Version
 
 # Known Issue
@@ -45,6 +50,10 @@ Hope you enjoy it!
 **Q:** I found a bug, where i can report that?
 
 **A:** Here on github as usual, or on GBAtemp forum here https://gbatemp.net/threads/nsp-indexer.591541/
+
+**Q:** How can i do NSZ Decompression?
+
+**A:** NSZ is a smart format created by nicoboss with the help of some other developers you can find it here https://github.com/nicoboss/nsz it uses zStandard compression. Doing decompression all in PHP is really hard so i created a PHP extension to help in zStandard decompression you can find it here https://github.com/proconsule/php-ugly-zstd . Compile and install into your system and you can deompress NSZ on the fly with NSP Indexer (or you can use docker that will prepare all for you including NSZ decompression)
 
 # third-party libraries used
 - Bootstrap https://getbootstrap.com/

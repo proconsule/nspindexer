@@ -13,8 +13,8 @@ class bsfiletreeview{
 		out = this.dirEle(treedata[0],out);
 		out += "</div>"
 		this.out = out;
+	
 	}
-
 
 	genTreeData(rawdata){
 		let result = [];
@@ -50,11 +50,22 @@ class bsfiletreeview{
 				out = this.dirEle(data.nodes[i],out);
 			}
 			if(data.nodes[i].nodes.length == 0){
-				out+="<a href=\"javascript:void(0);\" class=\"list-group-item\"><i class=\"bi-file-binary-fill text-primary\"></i> " + data.nodes[i].name + "<span class=\"float-end\"> <span class=\"badge\ bg-secondary\">"+ this.bytesToHuman(data.nodes[i].size) +"</span> <button data-nca-name=\""+ this.ncaname +"\" data-path=\""+ this.filepath +"\" title=\"Download\" data-type=\""+ this.type +"\" data-fileidx=\""+ data.nodes[i].fileidx +"\" class=\"btnRomDownloadContents btn btn-sm bg-primary text-light\"><i class=\"bi-file-earmark-binary\"></i></button></span></a>";
+				out+="<a href=\"javascript:void(0);\" class=\"list-group-item\"><i class=\""+ this.getFileIcon(data.nodes[i].name)+ " text-primary\"></i> " + data.nodes[i].name + "<span class=\"float-end\"> <span class=\"badge\ bg-secondary\">"+ this.bytesToHuman(data.nodes[i].size) +"</span> <button data-nca-name=\""+ this.ncaname +"\" data-path=\""+ this.filepath +"\" title=\"Download\" data-type=\""+ this.type +"\" data-fileidx=\""+ data.nodes[i].fileidx +"\" class=\"btnRomDownloadContents btn btn-sm bg-primary text-light\"><i class=\"bi-file-earmark-binary\"></i></button></span></a>";
 			}
 		}
 		out +="</div>";
 		return out;
+	}
+	
+	getFileIcon(myfilename){
+		if(myfilename.endsWith(".mp4")){
+			return "bi-file-earmark-play-fill";
+		}
+		if(myfilename.endsWith(".wav")){
+			return "bi-file-earmark-music-fill";
+		}
+		
+		return "bi-file-binary-fill";
 	}
 
 	bytesToHuman(bytes, si = false, dp = 1) {
@@ -73,5 +84,4 @@ class bsfiletreeview{
 		} while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < units.length - 1);
 		return bytes.toFixed(dp) + ' ' + units[u];
 	}
-
 }

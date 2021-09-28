@@ -62,6 +62,8 @@ class NSP
 
         $this->filesList = [];
         for ($i = 0; $i < $this->numFiles; $i++) {
+			$file = new stdClass();
+			$file->dataFieldoffset = ftell($this->fh);
             $dataOffset = unpack("P", fread($this->fh, 8))[1];
             $dataSize = unpack("P", fread($this->fh, 8))[1];
             $stringOffset = unpack("V", fread($this->fh, 4))[1];
@@ -69,13 +71,14 @@ class NSP
             $storePos = ftell($this->fh);
             fseek($this->fh, $this->stringTableOffset + $stringOffset);
             $filename = "";
+			$filenamestringoffset = ftell($this->fh);
             while (true) {
                 $byte = unpack("C", fread($this->fh, 1))[1];
                 if ($byte == 0x00) break;
                 $filename = $filename . chr($byte);
             }
             $parts = explode('.', strtolower($filename));
-            $file = new stdClass();
+            
             $file->name = $filename;
             $file->filesize = $dataSize;
             $file->fileoffset = $dataOffset;
@@ -90,6 +93,8 @@ class NSP
 					$file->sigcheck = $nczfile->nczfile->sigcheck;
 					$file->contentType = $nczfile->nczfile->contentType;
 					$this->nczfile = $nczfile;
+					$this->nczfileidx = $i;
+					$this->nczfilestringoffset = $filenamestringoffset;
 					
 				}
 				
@@ -188,6 +193,71 @@ class NSP
     }
 }
 
+
+class NSZDecompress{
+	
+	function __construct($path, $keys = null)
+    {
+        $this->nszfile = new NSP($path,$keys);
+		$this->nszfile->getHeaderInfo();
+		$this->ncadecompressedsize = $this->nszfile->nczfile->getOriginalSize();
+        
+    }
+	
+	function HeaderChange(){
+		$sizediff = $this->ncadecompressedsize-$this->nszfile->filesList[$this->nszfile->nczfileidx]->filesize;
+		fseek($this->nszfile->fh,0);
+		$srcHeader = fread($this->nszfile->fh,$this->nszfile->fileBodyOffset/*+$this->nszfile->filesList[0]->fileoffset*/);
+		$dstHeader = $srcHeader;
+		$dstOffset = 0;
+		for($i=0;$i<count($this->nszfile->filesList);$i++){
+			if($i>=$this->nszfile->nczfileidx){
+				$dataOffset = $dstOffset;/*$this->nszfile->filesList[$i]->fileoffset+$sizediff;*/
+				$dataSize = $this->nszfile->filesList[$i]->filesize;
+				if($i== $this->nszfile->nczfileidx){
+					$dataOffset = $dstOffset;
+					$dataSize = $this->ncadecompressedsize;
+				}
+				$dstOffset = $dataSize+$dataOffset;
+				$dstHeader = substr($dstHeader,0,$this->nszfile->filesList[$i]->dataFieldoffset). pack("P",$dataOffset).pack("P",$dataSize).substr($dstHeader,$this->nszfile->filesList[$i]->dataFieldoffset+16);
+			}else{
+				$dataOffset = $dstOffset;/*$this->nszfile->filesList[$i]->fileoffset+$sizediff;*/
+				$dataSize = $this->nszfile->filesList[$i]->filesize;
+				$dstOffset = $dataSize+$dataOffset;
+				$dstHeader = substr($dstHeader,0,$this->nszfile->filesList[$i]->dataFieldoffset). pack("P",$dataOffset).pack("P",$dataSize).substr($dstHeader,$this->nszfile->filesList[$i]->dataFieldoffset+16);
+			}
+		}
+		
+		
+		$dstHeader = substr_replace($dstHeader,"a",$this->nszfile->nczfilestringoffset+strlen($this->nszfile->filesList[$this->nszfile->nczfileidx]->name)-1,).substr($dstHeader,$this->nszfile->nczfilestringoffset+strlen($this->nszfile->filesList[$this->nszfile->nczfileidx]->name));
+		print($dstHeader);
+		for($i=0;$i<count($this->nszfile->filesList);$i++){
+			fseek($this->nszfile->fh,$this->nszfile->fileBodyOffset + $this->nszfile->filesList[$i]->fileoffset);
+			if($i== $this->nszfile->nczfileidx){
+				$this->nszfile->nczfile->Decompress();
+			}else{
+				$n = 0;
+				while($n<$this->nszfile->filesList[$i]->filesize){
+				
+					$chunkSz = 0x10000;
+					if ($this->nszfile->filesList[$i]->filesize - $n > 0x10000){
+						$chunkSz = 0x10000;
+					}
+					else{
+						$chunkSz = $this->nszfile->filesList[$i]->filesize - $n;
+					}
+					print(fread($this->nszfile->fh,$chunkSz));
+					$n += $chunkSz;	
+				}
+			}
+			
+		}
+		
+	}
+	
+}
+
+
 #Debug Example
 #use php NSP.php filepath;
 
@@ -200,3 +270,10 @@ $nsp->getHeaderInfo();
 var_dump($nsp);
 
 */
+/*
+$mykeys = parse_ini_file("/root/.switch/prod.keys");
+$nsz = new NSZDecompress($argv[1],$mykeys);
+$nsz->HeaderChange();
+*/
+
+

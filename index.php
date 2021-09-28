@@ -59,7 +59,7 @@ if (!extension_loaded('openssl') && $enableDecryption == true) {
     die();
 }
 
-if (extension_loaded('zstd') && $enableDecryption == true) {
+if (extension_loaded('Ugly zstd') && $enableDecryption == true) {
 	$zstdSupport = true;
 }
 
@@ -462,6 +462,13 @@ function outputDownloadRomFileContents($romfilename,$romfile,$type,$fileidx)
 		downloadromFileContents($path,$romfile,$type,$fileidx);
 }
 
+function outputdecompressNSZ($compressedpath)
+{
+		global $gameDir;
+	    $path = $gameDir . DIRECTORY_SEPARATOR . $compressedpath;
+		decompressNSZ($path);
+}
+
 if (isset($_GET["config"])) {
     header("Content-Type: application/json");
     echo outputConfig();
@@ -501,6 +508,11 @@ if (isset($_GET["config"])) {
 }elseif (!empty($_GET['ncafileanalyze'])) {
     header("Content-Type: application/json");
     echo outputncafileAnalyze(rawurldecode($_GET['ncafileanalyze']),$_GET['romfile']);
+    die();
+}
+elseif (!empty($_GET['decompressNSZ'])) {
+    header("Content-Type: application/json");
+    echo outputdecompressNSZ(rawurldecode($_GET['decompressNSZ']));
     die();
 }
 require 'page.html';

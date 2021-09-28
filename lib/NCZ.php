@@ -69,6 +69,74 @@ class NCZ
 		}
 	}
 	
+	
+	function getCTROffset($startctr,$offset){
+		$ctr = new CTRCOUNTER_GMP($startctr);
+		$adder = $offset/16;
+		$ctr->add($adder);
+		return $ctr->getCtr();
+	}
+	
+	
+	function Decompress(){
+		fseek($this->fh,$this->offset);
+		print(fread($this->fh,0x4000));
+		$this->ReadNCZSECT();
+		if($this->useBlockCompression){
+			return false;
+		}
+		$start = ftell($this->fh);
+		$uglyzstd = new UglyZstd_decompressor();
+		$sectionbuffer = "";
+		
+		foreach ($this->sections as $section) {
+			$crypto = new AESCTR($section->cryptoKey,$section->cryptoCounter,true);
+			$end = $section->offset+$section->size;
+			$i = $section->offset;
+			
+			$startctr = $section->cryptoCounter;
+			while($i<$end){
+
+				$chunkSz = 0x10000;
+				if ($end - $i > 0x10000){
+					$chunkSz = 0x10000;
+				}
+				else{
+					$chunkSz = $end - $i;
+				}
+				
+				$compressedChunk = fread($this->fh,$chunkSz);
+				
+				$inputChunk  = $uglyzstd->decompress($compressedChunk,strlen($compressedChunk));
+				
+				if(strlen($sectionbuffer)>0){
+					$inputChunk = $sectionbuffer.$inputChunk;
+					$sectionbuffer= "";
+				}
+				
+				if($i+strlen($inputChunk)>$section->size){
+					$outsectionlen = $i+strlen($inputChunk)-$end;
+					$sectionbuffer = substr($inputChunk,strlen($inputChunk)-$outsectionlen);
+					$inputChunk = substr($inputChunk,0,strlen($inputChunk)-$outsectionlen);
+					
+				}
+				
+				if($section->cryptoType == 3 || $section->cryptoType == 4){
+					
+					$ctr = $this->getCTROffset($startctr,$i);
+		
+					$inputChunk = $crypto->encrypt($inputChunk,$ctr);
+				}
+				
+				print($inputChunk);
+				$i+=strlen($inputChunk);
+				//ob_flush();
+				flush();
+			}
+		}
+		
+	}
+	
 	function Analyze(){
 		$this->readHeader();
 		$this->ReadNCZSECT();
@@ -106,4 +174,19 @@ class NCZ
 		
 	}
 }
+
+
+/*
+
+$fh = fopen($argv[1],"r");
+$keys = parse_ini_file("/root/.switch/prod.keys");
+
+$test = new NCZ($fh,0,filesize($argv[1]),$keys,$argv[2]);
+//$test->readHeader();
+
+
+$test->Decompress();
+
+//var_dump($test);
+*/
 	

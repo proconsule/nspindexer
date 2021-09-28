@@ -124,11 +124,21 @@ class NCA
                 $tmpFsHeaderEntry->superBlockHash = bin2hex(substr($tmpFsHeaderEntry->superBlock, 0xc0, 0x20));
             }
 			$tmpFsHeaderEntry->sparseInfo = substr($decHeader, $entrystartOffset + 0x148, 0x30);
-			$tmpFsHeaderEntry->sparseInfooffset = unpack("P", substr($tmpFsHeaderEntry->sparseInfo, 0x0, 8))[1];
-			$tmpFsHeaderEntry->sparseInfosize = unpack("P", substr($tmpFsHeaderEntry->sparseInfo, 0x08, 8))[1];
-            $tmpFsHeaderEntry->section_ctr = substr($decHeader, $entrystartOffset + 0x140, 0x08);
+			$tmpFsHeaderEntry->sparsebucketoffset = unpack("P", substr($tmpFsHeaderEntry->sparseInfo, 0x0, 8))[1];
+			$tmpFsHeaderEntry->sparsebucketsize = unpack("P", substr($tmpFsHeaderEntry->sparseInfo, 0x08, 8))[1];
+			$tmpFsHeaderEntry->sparsePhysicalSize = $tmpFsHeaderEntry->sparsebucketoffset+$tmpFsHeaderEntry->sparsebucketsize;
+			$tmpFsHeaderEntry->sparsebucketMagic = substr($tmpFsHeaderEntry->sparseInfo, 0x10, 4);
+			$tmpFsHeaderEntry->sparsebucketVersion = unpack("V", substr($tmpFsHeaderEntry->sparseInfo, 0x14, 4))[1];
+			$tmpFsHeaderEntry->sparsebucketEntryCount = unpack("V", substr($tmpFsHeaderEntry->sparseInfo, 0x18, 4))[1];
+			
+			
+			
+            $tmpFsHeaderEntry->sparseInfophisical_addr = unpack("P", substr($tmpFsHeaderEntry->sparseInfo, 0x20, 8))[1];
+            $tmpFsHeaderEntry->sparseInfogeneration = unpack("v", substr($tmpFsHeaderEntry->sparseInfo, 0x28, 2))[1] << 16;
+			$tmpFsHeaderEntry->section_ctr = substr($decHeader, $entrystartOffset + 0x140, 0x08);
             if(intval(bin2hex($tmpFsHeaderEntry->sparseInfo))!= 0){
-				return false; //Not implemented needs info not documented
+				//var_dump($tmpFsHeaderEntry);
+				return false; //Not implemented needs time to figure out how it works
 			}
 			$ofs = $this->fsEntrys[$i]->startOffset >> 4;
             $tmpFsHeaderEntry->ctr = "0000000000000000";
@@ -357,7 +367,8 @@ class NCA
 		return $retinfo;
 		
 	}
-	/* DUMP FUNCTION FOR DEBUG!
+	/* DUMP FUNCTION FOR DEBUG! */
+	/*
 	function DumpDec(){
 		fseek($this->fh,$this->fsEntrys[1]->startOffset + $this->fileOffset);
 		$ctr = new CTRCOUNTER_GMP(hex2bin(strtoupper($this->fsHeaders[1]->ctr)));
@@ -383,5 +394,5 @@ $ret = $test->getFs();
 //echo $ret;
 //$test->DumpDec();
 
-var_dump($test);
+//var_dump($test);
 */
