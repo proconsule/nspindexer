@@ -51,10 +51,24 @@ $("#btnMetadata").on('click', function () {
     showSpinner(true);
     $.getJSON("index.php?metadata", function (data) {
         showSpinner(false);
-        $.alert({
-            title: 'Metadata Update',
-            content: data.msg
-        })
+		
+		var toastTemplate = $('#toastTemplete').html();
+		var eleid = Math.floor(Math.random() * 50);
+		var toasttmpl = tmpl(toastTemplate, {
+			toastID: "toast"+eleid,
+			toastHeader: "Metadata Update",
+			toastIconcolor: "text-primary",
+			toastIcon: "bi-cloud-arrow-down", 
+			toastBody: data.msg
+		});
+		$("#toastContainer").append(toasttmpl);
+			var toastele = document.getElementById("toast"+eleid);
+			var myToast = bootstrap.Toast.getOrCreateInstance(toastele) 
+			myToast.show();
+			toastele.addEventListener('hidden.bs.toast', function () {
+			toastele.remove(); 
+		})
+		
     });
 });
 
@@ -272,6 +286,41 @@ function enableAnalyze() {
     });
 }
 
+function enableAdvDownload() {
+	$('.btnAdvDownload').on('click', function () {
+        $(this).blur();
+		var mypath = $(this).data('path');
+		$.confirm({
+			columnClass: 'large',
+			title: 'Download',
+			content: 'NSZ File (compressed) or NSP File (decompressed)',
+			buttons: {
+				cancel: {
+					text: 'Cancel',
+					btnClass: 'btn-danger',
+					action: function (btn) {
+						// nothing
+					}
+				},
+				nszbtn: {
+					text: 'NSZ',
+					btnClass: 'btn-success',
+					action: function (btn) {
+						window.open(contentUrl + '/' + mypath);
+					}
+				},
+				nspbtn:{
+					text: 'NSP',
+					btnClass: 'btn-success',
+					action: function (btn) {
+						window.open("index.php?decompressNSZ="+ encodeURIComponent(mypath));
+					}
+				}
+			}
+		});	
+	});
+}
+
 function enablePopovers() {
     $('#titleList [data-bs-toggle="tooltip"]').each(function () {
         new bootstrap.Tooltip($(this), {
@@ -287,6 +336,7 @@ function init() {
     enableNetInstall();
 	enableRomInfo();
     enableAnalyze();
+	enableAdvDownload();
     enablePopovers();
 }
 
@@ -358,7 +408,6 @@ function createCard(titleId, title) {
         titleId: titleId,
 		fileType: title.fileType,
         thumbUrl: title.thumb,
-		screenshotthumbUrl: title.screenshots[0],
         bannerUrl: title.banner,
         name: title.name,
         intro: title.intro,
@@ -370,6 +419,8 @@ function createCard(titleId, title) {
         latestDate: title.latest_date == null ? "?" : title.latest_date,
         updateClass: updateClass,
         path: encodeURI(title.path),
+		simpleDownload: (title.path.endsWith("nsz") && zstdSupport) ? "d-none" : "",
+		advDownload: (title.path.endsWith("nsz") && zstdSupport) ? "" : "d-none",
         url: contentUrl + '/' + title.path,
         size: bytesToHuman(title.size_real),
         hideUpdates: (countUpdates == 0) ? "d-none" : "",

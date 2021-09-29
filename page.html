@@ -16,6 +16,8 @@
 </head>
 <body>
 
+
+
 <header>
     <nav class="navbar navbar-expand-md navbar-dark bg-dark shadow-sm">
         <div class="container">
@@ -53,6 +55,12 @@
         </div>
     </nav>
 </header>
+
+
+<div aria-live="polite" aria-atomic="true" class="position-relative" style="z-index: 3">
+	<div id="toastContainer" class="toast-container position-absolute top-0 end-0 p-3">
+	</div>
+</div>
 
 <main>
     <div class="py-3 bg-light">
@@ -156,6 +164,7 @@
     </div>
 </div>
 
+
 <script src="js/jquery-3.6.0.min.js"></script>
 <script src="js/bootstrap.bundle.min.js"></script>
 <script src="js/jquery.lazy.min.js"></script>
@@ -226,10 +235,16 @@
                                                 data-bs-toggle="tooltip" data-bs-placement="left">
                                             <i class="bi-file-earmark-check"></i>
                                         </button>
-                                        <a href="<%=url%>" title="Download" class="btn btn-sm bg-primary text-light"
+                                        <a href="<%=url%>" title="Download" class="btn btn-sm bg-primary text-light <%=simpleDownload%>"
                                            data-bs-toggle="tooltip" data-bs-placement="left">
                                             <i class="bi-download"></i>
                                         </a>
+										<button data-path="<%=path%>"
+                                                title="Download"
+                                                class="btnAdvDownload btn btn-sm bg-primary text-light <%=advDownload%>"
+                                                data-bs-toggle="tooltip" data-bs-placement="left">
+                                            <i class="bi-download"></i>
+                                        </button>
                                     </span>
                                 </p>
                             </li>
@@ -714,6 +729,19 @@
 	</div>
 </script>	
 
+<script id="toastTemplete" type="text/x-template">
+	<div id=<%=toastID%> class="toast " role="alert" aria-live="assertive" aria-atomic="true">
+		<div class="toast-header">
+			<span class="me-1 <%=toastIconcolor%>"><i class="bi <%=toastIcon%>"></i> </span>
+			<strong class="me-auto"><%=toastHeader%></strong>
+			<small class="text-muted"></small>
+			<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+		</div>
+		<div class="toast-body">
+			<%=toastBody%>
+		</div>
+	</div>
+</script>
 
 
 </body>
