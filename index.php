@@ -296,9 +296,10 @@ function outputTitles($forceUpdate = false)
 				}
 				
             }
-            $realeaseDate = DateTime::createFromFormat('Ynd', $titlesJson[strtoupper($titleId)]["releaseDate"]);
+			
+            $realeaseDate = DateTime::createFromFormat('Ymd', sprintf("%s", $titlesJson[strtoupper($titleId)]["releaseDate"]));
             $latestVersionDate = "";
-			if(is_string($realeaseDate)){
+			if($realeaseDate instanceof DateTime){
 				$latestVersionDate = $realeaseDate->format('Y-m-d');
 			}
             if (array_key_exists(strtoupper(strtoupper($titleId)), $versionsJson)) {
