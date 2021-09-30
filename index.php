@@ -59,7 +59,7 @@ if (!extension_loaded('openssl') && $enableDecryption == true) {
     die();
 }
 
-if (extension_loaded('Ugly zstd') && $enableDecryption == true) {
+if (extension_loaded('yazstd') && $enableDecryption == true) {
 	$zstdSupport = true;
 }
 

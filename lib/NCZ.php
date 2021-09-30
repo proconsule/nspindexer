@@ -86,7 +86,7 @@ class NCZ
 			return false;
 		}
 		$start = ftell($this->fh);
-		$uglyzstd = new UglyZstd_decompressor();
+		$yazstd = new yazstd_decompress();
 		$sectionbuffer = "";
 		
 		foreach ($this->sections as $section) {
@@ -107,7 +107,7 @@ class NCZ
 				
 				$compressedChunk = fread($this->fh,$chunkSz);
 				
-				$inputChunk  = $uglyzstd->decompress($compressedChunk,strlen($compressedChunk));
+				$inputChunk  = $yazstd->decompress($compressedChunk);
 				
 				if(strlen($sectionbuffer)>0){
 					$inputChunk = $sectionbuffer.$inputChunk;

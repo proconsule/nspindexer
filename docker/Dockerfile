@@ -12,10 +12,5 @@ RUN apt install -y \
        libzstd-dev \
        libzstd1
 
-RUN apt-cache search php-cpp
+RUN git clone --recursive --depth=1 https://github.com/proconsule/php-ext-yazstd && cd php-ext-yazstd && phpize && ./configure && make && make install && cp yazstd.ini /usr/local/etc/php/conf.d
 
-RUN git clone https://github.com/CopernicaMarketingSoftware/PHP-CPP && cd PHP-CPP && make && make install
-
-RUN git clone https://github.com/proconsule/php-ugly-zstd && cd php-ugly-zstd && make && make install
-
-RUN ldconfig

@@ -10,7 +10,7 @@ Your filenames need to contain at least a Title ID in the format `[0100XXXXXXXXY
 
 For advanced features a 64 bit OS is needed!
 
-For NSZ decompression you need this https://github.com/proconsule/php-ugly-zstd
+For NSZ decompression you need this PHP Extension https://github.com/proconsule/php-ext-yazstd
 
 If you want to do a quick test you can use docker, enter in docker directory and use docker-compose up
 
@@ -53,7 +53,7 @@ Hope you enjoy it!
 
 **Q:** How can i do NSZ Decompression?
 
-**A:** NSZ is a smart format created by nicoboss with the help of some other developers you can find it here https://github.com/nicoboss/nsz it uses zStandard compression. Doing decompression all in PHP is really hard so i created a PHP extension to help in zStandard decompression you can find it here https://github.com/proconsule/php-ugly-zstd . Compile and install into your system and you can deompress NSZ on the fly with NSP Indexer (or you can use docker that will prepare all for you including NSZ decompression)
+**A:** NSZ is a smart format created by nicoboss with the help of some other developers you can find it here https://github.com/nicoboss/nsz it uses zStandard compression. Doing decompression all in PHP is really hard so i created a PHP extension to help in zStandard decompression you can find it here https://github.com/proconsule/php-ext-yazstd . Compile and install into your system and you can decompress NSZ on the fly with NSP Indexer (or you can use docker that will prepare all for you including NSZ decompression)
 
 # third-party libraries used
 - Bootstrap https://getbootstrap.com/

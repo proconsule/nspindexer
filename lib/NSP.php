@@ -275,5 +275,3 @@ $mykeys = parse_ini_file("/root/.switch/prod.keys");
 $nsz = new NSZDecompress($argv[1],$mykeys);
 $nsz->HeaderChange();
 */
-
-
