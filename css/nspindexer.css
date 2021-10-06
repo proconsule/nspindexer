@@ -109,3 +109,8 @@ transform: scale(1.02);
 	transform: translateY(-5px);
 }
 
+.progress-bar-notransition {
+    -webkit-transition: none !important;
+    transition: none !important;
+}
+

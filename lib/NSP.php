@@ -193,6 +193,39 @@ class NSP
     }
 }
 
+/*
+
+WIP
+
+class NSZCompress{
+	function __construct($path, $keys = null)
+	{
+		$this->nspfile = new NSP($path,$keys);
+		$this->nspfile->getHeaderInfo();
+		$this->keys = $keys;
+		$this->preprocess = false;
+		
+	}
+	
+	function preprocess($compressionLevel)
+	{
+		$this->programNCAidx = -1;
+		for($i=0;$i<count($this->nspfile->filesList);$i++){
+			$parts = explode('.', strtolower($this->nspfile->filesList[$i]->name));
+			if($parts[count($parts)-1] == "nca"){
+				$tmpnca = new NCA($this->nspfile->fh, $this->nspfile->fileBodyOffset + $this->nspfile->filesList[$i]->fileoffset,  $this->nspfile->filesList[$i]->filesize, $this->keys);
+				$tmpnca->readHeader();
+				if($tmpnca->contentType == 0){
+					$this->programNCAidx = $i;
+				}
+			}
+		}
+	}
+	
+	
+	
+}
+*/
 
 class NSZDecompress{
 	

@@ -34,6 +34,7 @@ Hope you enjoy it!
 - Download of Switch FW Update from XCI file (as a single tar file)
 - NSZ on the fly Decompression (see FAQ)
 - File Rename Based on TitleID & Version
+- File Upload
 
 # Known Issue
 - 32Bit System suffer for >2GB limit in many way (fseek and so on) so some features are not working like Rom Info. for Windows users use php > 7.0 as also on 64bit machines lower versions have 32bit integers.
@@ -61,7 +62,9 @@ Hope you enjoy it!
 - jQuery Lazy http://jquery.eisbehr.de/lazy/
 - jQuery Confirm https://craftpip.github.io/jquery-confirm/
 - LightBox2 https://lokeshdhakar.com/projects/lightbox2/
-- pspseclib https://github.com/phpseclib/phpseclib
+- Flow.js https://github.com/flowjs/flow.js/
+- Flow.js php server https://github.com/flowjs/flow-php-server
+- pspseclib https://github.com/phpseclib/phpseclib (only a small part used)
 - some small parts of code was taken from forums/articles around the web, references are inside the code
 
 # Thanks to

@@ -139,6 +139,8 @@ class XCI
 		$infoobj->romsize = self::$romsizestrings[ord($this->romsize)];
         $infoobj->filesList = $this->securepartition->filesList;
 		$infoobj->headsigcheck = $this->headersig;
+		$infoobj->compressedsize = getFileSize($this->path);
+		$infoobj->originalsize = getFileSize($this->path);
 		if($this->updatepartition != null){
 			$infoobj->fwupdateversion = $this->updatepartition->fwversion;
 		}else{

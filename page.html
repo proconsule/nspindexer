@@ -32,13 +32,19 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse justify-content-end mt-2 mt-md-0" id="navbarContent">
-                <button class="mx-0 mx-md-1 my-2 my-md-0 btn bg-secondary text-light" id="btnRefresh"
+				<button class="mx-0 mx-md-2 my-2 my-md-0 btn bg-secondary text-light" id="btnfileUpload"
+                        title="File Upload"
+                        data-bs-toggle="tooltip" data-bs-placement="left">
+                    <i class="bi-cloud-upload-fill"></i>
+                    <span class="d-inline-block d-md-none">File Upload</span>
+                </button>
+                <button class="mx-0 mx-md-2 my-2 my-md-0 btn bg-secondary text-light" id="btnRefresh"
                         title="Refresh List"
                         data-bs-toggle="tooltip" data-bs-placement="left">
                     <i class="bi-arrow-repeat"></i>
                     <span class="d-inline-block d-md-none">Refresh List</span>
                 </button>
-                <button class="mx-0 mx-md-3 my-2 my-md-0 btn bg-secondary text-light" id="btnMetadata"
+                <button class="mx-0 mx-md-2 my-2 my-md-0 btn bg-secondary text-light" id="btnMetadata"
                         title="Update Metadata"
                         data-bs-toggle="tooltip" data-bs-placement="left">
                     <i class="bi-cloud-download"></i>
@@ -86,6 +92,43 @@
     </div>
 </footer>
 
+<div class="modal fade" id="modalFileUpload" tabindex="-1" aria-labelledby="modalFileUploadLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div id="modalFileUploadContent" class="modal-content">
+            <div class="modal-header bg-dark">
+                <h5 class="modal-title text-white" id="modalFileUploadLabel">File Upload</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modalFileUploadBody">
+					<div class="container">
+						<div class="row">
+							<div class="col-md">
+								<button id="modalFileUploadChoose" class="btn-lg btn-primary">Choose File</button>
+							</div>
+							<div class="col-8">
+								<div class="">
+									<span><span id="modalFileUploadFilename"></span><span id="modalFileUploadSize" class="float-end"></span></span>
+								</div>
+								<div class="progress inline-block" style="height: 30px;">
+									<div id="modalFileUploadBar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+								</div>
+								<span class="small"><span id="modalFileUploadSpeed" class="float-start small"></span><span id="modalFileUploadETA" class="float-end small"></span></span>
+								<div class="position-relative m-4">
+								<div class="btn-group float-end">
+									<button id="modalFileUploadPause" type="button" class="btn btn-primary btn-sm" disabled><span class="bi bi-pause-circle-fill"></span><span> Pause</span></button>
+									<button id="modalFileUploadAbort" type="button" class="btn btn-danger btn-sm" disabled><i class="bi bi-x-circle-fill"></i> Abort</button>
+								</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="modalRomInfo" tabindex="-1" aria-labelledby="modalRomInfoLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -170,6 +213,7 @@
 <script src="js/jquery.lazy.min.js"></script>
 <script src="js/jquery-confirm.min.js"></script>
 <script src="js/lightbox.min.js"></script>
+<script src="js/flow.min.js"></script>
 
 <script src="js/bsfiletreeview.js?random=<?= uniqid() ?>"></script>
 <script src="js/nspindexer.js?random=<?= uniqid() ?>"></script>

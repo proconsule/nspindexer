@@ -5,6 +5,7 @@ var netInstallEnabled = false;
 var renameEnabled = false;
 var romInfoEnabled = false;
 var zstdSupport = false;
+var fileupload = false;
 
 var langFlags = ["🇺🇸","🇬🇧","🇯🇵","🇫🇷","🇩🇪","🇪🇸","🇪🇸","🇮🇹","🇩🇪","🇨🇦","🇵🇹","🇷🇺","🇰🇷","🇨🇳","🇨🇳"];
 
@@ -38,6 +39,11 @@ $("#keyword").on('keyup', function () {
     } else if (keyword.length == 0) {
         createRows(titles);
     }
+});
+
+$("#btnfileUpload").on('click', function () {
+    $(this).blur();
+    $('#modalFileUpload').modal('show');
 });
 
 $("#btnRefresh").on('click', function () {
@@ -90,8 +96,74 @@ function loadConfig() {
 		renameEnabled = data.enableRename;
         romInfoEnabled = data.enableRomInfo;
 		zstdSupport = data.zstdSupport;
+		fileupload = data.fileupload;
+		if(!fileupload){
+			$("#btnfileUpload").prop('disabled', true);
+		}
+		if(data.showWarnings){
+			showWarningToasts();
+		}
+		
     });
 }
+
+function showWarningToasts(){
+	if(!romInfoEnabled){
+		var toastTemplate = $('#toastTemplete').html();
+			var eleid = Math.floor(Math.random() * 50);
+			var toasttmpl = tmpl(toastTemplate, {
+				toastID: "toast"+eleid,
+				toastHeader: "Warning",
+				toastIconcolor: "text-warning",
+				toastIcon: "bi-exclamation-triangle-fill", 
+				toastBody: "Rom Info disabled, no prod.keys supplied?"
+			});
+			$("#toastContainer").append(toasttmpl);
+				var toastele = document.getElementById("toast"+eleid);
+				var myToast = bootstrap.Toast.getOrCreateInstance(toastele) 
+				myToast.show();
+				toastele.addEventListener('hidden.bs.toast', function () {
+				toastele.remove(); 
+			})
+	}
+	if(!fileupload){
+		var toastTemplate = $('#toastTemplete').html();
+			var eleid = Math.floor(Math.random() * 50);
+			var toasttmpl = tmpl(toastTemplate, {
+				toastID: "toast"+eleid,
+				toastHeader: "Warning",
+				toastIconcolor: "text-warning",
+				toastIcon: "bi-exclamation-triangle-fill", 
+				toastBody: "File Upload Disabled, missing write permission on game directory"
+			});
+			$("#toastContainer").append(toasttmpl);
+				var toastele = document.getElementById("toast"+eleid);
+				var myToast = bootstrap.Toast.getOrCreateInstance(toastele) 
+				myToast.show();
+				toastele.addEventListener('hidden.bs.toast', function () {
+				toastele.remove(); 
+			})
+	}
+	if(!zstdSupport){
+		var toastTemplate = $('#toastTemplete').html();
+			var eleid = Math.floor(Math.random() * 50);
+			var toasttmpl = tmpl(toastTemplate, {
+				toastID: "toast"+eleid,
+				toastHeader: "Warning",
+				toastIconcolor: "text-warning",
+				toastIcon: "bi-exclamation-triangle-fill", 
+				toastBody: "NSZ Decompression disabled, php-ext-yastd extension not loaded"
+			});
+			$("#toastContainer").append(toasttmpl);
+				var toastele = document.getElementById("toast"+eleid);
+				var myToast = bootstrap.Toast.getOrCreateInstance(toastele) 
+				myToast.show();
+				toastele.addEventListener('hidden.bs.toast', function () {
+				toastele.remove(); 
+			})
+	}
+}
+
 
 function loadTitles(forceUpdate = false) {
     var force = '';
@@ -817,7 +889,7 @@ function modalRomInfo(path,romData){
 		headsigcheck:  (romData.fileType != "XCI")? "": (romData.headsigcheck == false) ? "Warning" : "OK",
 		xciromsize: (romData.fileType != "XCI") ? "" : romData.romsize,
 		compressedsize: (romData.fileType != "NSZ") ? "" : bytesToHuman(romData.compressedsize),
-		compressedratio: (romData.originalsize/romData.compressedsize).toFixed(0) + ":1 ("+ ((1-(romData.compressedsize/romData.originalsize))*100).toFixed(1) +"%)",
+		compressedratio: (romData.originalsize/romData.compressedsize).toFixed(1) + ":1 ("+ ((1-(romData.compressedsize/romData.originalsize))*100).toFixed(1) +"%)",
 		originalsize: (romData.fileType != "NSZ") ? "" : bytesToHuman(romData.originalsize),
 		path: path,
 		langcombo: langcombotmpl,
@@ -961,6 +1033,79 @@ function modalNetInstall(titleId) {
     $('#modalNetInstall').modal('show');
 
 }
+
+
+/* flow.js */
+var flowobj = new Flow({
+	target:'fileupload.php',
+	speedSmoothingFactor: 0.02
+});
+
+flowobj.on('fileSuccess', function(file,message){
+	flowobj.removeFile(file);
+	$("#modalFileUploadPause").prop('disabled', true);
+	$("#modalFileUploadAbort").prop('disabled', true);
+	$('#modalFileUploadBar').attr('class', 'progress-bar progress-bar-notransition bg-success');
+});
+
+flowobj.on('fileError', function(file, message){
+	flowobj.removeFile(file);
+	$("#modalFileUploadPause").prop('disabled', true);
+	$("#modalFileUploadAbort").prop('disabled', true);
+	$('#modalFileUploadBar').attr('class', 'progress-bar progress-bar-notransition bg-danger');
+});
+
+flowobj.on('fileProgress', function(file){
+	$('#modalFileUploadSpeed').html(bytesToHuman(file.averageSpeed) + '/s ');
+	$('#modalFileUploadETA').html(file.timeRemaining() + "s");
+	$('#modalFileUploadBar').css({width:Math.floor(flowobj.progress()*100) + '%'}).attr('aria-valuenow', Math.floor(flowobj.progress()*100)).html(Math.floor(flowobj.progress()*100) + '%');
+});
+
+ flowobj.on('fileAdded', function(file){
+	var myfilename = file.name; 
+	if (myfilename.length > 45) {
+		myfilename = myfilename.substring(0, 45) + "...";
+	}
+	$('#modalFileUploadFilename').html(myfilename);
+	$('#modalFileUploadSize').html(bytesToHuman(file.size));
+	$('#modalFileUploadSpeed').html("");
+	$('#modalFileUploadETA').html("");
+	$('#modalFileUploadBar').css({width: '0%'}).attr('aria-valuenow', 0).html('0%');
+	$('#modalFileUploadBar').attr('class', 'progress-bar progress-bar-notransition bg-primary');
+	$("#modalFileUploadPause").prop('disabled', false);
+	$("#modalFileUploadAbort").prop('disabled', false);
+ });
+ 
+flowobj.on('filesSubmitted', function(file) {
+	flowobj.upload();
+});
+
+flowobj.assignBrowse(document.getElementById('modalFileUploadChoose'),false, false, {accept: '.nsp, .nsz, .xci, .xcz'});
+
+
+$("#modalFileUploadPause").on('click', function () {
+	if(flowobj.isUploading()){
+		flowobj.pause();
+		var $el = $('#modalFileUploadPause');
+		var $el2 = $('#modalFileUploadPause span:last-child');
+		$el.find('span.bi').toggleClass(' bi-pause-circle-fill bi-play-circle-fill');
+		$el2.text(" Resume");
+	}else{
+		flowobj.resume();
+		var $el = $('#modalFileUploadPause');
+		var $el2 = $('#modalFileUploadPause span:last-child');
+		$el.find('span.bi').toggleClass('bi-play-circle-fill bi-pause-circle-fill');
+		$el2.text(" Pause");
+	}
+});
+
+$("#modalFileUploadAbort").on('click', function () {
+	flowobj.cancel();
+	$('#modalFileUploadBar').attr('class', 'progress-bar progress-bar-notransition bg-danger');
+});
+
+
+
 
 // by John Resig, https://johnresig.com/blog/javascript-micro-templating/
 (function () {

@@ -17,11 +17,15 @@ define('REGEX_TITLEID_BASE', '0100[0-9A-F]{8}[02468ACE]000');
 define('REGEX_TITLEID_UPDATE', '0100[0-9A-F]{9}800');
 
 define("CACHE_DIR", './cache');
+define("TMP_UPLOAD_DIR", './cache/tmp_upload');
 if (!file_exists(CACHE_DIR)) {
     if (!@mkdir(CACHE_DIR)) {
         echo "Could not create the cache directory '" . CACHE_DIR . "', please make sure your webserver has write permission to the local directory.";
         die();
     }
+}
+if (!file_exists(TMP_UPLOAD_DIR)) {
+	mkdir(TMP_UPLOAD_DIR);
 }
 
 if (!function_exists('curl_version')) {
@@ -46,6 +50,11 @@ if (isset($_GET["tinfoil"])) {
 
 $enableDecryption = false;
 $zstdSupport = false;
+$fileupload = false;
+
+if(is_writable($gameDir)){
+	$fileupload = true;
+}
 
 if (!empty($keyFile) && file_exists($keyFile)) {
     $keyList = parse_ini_file($keyFile);
@@ -265,7 +274,7 @@ function refreshMetadata()
 
 function outputConfig()
 {
-    global $contentUrl, $version, $enableNetInstall, $switchIp, $enableDecryption, $enableRename, $zstdSupport;
+    global $contentUrl, $version, $enableNetInstall, $switchIp, $enableDecryption, $enableRename, $zstdSupport, $fileupload, $showWarnings;
     return json_encode(array(
         "contentUrl" => $contentUrl,
         "version" => $version,
@@ -273,6 +282,8 @@ function outputConfig()
         "enableRename" => $enableRename,
         "enableRomInfo" => $enableDecryption,
 		"zstdSupport" => $zstdSupport,
+		"fileupload" => $fileupload,
+		"showWarnings" => $showWarnings,
         "switchIp" => $switchIp
     ));
 }
