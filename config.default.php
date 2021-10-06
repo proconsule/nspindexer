@@ -13,6 +13,7 @@ $enableNetInstall = true; /* Enable Net Install feature */
 $enableRename = true; /* Enable Rename feature */
 $switchIp = "192.168.1.50"; /* Switch IP address for Net Install */
 $netInstallSrc = false; /* Set to e.g. '192.168.0.1:80' to override source address for Net Install */
+$showWarnings = true; /* Show configuration warnings on page load */
 
 /* VARS FOR DOCKER USE */
 if(getenv('NSPINDEXER_ABSPATH')){
