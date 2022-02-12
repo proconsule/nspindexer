@@ -110,11 +110,11 @@ function getFileList($path)
 
 function getTitleIdType($titleId)
 {
-    if (preg_match('/' . REGEX_TITLEID_BASE . '/', $titleId) === 1) {
+    if (preg_match('/' . REGEX_TITLEID_BASE . '/i', $titleId) === 1) {
         return 'base';
-    } elseif (preg_match('/' . REGEX_TITLEID_UPDATE . '/', $titleId) === 1) {
+    } elseif (preg_match('/' . REGEX_TITLEID_UPDATE . '/i', $titleId) === 1) {
         return 'update';
-    } elseif (preg_match('/' . REGEX_TITLEID . '/', $titleId) === 1) {
+    } elseif (preg_match('/' . REGEX_TITLEID . '/i', $titleId) === 1) {
         return 'dlc';
     }
     return false;
@@ -146,8 +146,8 @@ function matchTitleIds($files)
     foreach ($files as $key => $file) {
 
         // check if we have a Base TitleId (0100XXXXXXXXY000, with Y being an even number)
-        if (preg_match('/(?<=\[)' . REGEX_TITLEID_BASE . '(?=])/', $file, $titleIdMatches) === 1) {
-            $titleId = $titleIdMatches[0];
+        if (preg_match('/(?<=\[)' . REGEX_TITLEID_BASE . '(?=])/i', $file, $titleIdMatches) === 1) {
+            $titleId = strtoupper($titleIdMatches[0]);
             $titles[$titleId] = array(
                 "path" => $file,
                 "updates" => array(),
@@ -160,18 +160,18 @@ function matchTitleIds($files)
     $unmatched = [];
     // second round, match Updates and DLC to Base TitleIds
     foreach ($files as $key => $file) {
-        if (preg_match('/(?<=\[)' . REGEX_TITLEID . '(?=])/', $file, $titleIdMatches) === 0) {
+        if (preg_match('/(?<=\[)' . REGEX_TITLEID . '(?=])/i', $file, $titleIdMatches) === 0) {
             // file does not have any kind of TitleId, skip further checks
             array_push($unmatched, $file);
             continue;
         }
-        $titleId = $titleIdMatches[0];
+        $titleId = strtoupper($titleIdMatches[0]);
 
         // find Updates (0100XXXXXXXXX800)
-        if (preg_match('/^' . REGEX_TITLEID_UPDATE . '$/', $titleId) === 1) {
-
-            if (preg_match('/(?<=\[v).+?(?=])/', $file, $versionMatches) === 1) {
-                $version = $versionMatches[0];
+        if (preg_match('/^' . REGEX_TITLEID_UPDATE . '$/i', $titleId) === 1) {
+            $titleId = strtoupper($titleId);
+            if (preg_match('/(?<=\[v).+?(?=])/i', $file, $versionMatches) === 1) {
+                $version = strtoupper($versionMatches[0]);
                 $baseTitleId = getBaseTitleId($titleId);
                 // add Update only if the Base TitleId for it exists
 				if(array_key_exists($baseTitleId,$titles)){
