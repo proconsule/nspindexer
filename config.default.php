@@ -9,7 +9,7 @@ ini_set('memory_limit', getenv("PHP_MEMORY_LIMIT")?:'256M'); /* To prevent low m
 
 $gameDir = getenv("NSPINDEXER_GAMES_DIR")?:"/var/www/html/switch/data/games"; /* Absolute Files Path, no trailing slash */
 $contentUrl = getenv("NSPINDEXER_CONTENT_URL")?:"/switch/data/games"; /* Files URL, no trailing slash */
-$allowedExtensions = explode(",", getenv("NSPINDEXER_EXTENSIONS"))?:array('nsp', 'xci', 'nsz', 'xcz');
+$allowedExtensions = explode(",", getenv("NSPINDEXER_EXTENSIONS")?:'nsp,xci,nsz,xcz');
 $enableNetInstall = getenv("NSPINDEXER_ENABLE_NETINSTALL")?:true; /* Enable Net Install feature */
 $enableRename = getenv("NSPINDEXER_ENABLE_RENAME")?:true; /* Enable Rename feature */
 $switchIp = getenv("NSPINDEXER_SWITCH_IP")?:"192.168.1.50"; /* Switch IP address for Net Install */
