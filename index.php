@@ -59,6 +59,14 @@ if (!extension_loaded('openssl') && $enableDecryption == true) {
 
 $version = trim(file_get_contents('./VERSION'));
 
+function logMessage($message)
+{
+    $stdout = fopen('php://stdout', 'w');
+    $now = new DateTime();
+    fwrite($stdout, '[' . $now->format('Y-m-d_H:i:s') . '] ' . $message . "\n");
+    fclose($stdout);
+}
+
 function outputRomInfo($path)
 {
     global $gameDir;
@@ -72,6 +80,7 @@ function outputRomInfo($path)
 function getFileList($path)
 {
     global $allowedExtensions;
+    logMessage("Getting list of all " . implode(',', $allowedExtensions) . " files in " . $path);
     $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST);
     $arrFiles = array();
     foreach ($files as $file) {
@@ -81,6 +90,7 @@ function getFileList($path)
         }
     }
     natcasesort($arrFiles);
+    logMessage("File listing completed, got " . sizeof($arrFiles) . " files.");
     return array_values($arrFiles);
 }
 
@@ -120,6 +130,7 @@ function matchTitleIds($files)
     $titles = [];
     // first round, get all Base TitleIds
     foreach ($files as $key => $file) {
+        logMessage("Matching title IDs for $file");
 
         // check if we have a Base TitleId (0100XXXXXXXXY000, with Y being an even number)
         if (preg_match('/(?<=\[)' . REGEX_TITLEID_BASE . '(?=])/', $file, $titleIdMatches) === 1) {
@@ -177,8 +188,10 @@ function matchTitleIds($files)
 function getMetadata($type, $refresh = false)
 {
     if (!$refresh && file_exists(CACHE_DIR . "/" . $type . ".json")) {
+        logMessage("Loading metadata from cache.");
         $json = file_get_contents(CACHE_DIR . "/" . $type . ".json");
     } else {
+        logMessage("Downloading metadata db from tinfoil.media...");
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "https://tinfoil.media/repo/db/" . $type . ".json");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -193,6 +206,7 @@ function getMetadata($type, $refresh = false)
 
 function refreshMetadata()
 {
+    logMessage("Refreshing metadata...");
     $refreshed = array();
     foreach (array('versions', 'titles') as $type) {
         if (!file_exists(CACHE_DIR . "/" . $type . ".json") || filemtime(CACHE_DIR . "/" . $type . ".json") < (time() - 60 * 5)) {
@@ -208,15 +222,22 @@ function refreshMetadata()
 
 function outputConfig()
 {
-    global $contentUrl, $version, $enableNetInstall, $switchIp, $enableDecryption, $enableRename;
-    return json_encode(array(
+    global $gameDir, $allowedExtensions, $contentUrl, $version, $enableNetInstall, $switchIp, $enableDecryption, $enableRename, $netInstallSrc, $keyFile;
+    $configArr = array(
+        "gameDir" => $gameDir,
+        "allowedExtensions" => $allowedExtensions,
         "contentUrl" => $contentUrl,
         "version" => $version,
         "enableNetInstall" => $enableNetInstall,
         "enableRename" => $enableRename,
         "enableRomInfo" => $enableDecryption,
-        "switchIp" => $switchIp
-    ));
+        "switchIp" => $switchIp,
+        "netInstallSrc" => $netInstallSrc,
+        "keyFile" => $keyFile
+    );
+    logMessage('--- Configuration ---');
+    logMessage(print_r($configArr, true));
+    return json_encode($configArr);
 }
 
 function outputTitles($forceUpdate = false)
@@ -233,10 +254,10 @@ function outputTitles($forceUpdate = false)
             $latestVersion = 0;
             $updateTitleId = substr_replace($titleId, "800", -3);
             if (array_key_exists($updateTitleId, $titlesJson)) {
-				if($titlesJson[$updateTitleId]["version"] != null){
-					$latestVersion = $titlesJson[$updateTitleId]["version"];
-				}
-				
+                if($titlesJson[$updateTitleId]["version"] != null){
+                    $latestVersion = $titlesJson[$updateTitleId]["version"];
+                }
+
             }
             $realeaseDate = DateTime::createFromFormat('Ynd', $titlesJson[$titleId]["releaseDate"]);
             $latestVersionDate = $realeaseDate->format('Y-m-d');
