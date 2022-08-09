@@ -130,7 +130,7 @@ function matchTitleIds($files)
     $titles = [];
     // first round, get all Base TitleIds
     foreach ($files as $key => $file) {
-        logMessage("Matching title IDs for $file");
+        // logMessage("Matching title IDs for $file");
 
         // check if we have a Base TitleId (0100XXXXXXXXY000, with Y being an even number)
         if (preg_match('/(?<=\[)' . REGEX_TITLEID_BASE . '(?=])/', $file, $titleIdMatches) === 1) {
@@ -251,19 +251,37 @@ function outputTitles($forceUpdate = false)
         $titles = matchTitleIds(getFileList($gameDir));
         $output = array();
         foreach ($titles['titles'] as $titleId => $title) {
+            // logMessage('Processing ' . $title["path"])
             $latestVersion = 0;
             $updateTitleId = substr_replace($titleId, "800", -3);
             if (array_key_exists($updateTitleId, $titlesJson)) {
                 if($titlesJson[$updateTitleId]["version"] != null){
                     $latestVersion = $titlesJson[$updateTitleId]["version"];
                 }
+            }
 
+            $releaseDate = DateTime::createFromFormat('Ynd', $titlesJson[$titleId]["releaseDate"]);
+
+            // There are some dumps out there that seem to be missing header data.
+            // This check will stop the indexer crashing out if it runs into one of them
+            // and instead skips the file.
+            if (!is_bool($releaseDate)) {
+                $latestVersionDate = $releaseDate->format('Y-m-d');
+                if (array_key_exists(strtolower($titleId), $versionsJson)) {
+                    $latestVersionDate = $versionsJson[strtolower($titleId)][$latestVersion];
+                }
+            } else {
+                logMessage('[ERROR] Failed to parse release date "' . $titlesJson[$titleId]["releaseDate"] . '" for ' . $title["path"]);
+                continue;
+                // Alternate solution: Set the latest version date to unknown.
+                // Do note that if the game missing header data is the main title,
+                // this will cause broken display.
+                // TODO: Make these files display but highlight them so users know?
+                // if (array_key_exists(strtolower($titleId), $versionsJson)) {
+                //     $latestVersionDate = "unknown";
+                // }
             }
-            $realeaseDate = DateTime::createFromFormat('Ynd', $titlesJson[$titleId]["releaseDate"]);
-            $latestVersionDate = $realeaseDate->format('Y-m-d');
-            if (array_key_exists(strtolower($titleId), $versionsJson)) {
-                $latestVersionDate = $versionsJson[strtolower($titleId)][$latestVersion];
-            }
+
             $game = array(
                 "path" => $title["path"],
                 "fileType" => guessFileType($gameDir . "/" . $title["path"]),
