@@ -52,7 +52,6 @@
             "type": "docker-build",
             "dockerBuild": {
                 "context": ".",
-                "dockerfile": "php-apache.Dockerfile",
                 "tag": "nspindexer"
             },
             "group": {
@@ -64,7 +63,7 @@
             "type": "docker-build",
             "dockerBuild": {
                 "context": ".",
-                "dockerfile": "php-fpm.Dockerfile",
+                "dockerfile": "Dockerfile.fpm",
                 "tag": "nspindexer:fpm"
             },
             "group": {
