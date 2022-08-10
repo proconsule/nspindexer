@@ -28,7 +28,7 @@
         {
             "label": "Lint Dockerfiles",
             "type": "shell",
-            "command": "docker run --rm -it -v ${PWD}:/workspace hadolint/hadolint hadolint /workspace/php-apache.Dockerfile /workspace/php-fpm.Dockerfile",
+            "command": "docker run --rm -it -v ${PWD}:/workspace hadolint/hadolint hadolint /workspace/Dockerfile /workspace/Dockerfile.fpm",
             "group": {
                 "kind": "test",
             },

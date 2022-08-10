@@ -7,10 +7,10 @@ on:  # yamllint disable-line rule:truthy
   # Also run on updates to this repo.
   push:
     paths:
-      - '**/*Dockerfile'
+      - '**/*Dockerfile*'
   pull_request:
     paths:
-      - '**/*Dockerfile'
+      - '**/*Dockerfile*'
 
 jobs:
   hadolint:
