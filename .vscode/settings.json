@@ -1,0 +1,8 @@
+{
+    "triggerTaskOnSave.tasks": {
+        "Lint PHP": ["*.php", "*.html", "*.js", "*.css"],
+        // Or, for a harsher variant:
+        // "Auto-fix PHP": ["*.php", "*.html", "*.js", "*.css"],
+    },
+    "triggerTaskOnSave.showNotifications": true,
+}
