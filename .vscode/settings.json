@@ -1,0 +1,8 @@
+{
+    "triggerTaskOnSave.tasks": {
+        // "ansible-lint": ["*"],
+        "Lint Dockerfiles": ["*Dockerfile*"],
+        "Lint Markdown": ["*.md"]
+    },
+    "triggerTaskOnSave.showNotifications": true
+}
