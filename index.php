@@ -80,7 +80,6 @@ function outputRomInfo($path)
 function getFileList($path)
 {
     global $allowedExtensions;
-    logMessage("Getting list of all " . implode(',', $allowedExtensions) . " files in " . $path);
     $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST);
     $arrFiles = array();
     foreach ($files as $file) {
@@ -90,7 +89,7 @@ function getFileList($path)
         }
     }
     natcasesort($arrFiles);
-    logMessage("File listing completed, got " . sizeof($arrFiles) . " files.");
+    logMessage("Got " . sizeof($arrFiles) . " " . implode(',', $allowedExtensions) . " files in " . $path);
     return array_values($arrFiles);
 }
 
@@ -122,7 +121,7 @@ function dlcIdToBaseId($titleId)
     $dlcBaseId = substr_replace($titleId, "000", -3);
     $offsetBit = hexdec(substr($dlcBaseId, 12, 1));
     $baseTitleBit = strtoupper(dechex($offsetBit - 1));
-    return substr_replace($dlcBaseId, $baseTitleBit, -4, 1);
+    return strtoupper(substr_replace($dlcBaseId, $baseTitleBit, -4, 1));
 }
 
 function matchTitleIds($files)
@@ -133,7 +132,7 @@ function matchTitleIds($files)
         // logMessage("Matching title IDs for $file");
 
         // check if we have a Base TitleId (0100XXXXXXXXY000, with Y being an even number)
-        if (preg_match('/(?<=\[)' . REGEX_TITLEID_BASE . '(?=])/', $file, $titleIdMatches) === 1) {
+        if (preg_match('/(?<=\[)' . REGEX_TITLEID_BASE . '(?=])/', strtoupper($file), $titleIdMatches) === 1) {
             $titleId = $titleIdMatches[0];
             $titles[$titleId] = array(
                 "path" => $file,
@@ -147,7 +146,7 @@ function matchTitleIds($files)
     $unmatched = [];
     // second round, match Updates and DLC to Base TitleIds
     foreach ($files as $key => $file) {
-        if (preg_match('/(?<=\[)' . REGEX_TITLEID . '(?=])/', $file, $titleIdMatches) === 0) {
+        if (preg_match('/(?<=\[)' . REGEX_TITLEID . '(?=])/', strtoupper($file), $titleIdMatches) === 0) {
             // file does not have any kind of TitleId, skip further checks
             array_push($unmatched, $file);
             continue;
@@ -157,7 +156,7 @@ function matchTitleIds($files)
         // find Updates (0100XXXXXXXXX800)
         if (preg_match('/^' . REGEX_TITLEID_UPDATE . '$/', $titleId) === 1) {
 
-            if (preg_match('/(?<=\[v).+?(?=])/', $file, $versionMatches) === 1) {
+            if (preg_match('/(?<=\[v).+?(?=])/', strtoupper($file), $versionMatches) === 1) {
                 $version = $versionMatches[0];
                 $baseTitleId = getBaseTitleId($titleId);
                 // add Update only if the Base TitleId for it exists
@@ -188,10 +187,10 @@ function matchTitleIds($files)
 function getMetadata($type, $refresh = false)
 {
     if (!$refresh && file_exists(CACHE_DIR . "/" . $type . ".json")) {
-        logMessage("Loading metadata from cache.");
+        logMessage("Loading " . $type . " metadata from cache.");
         $json = file_get_contents(CACHE_DIR . "/" . $type . ".json");
     } else {
-        logMessage("Downloading metadata db from tinfoil.media...");
+        logMessage("Downloading " . $type . " metadata db from tinfoil.media...");
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "https://tinfoil.media/repo/db/" . $type . ".json");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -251,7 +250,7 @@ function outputTitles($forceUpdate = false)
         $titles = matchTitleIds(getFileList($gameDir));
         $output = array();
         foreach ($titles['titles'] as $titleId => $title) {
-            // logMessage('Processing ' . $title["path"])
+            // logMessage('Processing ' . $title["path"]);
             $latestVersion = 0;
             $updateTitleId = substr_replace($titleId, "800", -3);
             if (array_key_exists($updateTitleId, $titlesJson)) {
@@ -319,6 +318,7 @@ function outputTitles($forceUpdate = false)
             'titles' => $output,
             'unmatched' => $titles['unmatched']
         ));
+        logMessage("Writing game list to cache.");
         file_put_contents(CACHE_DIR . "/games.json", $json);
     }
     return $json;
