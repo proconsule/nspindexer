@@ -58,7 +58,7 @@ jobs:
           tags: |
             type=raw,value=latest
             type=raw,value=${{ env.DATESTAMP }}
-            type=raw.value=${{ env.NSPINDEXER_VERSION }}
+            type=raw,value=${{ env.NSPINDEXER_VERSION }}
           labels: |
             org.opencontainers.image.title=NSP Indexer ${{ env.NSPINDEXER_VERSION }} (build ${{ env.DATESTAMP }})
             org.opencontainers.image.description=A Dockerised Linux build of NSP Indexer
