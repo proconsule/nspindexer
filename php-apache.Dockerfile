@@ -5,4 +5,4 @@ RUN rm /var/log/apache2/access.log && touch /var/log/apache2/access.log
 
 # This is split into two stages to make optimal use of Docker build caches
 FROM base
-ADD . /var/www/html/
+COPY . /var/www/html/
