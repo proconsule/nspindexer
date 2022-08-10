@@ -121,7 +121,7 @@ function dlcIdToBaseId($titleId)
     $dlcBaseId = substr_replace($titleId, "000", -3);
     $offsetBit = hexdec(substr($dlcBaseId, 12, 1));
     $baseTitleBit = strtoupper(dechex($offsetBit - 1));
-    return strtoupper(substr_replace($dlcBaseId, $baseTitleBit, -4, 1));
+    return substr_replace($dlcBaseId, $baseTitleBit, -4, 1);
 }
 
 function matchTitleIds($files)
@@ -156,7 +156,7 @@ function matchTitleIds($files)
         // find Updates (0100XXXXXXXXX800)
         if (preg_match('/^' . REGEX_TITLEID_UPDATE . '$/', $titleId) === 1) {
 
-            if (preg_match('/(?<=\[v).+?(?=])/', strtoupper($file), $versionMatches) === 1) {
+            if (preg_match('/(?<=\[v).+?(?=])/', $file, $versionMatches) === 1) {
                 $version = $versionMatches[0];
                 $baseTitleId = getBaseTitleId($titleId);
                 // add Update only if the Base TitleId for it exists
