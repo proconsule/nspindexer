@@ -47,5 +47,44 @@
                   ]
             },
        },
+       {
+            "label": "Build Apache image",
+            "type": "docker-build",
+            "dockerBuild": {
+                "context": ".",
+                "dockerfile": "php-apache.Dockerfile",
+                "tag": "nspindexer"
+            },
+            "group": {
+                "kind": "build",
+            }
+        },
+        {
+            "label": "Build FPM image",
+            "type": "docker-build",
+            "dockerBuild": {
+                "context": ".",
+                "dockerfile": "php-fpm.Dockerfile",
+                "tag": "nspindexer:fpm"
+            },
+            "group": {
+                "kind": "build",
+            }
+        },
+        {
+            "label": "Run Apache image",
+            "type": "shell",
+            "dependsOn": "Build Apache image",
+            "command": [
+                "docker run -it",
+                "-e PHP_MEMORY_LIMIT=512M",
+                "-v ${config:switch_games_path}:/var/www/html/switch/data/games",
+                "-p 8080:80",
+                "nspindexer"
+            ],
+           "group": {
+                "kind": "build",
+            }
+        },
     ]
 }

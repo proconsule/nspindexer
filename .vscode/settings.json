@@ -4,5 +4,6 @@
         "Lint Dockerfiles": ["*Dockerfile*"],
         "Lint Markdown": ["*.md"]
     },
-    "triggerTaskOnSave.showNotifications": true
+    "triggerTaskOnSave.showNotifications": true,
+    "switch_games_path": ""
 }
