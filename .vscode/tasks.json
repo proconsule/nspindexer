@@ -6,7 +6,15 @@
        {
             "label": "Lint PHP",
             "type": "shell",
-            "command": "docker run --rm -it -v ${PWD}:/workspace php:8.1.9-alpine /bin/sh -c 'apk add --no-cache php81-pear && pear install PHP_CodeSniffer-3.6.1 && phpcs --standard=PSR12 --report=emacs /workspace'",
+            "command": [
+                "docker run --rm -it",
+                "-v ${workspaceFolder}:/workspace",
+                "php:8.1.9-alpine",
+                "/bin/sh -c",
+                "'apk add --no-cache php81-pear",
+                "&& pear install PHP_CodeSniffer",
+                "&& phpcs --standard=PSR12 --report=emacs /workspace'"
+            ],
             "group": {
                 "kind": "test",
             },
@@ -28,7 +36,16 @@
         {
             "label": "Auto-fix PHP",
             "type": "shell",
-            "command": "docker run --rm -it -v ${PWD}:/workspace php:8.1.9-alpine /bin/sh -c 'apk add --no-cache php81-pear && pear install PHP_CodeSniffer-3.6.1 && phpcbf --standard=PSR12 /workspace'",
+            "command": [
+                "docker run --rm -it",
+                "-v ${workspaceFolder}:/workspace",
+                "php:8.1.9-alpine",
+                "/bin/sh -c",
+                "'apk add --no-cache php81-pear",
+                "&& pear install PHP_CodeSniffer",
+                "&& phpcbf --standard=PSR12 /workspace",
+                "|| phpcs --standard=PSR12 --report=emacs /workspace'"
+            ],
             "group": {
                 "kind": "test",
             },
