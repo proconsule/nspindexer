@@ -5,4 +5,5 @@
         // "Auto-fix PHP": ["*.php", "*.html", "*.js", "*.css"],
     },
     "triggerTaskOnSave.showNotifications": true,
+    "phpcs_standard": "PSR12",
 }
