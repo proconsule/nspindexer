@@ -22,8 +22,6 @@ jobs:
     steps:
       - name: Check out repo
         uses: actions/checkout@v3
-        with:
-          path: "nspindexer"
 
       - name: Install PHP CodeSniffer and requirements
         run: |
@@ -39,9 +37,9 @@ jobs:
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ github.token }}
         run: |
-          cd  $GITHUB_WORKSPACE/nspindexer && \
+          cd  $GITHUB_WORKSPACE && \
           if [ "${{github.event_name}}" == 'pull_request' ]; then
-              phpcs --report=json --standard=PSR12 \
+              phpcs --report=json --standard=PSR12 . \
               | jq -r ' .files | to_entries[] | .key as $path | .value.messages[] as $msg | "\($path):\($msg.line):\($msg.column):`\($msg.source)`<br>\($msg.message)" ' \
               | reviewdog -efm="%f:%l:%c:%m" \
                 -name="phpcs" \
@@ -49,7 +47,7 @@ jobs:
                 -filter-mode="nofilter" \
                 -fail-on-error
           else
-              phpcs --report=checkstyle --standard=PSR12 \
+              phpcs --report=checkstyle --standard=PSR12 . \
               | reviewdog -f="checkstyle" \
                 -name="phpcs" \
                 -reporter="github-check" \
