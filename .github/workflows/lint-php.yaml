@@ -20,18 +20,18 @@ jobs:
     container:
       image: php:8.1.9-alpine
     steps:
-      - name: Check out repo
-        uses: actions/checkout@v3
-
       - name: Install PHP CodeSniffer and requirements
         run: |
-          apk add --no-cache bash php81-pear \
+          apk add --no-cache bash git php81-pear \
           && pear install PHP_CodeSniffer
 
       - name: Install Reviewdog
         uses: reviewdog/action-setup@v1
         with:
           reviewdog_version: latest
+
+      - name: Check out repo
+        uses: actions/checkout@v3
 
       - name: Run PHP CodeSniffer
         env:
