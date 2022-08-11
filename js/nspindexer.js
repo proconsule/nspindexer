@@ -59,18 +59,20 @@ $("#startNetInstall").on('click', function () {
     startNetInstall();
 })
 
-function loadConfig() {
+function loadConfig()
+{
     $.getJSON("index.php?config", function (data) {
         contentUrl = data.contentUrl;
         $('#version').text(data.version);
         $('#switchIp').val(data.switchIp);
         netInstallEnabled = data.enableNetInstall;
-		renameEnabled = data.enableRename;
+        renameEnabled = data.enableRename;
         romInfoEnabled = data.enableRomInfo;
     });
 }
 
-function loadTitles(forceUpdate = false) {
+function loadTitles(forceUpdate = false)
+{
     var force = '';
     if (forceUpdate) {
         force = '&force';
@@ -83,7 +85,8 @@ function loadTitles(forceUpdate = false) {
     });
 }
 
-function confirmRename(oldName, newName) {
+function confirmRename(oldName, newName)
+{
     $.confirm({
         columnClass: 'large',
         title: 'Confirm Rename',
@@ -119,7 +122,8 @@ function confirmRename(oldName, newName) {
     });
 }
 
-function showUnmatched(unmatched) {
+function showUnmatched(unmatched)
+{
     var list = $('#unmatchedList');
     var warning = $('#warningUnmatched');
     list.empty();
@@ -147,7 +151,8 @@ function showUnmatched(unmatched) {
     console.log();
 }
 
-function createRows(data, keyword = "") {
+function createRows(data, keyword = "")
+{
     $('#titleList').empty();
     $.each(data, function (id, title) {
         if (keyword.length > 0 && title.name.toLowerCase().search(keyword) == -1) {
@@ -159,7 +164,8 @@ function createRows(data, keyword = "") {
     init();
 }
 
-function showSpinner(show) {
+function showSpinner(show)
+{
     if (show) {
         $('#loadingSpinner').removeClass('d-none');
         $('#brandLogo').addClass('d-none');
@@ -169,7 +175,8 @@ function showSpinner(show) {
     }
 }
 
-function lazyLoad() {
+function lazyLoad()
+{
     $('.lazy').Lazy({
         visibleOnly: true,
         bind: 'event',
@@ -179,7 +186,8 @@ function lazyLoad() {
     });
 }
 
-function enableListTriggers() {
+function enableListTriggers()
+{
     $('.contentListTrigger').on('click', function (event) {
         event.preventDefault();
         var target = $(this).siblings('.contentList')[0];
@@ -188,7 +196,8 @@ function enableListTriggers() {
     });
 }
 
-function enableNetInstall() {
+function enableNetInstall()
+{
     $('.btnNetInstall').on('click', function () {
         $(this).blur();
         var titleId = $(this).data("title-id");
@@ -196,7 +205,8 @@ function enableNetInstall() {
     });
 }
 
-function enableRomInfo() {
+function enableRomInfo()
+{
     $('.btnRomInfo').on('click', function () {
         var path = $(this).data('path');
         $.getJSON("index.php?rominfo=" + encodeURIComponent(path), function (data) {
@@ -213,7 +223,8 @@ function enableRomInfo() {
 }
 
 
-function enableAnalyze() {
+function enableAnalyze()
+{
     $('.btnAnalyze').on('click', function () {
         $(this).blur();
         $.getJSON("index.php?rename=" + encodeURIComponent($(this).data('path')) + '&preview', function (data) {
@@ -235,7 +246,8 @@ function enableAnalyze() {
     });
 }
 
-function enablePopovers() {
+function enablePopovers()
+{
     $('#titleList [data-bs-toggle="tooltip"]').each(function () {
         new bootstrap.Tooltip($(this), {
             container: $(this).parent()
@@ -243,17 +255,19 @@ function enablePopovers() {
     });
 }
 
-function init() {
+function init()
+{
     lazyLoad();
     enableListTriggers();
     enableNetInstall();
-	enableRomInfo();
+    enableRomInfo();
     enableAnalyze();
     enablePopovers();
 }
 
 // by mpen, https://stackoverflow.com/a/14919494/5218832
-function bytesToHuman(bytes, si = false, dp = 1) {
+function bytesToHuman(bytes, si = false, dp = 1)
+{
     const thresh = si ? 1000 : 1024;
     if (Math.abs(bytes) < thresh) {
         return bytes + ' B';
@@ -262,7 +276,7 @@ function bytesToHuman(bytes, si = false, dp = 1) {
         ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
         : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
     let u = -1;
-    const r = 10 ** dp;
+    const r = 10 *  * dp;
     do {
         bytes /= thresh;
         ++u;
@@ -270,7 +284,8 @@ function bytesToHuman(bytes, si = false, dp = 1) {
     return bytes.toFixed(dp) + ' ' + units[u];
 }
 
-function createCard(titleId, title) {
+function createCard(titleId, title)
+{
     var listUpdates = [];
     var listDlc = []
     var updateTemplate = $('#updateTemplate').html();
@@ -283,8 +298,8 @@ function createCard(titleId, title) {
             url: contentUrl + '/' + update.path,
             path: encodeURI(update.path),
             size: bytesToHuman(update.size_real),
-            enableRename: (renameEnabled) ? "": "d-none",
-            enableRomInfo: (romInfoEnabled) ? "": "d-none"
+            enableRename: (renameEnabled) ? "" : "d-none",
+            enableRomInfo: (romInfoEnabled) ? "" : "d-none"
         });
     });
     var dlcTemplate = $('#dlcTemplate').html();
@@ -295,8 +310,8 @@ function createCard(titleId, title) {
             url: contentUrl + '/' + dlc.path,
             path: encodeURI(dlc.path),
             size: bytesToHuman(dlc.size_real),
-            enableRename: (renameEnabled) ? "": "d-none",
-            enableRomInfo: (romInfoEnabled) ? "": "d-none"
+            enableRename: (renameEnabled) ? "" : "d-none",
+            enableRomInfo: (romInfoEnabled) ? "" : "d-none"
         });
     });
     var updateClass = 'bg-danger';
@@ -308,14 +323,14 @@ function createCard(titleId, title) {
     var cardTemplate = $('#cardTemplate');
     var card = tmpl(cardTemplate.html(), {
         titleId: titleId,
-		fileType: title.fileType,
+        fileType: title.fileType,
         thumbUrl: title.thumb,
         bannerUrl: title.banner,
         name: title.name,
         intro: title.intro,
         enableNetInstall: (netInstallEnabled) ? "" : "d-none",
-		enableRename: (renameEnabled) ? "" : "d-none",
-		enableRomInfo: (romInfoEnabled) ? "": "d-none",
+        enableRename: (renameEnabled) ? "" : "d-none",
+        enableRomInfo: (romInfoEnabled) ? "" : "d-none",
         latestVersion: title.latest_version == null ? "?" : title.latest_version,
         latestDate: title.latest_date == null ? "?" : title.latest_date,
         updateClass: updateClass,
@@ -333,7 +348,8 @@ function createCard(titleId, title) {
 }
 
 
-function startNetInstall() {
+function startNetInstall()
+{
     var listFiles = [];
     var dstAddr = $("#switchIp").val();
     $('.netInstallCheckbox:checked').each(function (i, e) {
@@ -355,35 +371,37 @@ function startNetInstall() {
     }
 }
 
-function modalRomInfo(romData){
-	$("#modalRomInfoBody").empty();
+function modalRomInfo(romData)
+{
+    $("#modalRomInfoBody").empty();
     var contentTemplate = $("#romInfoTemplate").html();
-	var myType = "";
-	if(romData.mediaType == 128){
-		myType = "Base Game";
-	}else if(romData.mediaType == 129){
-		myType = "Update";
-	}else if(romData.mediaType == 130){
-		myType = "DLC";
-	}
-	var romtmpl = tmpl(contentTemplate, {
-		titlename: romData.title,
-		publisher: romData.publisher,
-		titleId: romData.titleId.toUpperCase(),
-		humanVersion: romData.humanVersion,
-		intVersion: romData.version,
-		mediaType: myType + " [" + romData.fileType + "]",
-		sdk: romData.sdk,
-		titleKey: romData.titleKey,
+    var myType = "";
+    if (romData.mediaType == 128) {
+        myType = "Base Game";
+    } else if (romData.mediaType == 129) {
+        myType = "Update";
+    } else if (romData.mediaType == 130) {
+        myType = "DLC";
+    }
+    var romtmpl = tmpl(contentTemplate, {
+        titlename: romData.title,
+        publisher: romData.publisher,
+        titleId: romData.titleId.toUpperCase(),
+        humanVersion: romData.humanVersion,
+        intVersion: romData.version,
+        mediaType: myType + " [" + romData.fileType + "]",
+        sdk: romData.sdk,
+        titleKey: romData.titleKey,
         showThumb: (romData.mediaType == 130) ? "d-none" : "",
-		imgData: "data:image/jpeg;base64,"+romData.gameIcon
-	})
-	$("#modalRomInfoBody").append(romtmpl);
-	$('#modalRomInfo').modal('show');
+        imgData: "data:image/jpeg;base64," + romData.gameIcon
+    })
+    $("#modalRomInfoBody").append(romtmpl);
+    $('#modalRomInfo').modal('show');
 
 }
 
-function modalNetInstall(titleId) {
+function modalNetInstall(titleId)
+{
     $("#startNetInstall").attr('disabled', true);
     $("#listNetInstall").empty();
     var contentTemplate = $('#netInstallContentTemplate').html();
@@ -440,7 +458,8 @@ function modalNetInstall(titleId) {
 // by John Resig, https://johnresig.com/blog/javascript-micro-templating/
 (function () {
     var cache = {};
-    this.tmpl = function tmpl(str, data) {
+    this.tmpl = function tmpl(str, data)
+    {
         // Figure out if we're getting a template, or if we need to
         // load the template - and be sure to cache the result.
         var fn = !/\W/.test(str) ?
@@ -448,7 +467,8 @@ function modalNetInstall(titleId) {
                 tmpl(document.getElementById(str).innerHTML) :
             // Generate a reusable function that will serve as a template
             // generator (and which will be cached).
-            new Function("obj",
+            new Function(
+                "obj",
                 "var p=[],print=function(){p.push.apply(p,arguments);};" +
                 // Introduce the data as local variables using with(){}
                 "with(obj){p.push('" +
@@ -461,7 +481,8 @@ function modalNetInstall(titleId) {
                     .split("\t").join("');")
                     .split("%>").join("p.push('")
                     .split("\r").join("\\'")
-                + "');}return p.join('');");
+                + "');}return p.join('');"
+            );
         // Provide some basic currying to the user
         return data ? fn(data) : fn;
     };

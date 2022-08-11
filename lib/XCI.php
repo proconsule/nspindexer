@@ -65,7 +65,6 @@ class XCI
                 $this->ncafile = $ncafile;
             }
         }
-
     }
 
     function getInfo()
@@ -82,7 +81,6 @@ class XCI
         $infoobj->gameIcon = $this->ncafile->romfs->gameIcon;
         return $infoobj;
     }
-
 }
 
 
@@ -125,11 +123,12 @@ class HFS0
             } else {
                 $tmpfilename = $tmpfilename . chr($tmpchar);
             }
-            if (count($this->filenames) >= $this->numfiles) break;
+            if (count($this->filenames) >= $this->numfiles) {
+                break;
+            }
         }
         return true;
     }
-
 }
 
 

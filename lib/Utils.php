@@ -28,7 +28,9 @@ function guessFileType($path, $internalcheck = false)
                     $isnsz = true;
                 }
             }
-            if ($isnsz) return "NSZ";
+            if ($isnsz) {
+                return "NSZ";
+            }
             return "NSP";
         }
         if (substr($magicdata, 0x100, 4) == "HEAD") {
@@ -80,15 +82,16 @@ function getFileSize32bit($filename)
     if ($data !== false && preg_match('/Content-Length: (\d+)/', $data, $matches)) {
         return $matches[1];
     }
-
 }
 
 function getURLSchema()
 {
     $server_request_scheme = "http";
-    if ((!empty($_SERVER['REQUEST_SCHEME']) && $_SERVER['REQUEST_SCHEME'] == 'https') ||
+    if (
+        (!empty($_SERVER['REQUEST_SCHEME']) && $_SERVER['REQUEST_SCHEME'] == 'https') ||
         (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ||
-        (!empty($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == '443')) {
+        (!empty($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == '443')
+    ) {
         $server_request_scheme = 'https';
     }
     return $server_request_scheme;
@@ -155,7 +158,6 @@ function renameRom($oldName, $preview = true)
             }
             rename($gameDir . '/' . $oldName, $gameDir . '/' . $newName);
         }
-
     } else {
         $error = true;
     }

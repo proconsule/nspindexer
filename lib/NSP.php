@@ -54,7 +54,9 @@ class NSP
             $filename = "";
             while (true) {
                 $byte = unpack("C", fread($this->fh, 1))[1];
-                if ($byte == 0x00) break;
+                if ($byte == 0x00) {
+                    break;
+                }
                 $filename = $filename . chr($byte);
             }
             $parts = explode('.', strtolower($filename));
@@ -64,7 +66,6 @@ class NSP
             $file->offset = $dataOffset;
             $this->filesList[] = $file;
             if ($this->decryption) {
-
                 if ($parts[count($parts) - 1] == "nca") {
                     fseek($this->fh, $this->fileBodyOffset + $dataOffset);
                     $ncafile = new NCA($this->fh, $this->fileBodyOffset + $dataOffset, $dataSize, $this->keys);
@@ -83,7 +84,6 @@ class NSP
                         $this->ncafile = $ncafile;
                     }
                 }
-
             }
             if ($parts[count($parts) - 2] . "." . $parts[count($parts) - 1] == "cnmt.xml") {
                 $this->nspHasXmlFile = true;
@@ -104,7 +104,6 @@ class NSP
             }
 
             fseek($this->fh, $storePos);
-
         }
         return true;
     }
@@ -127,8 +126,6 @@ class NSP
             } else {
                 $infoobj->titleKey = "No TIK File found";
             }
-
-
         } elseif ($this->nspHasXmlFile) {
             $xml = simplexml_load_string($this->xmlFile);
             $infoobj->src = 'xml';
@@ -138,13 +135,11 @@ class NSP
             $infoobj->src = 'tik';
             $infoobj->titleId = $this->ticket->titleId;
             $infoobj->version = 'NOTFOUND';
-
         } else {
             return false;
         }
         return $infoobj;
     }
-
 }
 
 #Debug Example
