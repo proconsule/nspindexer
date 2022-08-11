@@ -36,3 +36,4 @@ jobs:
           level: info
           filter_mode: nofilter
           fail_on_error: true
+          phpcs_flags: --standard=PSR12
