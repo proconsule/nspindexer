@@ -69,7 +69,6 @@ class BINSTRNUM
             $this->multinc($i - 1, $num, 0);
         }
     }
-
 }
 
 
@@ -196,7 +195,6 @@ class AESXTSN
             $sector = $this->sector;
         }
         if (strlen($data) % $this->block_size) {
-
             return false;
         }
         $out = '';
@@ -253,7 +251,6 @@ class AESXTSN
                 //$_t = gmp_xor($_t,gmp_init("340282366920938463463374607431768211591",10));
                 $t->binstr = sxor($t->binstr, hex2bin("0100000000000000000000000000000087"));
                 $t->binstr = substr($t->binstr, 1, strlen($t->binstr) - 1);
-
             }
             $tweak = strrev($t->binstr);
             $data = substr($data, 0x10, strlen($data) - 0x10);
@@ -270,8 +267,6 @@ class AESXTSN
     {
         $this->sector_size = $sector_size;
     }
-
-
 }
 
 

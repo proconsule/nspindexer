@@ -7,7 +7,7 @@ include_once "PFS0.php";
 
 class NCA
 {
-	const NCAHeaderSignature = [ /* Fixed RSA key used to validate NCA signature 0. */
+    const NCAHeaderSignature = [ /* Fixed RSA key used to validate NCA signature 0. */
         0xBF, 0xBE, 0x40, 0x6C, 0xF4, 0xA7, 0x80, 0xE9, 0xF0, 0x7D, 0x0C, 0x99, 0x61, 0x1D, 0x77, 0x2F,
         0x96, 0xBC, 0x4B, 0x9E, 0x58, 0x38, 0x1B, 0x03, 0xAB, 0xB1, 0x75, 0x49, 0x9F, 0x2B, 0x4D, 0x58,
         0x34, 0xB0, 0x05, 0xA3, 0x75, 0x22, 0xBE, 0x1A, 0x3F, 0x03, 0x73, 0xAC, 0x70, 0x68, 0xD1, 0x16,
@@ -23,7 +23,7 @@ class NCA
         0xCC, 0x9A, 0xAE, 0xCA, 0xED, 0x4D, 0x70, 0x30, 0xA8, 0x70, 0x1C, 0x70, 0xFD, 0x13, 0x63, 0x29,
         0x02, 0x79, 0xEA, 0xD2, 0xA7, 0xAF, 0x35, 0x28, 0x32, 0x1C, 0x7B, 0xE6, 0x2F, 0x1A, 0xAA, 0x40,
         0x7E, 0x32, 0x8C, 0x27, 0x42, 0xFE, 0x82, 0x78, 0xEC, 0x0D, 0xEB, 0xE6, 0x83, 0x4B, 0x6D, 0x81,
-        0x04, 0x40, 0x1A, 0x9E, 0x9A, 0x67, 0xF6, 0x72, 0x29, 0xFA, 0x04, 0xF0, 0x9D, 0xE4, 0xF4, 0x03    
+        0x04, 0x40, 0x1A, 0x9E, 0x9A, 0x67, 0xF6, 0x72, 0x29, 0xFA, 0x04, 0xF0, 0x9D, 0xE4, 0xF4, 0x03
     ];
 
     function __construct($fh, $fileOffset, $fileSize, $keys)
@@ -79,7 +79,6 @@ class NCA
             $keyAreakeyidxstring .= "ocean_";
         } elseif ($this->keyAreaEncryptionKeyIndex == 2) {
             $keyAreakeyidxstring .= "system_";
-
         }
         $keyAreakeyidxstring .= sprintf('%02x', $this->crypto_type);
         $this->keyAreakeyidxstring = $keyAreakeyidxstring;
@@ -107,7 +106,9 @@ class NCA
         }
         $this->fsHeaders = array();
         for ($i = 0; $i < 4; $i++) {
-            if ($this->fsEntrys[$i]->startOffset == 0) continue;
+            if ($this->fsEntrys[$i]->startOffset == 0) {
+                continue;
+            }
             $tmpFsHeaderEntry = new stdClass();
             $entrystartOffset = 0x400 + ($i * 0x200);
             $tmpFsHeaderEntry->version = unpack("v", substr($decHeader, $entrystartOffset, 2))[1];
@@ -131,7 +132,9 @@ class NCA
         }
 
         for ($i = 0; $i < 4; $i++) {
-            if ($this->fsEntrys[$i]->startOffset == 0) continue;
+            if ($this->fsEntrys[$i]->startOffset == 0) {
+                continue;
+            }
             if ($this->fsHeaders[$i]->hashType == 3) {
                 $ivfc = new IVFC($this->fsHeaders[$i]->superBlock);
                 $this->fsEntrys[$i]->romfsoffset = $this->fsEntrys[$i]->startOffset + $ivfc->sboffset;
@@ -143,13 +146,13 @@ class NCA
                 $blocksize = unpack("V", substr($this->fsHeaders[$i]->superBlock, 0x20, 4))[1];
                 $pfs0offset = unpack("P", substr($this->fsHeaders[$i]->superBlock, 0x38, 8))[1];
                 $pfs0size = unpack("P", substr($this->fsHeaders[$i]->superBlock, 0x40, 8))[1];
-				$this->fsEntrys[$i]->pfs0offset = $this->fsEntrys[$i]->startOffset + $pfs0offset;
+                $this->fsEntrys[$i]->pfs0offset = $this->fsEntrys[$i]->startOffset + $pfs0offset;
                 fseek($this->fh, $this->fsEntrys[$i]->startOffset + $this->fileOffset);
                 $this->fsEntrys[$i]->encData = fread($this->fh, $this->fsEntrys[$i]->endOffset - $this->fsEntrys[$i]->startOffset);
                 $aesctr = new AESCTR(hex2bin(strtoupper($this->deckeyArea[2])), hex2bin(strtoupper($this->fsHeaders[$i]->ctr)), true);
                 $this->fsEntrys[$i]->decData = $aesctr->decrypt($this->fsEntrys[$i]->encData);
                 $pfs0 = new PFS0($this->fsEntrys[$i]->decData, $pfs0offset, $pfs0size);
-				$pfs0->getHeader();
+                $pfs0->getHeader();
                 $this->pfs0 = $pfs0;
             }
         }

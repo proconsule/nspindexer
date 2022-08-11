@@ -120,7 +120,6 @@ function matchTitleIds($files)
     $titles = [];
     // first round, get all Base TitleIds
     foreach ($files as $key => $file) {
-
         // check if we have a Base TitleId (0100XXXXXXXXY000, with Y being an even number)
         if (preg_match('/(?<=\[)' . REGEX_TITLEID_BASE . '(?=])/', $file, $titleIdMatches) === 1) {
             $titleId = $titleIdMatches[0];
@@ -145,7 +144,6 @@ function matchTitleIds($files)
 
         // find Updates (0100XXXXXXXXX800)
         if (preg_match('/^' . REGEX_TITLEID_UPDATE . '$/', $titleId) === 1) {
-
             if (preg_match('/(?<=\[v).+?(?=])/', $file, $versionMatches) === 1) {
                 $version = $versionMatches[0];
                 $baseTitleId = getBaseTitleId($titleId);
@@ -156,7 +154,6 @@ function matchTitleIds($files)
                     );
                 }
             }
-
         } else {
             $baseTitleId = getBaseTitleId($titleId);
             // add DLC only if the Base TitleId for it exists
@@ -166,7 +163,6 @@ function matchTitleIds($files)
                 );
             }
         }
-
     }
     return array(
         'titles' => $titles,
@@ -233,10 +229,9 @@ function outputTitles($forceUpdate = false)
             $latestVersion = 0;
             $updateTitleId = substr_replace($titleId, "800", -3);
             if (array_key_exists($updateTitleId, $titlesJson)) {
-				if($titlesJson[$updateTitleId]["version"] != null){
-					$latestVersion = $titlesJson[$updateTitleId]["version"];
-				}
-				
+                if ($titlesJson[$updateTitleId]["version"] != null) {
+                    $latestVersion = $titlesJson[$updateTitleId]["version"];
+                }
             }
             $realeaseDate = DateTime::createFromFormat('Ynd', $titlesJson[$titleId]["releaseDate"]);
             $latestVersionDate = $realeaseDate->format('Y-m-d');
