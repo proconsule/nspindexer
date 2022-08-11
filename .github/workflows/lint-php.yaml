@@ -42,14 +42,14 @@ jobs:
               | jq -r ' .files | to_entries[] | .key as $path | .value.messages[] as $msg | "\($path):\($msg.line):\($msg.column):`\($msg.source)`<br>\($msg.message)" ' \
               | reviewdog -efm="%f:%l:%c:%m" \
                 -name="phpcs" \
-                -reporter="github-pr-check" \
+                -reporter="github-pr-review" \
                 -filter-mode="nofilter" \
                 -fail-on-error
           else
               phpcs --report=checkstyle --standard=PSR12 \
               | reviewdog -f="checkstyle" \
                 -name="phpcs" \
-                -reporter="github-pr-review" \
+                -reporter="github-pr-check" \
                 -filter-mode="nofilter" \
                 -fail-on-error
           fi
