@@ -146,9 +146,9 @@
             "type": "shell",
             "dependsOn": "Build Apache image",
             "command": [
-                "docker run -it",
+                "docker run -it --rm",
                 "-e PHP_MEMORY_LIMIT=512M",
-                "-n nspindexer",
+                "--name nspindexer",
                 "-v ${config:switch_games_path}:/var/www/html/switch/data/games",
                 "-p 8080:80",
                 "nspindexer"
