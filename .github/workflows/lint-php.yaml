@@ -15,7 +15,7 @@ on:  # yamllint disable-line rule:truthy
       - '**/Dockerfile.*'
 
 jobs:
-  markdownlint:
+  phpcs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repo
@@ -29,7 +29,7 @@ jobs:
             echo "REVIEWDOG_REPORTER=github-pr-review" >> $GITHUB_ENV
           fi
 
-      - name: Lint Dockerfile
+      - name: Run PHP CodeSniffer
         uses: shirobrak/action-phpcs@v1.5.0
         with:
           reporter: ${{ env.REVIEWDOG_REPORTER }}
