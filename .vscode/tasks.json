@@ -13,7 +13,7 @@
                 "/bin/sh -c",
                 "'apk add --no-cache php81-pear",
                 "&& pear install PHP_CodeSniffer",
-                "&& phpcs --standard=PSR12 --report=emacs /workspace'"
+                "&& phpcs --standard=${config:phpcs_standard} --report=emacs /workspace'"
             ],
             "group": {
                 "kind": "test",
@@ -43,8 +43,8 @@
                 "/bin/sh -c",
                 "'apk add --no-cache php81-pear",
                 "&& pear install PHP_CodeSniffer",
-                "&& phpcbf --standard=PSR12 /workspace",
-                "|| phpcs --standard=PSR12 --report=emacs /workspace'"
+                "&& phpcbf --standard=${config:phpcs_standard} /workspace",
+                "|| phpcs --standard=${config:phpcs_standard} --report=emacs /workspace'"
             ],
             "group": {
                 "kind": "test",
