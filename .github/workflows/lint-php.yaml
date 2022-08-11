@@ -50,7 +50,7 @@ jobs:
               phpcs --report=checkstyle --standard=PSR12 . \
               | reviewdog -f="checkstyle" \
                 -name="phpcs" \
-                -reporter="github-pr-check" \
+                -reporter="github-check" \
                 -filter-mode="nofilter" \
                 -fail-on-error
           fi
