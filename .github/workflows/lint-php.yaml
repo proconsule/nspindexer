@@ -23,9 +23,9 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v3
 
-      - name: Install PHP CodeSniffer
+      - name: Install PHP CodeSniffer and requirements
         run: |
-          apk add --no-cache php81-pear \
+          apk add --no-cache bash php81-pear \
           && pear install PHP_CodeSniffer
 
       - name: Install Reviewdog
