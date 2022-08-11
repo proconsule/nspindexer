@@ -37,7 +37,7 @@ jobs:
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ github.token }}
         run: |
-          if [${github.event_name} == "pull_request"]; then
+          if [${{github.event_name}} == "pull_request"]; then
               phpcs --report=json --standard=PSR12 \
               | jq -r ' .files | to_entries[] | .key as $path | .value.messages[] as $msg | "\($path):\($msg.line):\($msg.column):`\($msg.source)`<br>\($msg.message)" ' \
               | reviewdog -efm="%f:%l:%c:%m" \
