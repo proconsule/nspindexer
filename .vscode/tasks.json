@@ -1,0 +1,161 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+       {
+            "label": "Lint PHP",
+            "type": "shell",
+            "command": [
+                "docker run --rm -it",
+                "-v ${workspaceFolder}:/workspace",
+                "php:8.1.9-alpine",
+                "/bin/sh -c",
+                "'apk add --no-cache php81-pear",
+                "&& pear install PHP_CodeSniffer",
+                "&& phpcs --standard=${config:phpcs_standard} --report=emacs /workspace'"
+            ],
+            "group": {
+                "kind": "test",
+            },
+            "problemMatcher": {
+                "owner": "php",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "pattern": [
+                    {
+                    "regexp": "^/workspace/(.*):(\\d+):(\\d+):\\s+(.*) - (.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                    }
+                ]
+            },
+        },
+        {
+            "label": "Auto-fix PHP",
+            "type": "shell",
+            "command": [
+                "docker run --rm -it",
+                "-v ${workspaceFolder}:/workspace",
+                "php:8.1.9-alpine",
+                "/bin/sh -c",
+                "'apk add --no-cache php81-pear",
+                "&& pear install PHP_CodeSniffer",
+                "&& phpcbf --standard=${config:phpcs_standard} /workspace",
+                "&& phpcs --standard=${config:phpcs_standard} --report=emacs /workspace'"
+            ],
+            "group": {
+                "kind": "test",
+            },
+            "problemMatcher": {
+                "owner": "php",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "pattern": [
+                    {
+                    "regexp": "^/workspace/(.*):(\\d+):(\\d+):\\s+(.*) - (.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                    }
+                ]
+            },
+        },
+        {
+            "label": "Lint Markdown",
+            "type": "shell",
+            "command": [
+                "docker run -it --rm",
+                "-v ${workspaceFolder}:/workdir",
+                "ghcr.io/igorshubovych/markdownlint-cli:latest",
+                "/workdir"
+            ],
+            "problemMatcher": {
+                "owner": "markdown",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "pattern": [
+                    {
+                      "regexp": "^/workdir/(.*):(\\d+):(\\d+)\\s+(MD\\d+.*?)\\s+(.*)$",
+                      "file": 1,
+                      "line": 2,
+                      "column": 3,
+                      "code": 4,
+                      "message": 5
+                    }
+                  ]
+            },
+            "group": {
+                "kind": "test",
+            }
+        },
+        {
+            "label": "Lint Dockerfiles",
+            "type": "shell",
+            "command": [
+                "docker run --rm -it",
+                "-v ${workspaceFolder}:/workspace",
+                "hadolint/hadolint",
+                "hadolint /workspace/Dockerfile /workspace/Dockerfile.fpm"
+            ],
+            "group": {
+                "kind": "test",
+            },
+            "problemMatcher": {
+                "owner": "docker",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "pattern": [
+                    {
+                      "regexp": "^/workspace/(.*):(\\d+)\\s+(DL\\d+)\\s+(.*):\\s+(.*)$",
+                      "file": 1,
+                      "line": 2,
+                      "code": 3,
+                      "severity": 4,
+                      "message": 5
+                    }
+                  ]
+            },
+       },
+       {
+            "label": "Build Apache image",
+            "type": "docker-build",
+            "dockerBuild": {
+                "context": ".",
+                "tag": "nspindexer"
+            },
+            "group": {
+                "kind": "build",
+            }
+        },
+        {
+            "label": "Build FPM image",
+            "type": "docker-build",
+            "dockerBuild": {
+                "context": ".",
+                "dockerfile": "Dockerfile.fpm",
+                "tag": "nspindexer:fpm"
+            },
+            "group": {
+                "kind": "build",
+            }
+        },
+        {
+            "label": "Run Apache image",
+            "type": "shell",
+            "dependsOn": "Build Apache image",
+            "command": [
+                "docker run -it --rm",
+                "-e PHP_MEMORY_LIMIT=512M",
+                "--name nspindexer",
+                "-v ${config:switch_games_path}:/var/www/html/switch/data/games",
+                "-p 8080:80",
+                "nspindexer"
+            ],
+           "group": {
+                "kind": "build",
+            }
+        },
+    ]
+}

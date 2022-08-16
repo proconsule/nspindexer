@@ -1,0 +1,12 @@
+{
+    "triggerTaskOnSave.tasks": {
+        "Lint Dockerfiles": ["*Dockerfile*"],
+        "Lint Markdown": ["*.md"],
+        "Lint PHP": ["*.php", "*.html", "*.js", "*.css"],
+        // Or, for a harsher variant:
+        // "Auto-fix PHP": ["*.php", "*.html", "*.js", "*.css"],
+    },
+    "triggerTaskOnSave.showNotifications": true,
+    "switch_games_path": "",
+    "phpcs_standard": "PSR12"
+}

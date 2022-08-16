@@ -1,0 +1,56 @@
+---
+name: Lint codebase
+
+on:  # yamllint disable-line rule:truthy
+  # Allow manual runs.
+  workflow_dispatch:
+  # Also run on updates to this repo.
+  push:
+    paths-ignore:
+      - '**/*.md'
+      - '**/Dockerfile.*'
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
+      - '**/Dockerfile.*'
+
+jobs:
+  phpcs:
+    runs-on: ubuntu-latest
+    container:
+      image: php:8.1.9-alpine
+    steps:
+      - name: Install PHP CodeSniffer and requirements
+        run: |
+          apk add --no-cache bash git php81-pear \
+          && pear install PHP_CodeSniffer
+
+      - name: Install Reviewdog
+        uses: reviewdog/action-setup@v1
+        with:
+          reviewdog_version: latest
+
+      - name: Check out repo
+        uses: actions/checkout@v3
+
+      - name: Run PHP CodeSniffer
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ github.token }}
+        run: |
+          cd  $GITHUB_WORKSPACE && \
+          if [ "${{github.event_name}}" == 'pull_request' ]; then
+              phpcs --report=json --standard=PSR12 . \
+              | jq -r ' .files | to_entries[] | .key as $path | .value.messages[] as $msg | "\($path):\($msg.line):\($msg.column):`\($msg.source)`<br>\($msg.message)" ' \
+              | reviewdog -efm="%f:%l:%c:%m" \
+                -name="phpcs" \
+                -reporter="github-pr-review" \
+                -filter-mode="nofilter" \
+                -fail-on-error
+          else
+              phpcs --report=checkstyle --standard=PSR12 . \
+              | reviewdog -f="checkstyle" \
+                -name="phpcs" \
+                -reporter="github-check" \
+                -filter-mode="nofilter" \
+                -fail-on-error
+          fi

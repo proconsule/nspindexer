@@ -1,0 +1,77 @@
+name: Build Docker images
+
+on:
+  # Allow manual runs.
+  workflow_dispatch:
+  # Also run on updates to this repo.
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**/*.md'
+  # Run on PRs except for documentation.
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
+
+env:
+  PLATFORMS: linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/amd64
+  IMAGE_NAME: nspindexer
+  PUSH_IMAGE: ${{ github.ref == 'refs/heads/master' }}
+
+jobs:
+
+  build-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Get version numbers for tagging Docker images
+        run: |
+          echo DATESTAMP=$(date +%Y.%m.%d) >> $GITHUB_ENV
+          echo NSPINDEXER_VERSION=$(cat ./VERSION) >> $GITHUB_ENV
+          echo NSPINDEXER_REV=$(git show-ref --dereference --tags -s refs/tags/master) >> $GITHUB_ENV
+
+      - name: Docker Setup QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Docker Setup Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to GitHub Container Registry
+        if: ${{ env.PUSH_IMAGE == 'true' }}
+        uses: docker/login-action@v2 
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ github.token }}
+
+      - name: Generate Docker metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            ghcr.io/${{ github.repository_owner }}/nspindexer
+          tags: |
+            type=raw,value=latest
+            type=raw,value=${{ env.DATESTAMP }}
+            type=raw,value=${{ env.NSPINDEXER_VERSION }}
+          labels: |
+            org.opencontainers.image.title=NSP Indexer ${{ env.NSPINDEXER_VERSION }} (build ${{ env.DATESTAMP }})
+            org.opencontainers.image.description=A Dockerised Linux build of NSP Indexer
+            org.opencontainers.image.vendor=proconsule
+            org.opencontainers.image.authors=proconsule
+            org.opencontainers.image.version=${{ env.NSPINDEXER_VERSION }}
+            org.opencontainers.image.revision=${{ env.HERCULES_REVISION }}
+            org.opencontainers.image.licenses=CC-BY-NC-SA-4.0
+
+      - name: Build and push ${{ env.IMAGE_NAME }} Docker image
+        uses: docker/build-push-action@v3
+        with:
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: ${{ env.PLATFORMS }}
+          push: ${{ env.PUSH_IMAGE }}

@@ -59,6 +59,14 @@ if (!extension_loaded('openssl') && $enableDecryption == true) {
 
 $version = trim(file_get_contents('./VERSION'));
 
+function logMessage($message)
+{
+    $stdout = fopen('php://stdout', 'w');
+    $now = new DateTime();
+    fwrite($stdout, "[{$now->format('Y-m-d_H:i:s')}] $message\n");
+    fclose($stdout);
+}
+
 function outputRomInfo($path)
 {
     global $gameDir;
@@ -81,6 +89,7 @@ function getFileList($path)
         }
     }
     natcasesort($arrFiles);
+    logMessage("Got ".sizeof($arrFiles)." ".implode(',', $allowedExtensions)." files in $path");
     return array_values($arrFiles);
 }
 
@@ -120,9 +129,10 @@ function matchTitleIds($files)
     $titles = [];
     // first round, get all Base TitleIds
     foreach ($files as $key => $file) {
+        // logMessage("Matching title IDs for $file");
 
         // check if we have a Base TitleId (0100XXXXXXXXY000, with Y being an even number)
-        if (preg_match('/(?<=\[)' . REGEX_TITLEID_BASE . '(?=])/', $file, $titleIdMatches) === 1) {
+        if (preg_match('/(?<=\[)' . REGEX_TITLEID_BASE . '(?=])/', strtoupper($file), $titleIdMatches) === 1) {
             $titleId = $titleIdMatches[0];
             $titles[$titleId] = array(
                 "path" => $file,
@@ -136,7 +146,7 @@ function matchTitleIds($files)
     $unmatched = [];
     // second round, match Updates and DLC to Base TitleIds
     foreach ($files as $key => $file) {
-        if (preg_match('/(?<=\[)' . REGEX_TITLEID . '(?=])/', $file, $titleIdMatches) === 0) {
+        if (preg_match('/(?<=\[)' . REGEX_TITLEID . '(?=])/', strtoupper($file), $titleIdMatches) === 0) {
             // file does not have any kind of TitleId, skip further checks
             array_push($unmatched, $file);
             continue;
@@ -177,8 +187,10 @@ function matchTitleIds($files)
 function getMetadata($type, $refresh = false)
 {
     if (!$refresh && file_exists(CACHE_DIR . "/" . $type . ".json")) {
+        logMessage("Loading $type metadata from cache.");
         $json = file_get_contents(CACHE_DIR . "/" . $type . ".json");
     } else {
+        logMessage("Downloading $type metadata db from tinfoil.media...");
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "https://tinfoil.media/repo/db/" . $type . ".json");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -193,6 +205,7 @@ function getMetadata($type, $refresh = false)
 
 function refreshMetadata()
 {
+    logMessage("Refreshing metadata...");
     $refreshed = array();
     foreach (array('versions', 'titles') as $type) {
         if (!file_exists(CACHE_DIR . "/" . $type . ".json") || filemtime(CACHE_DIR . "/" . $type . ".json") < (time() - 60 * 5)) {
@@ -208,15 +221,22 @@ function refreshMetadata()
 
 function outputConfig()
 {
-    global $contentUrl, $version, $enableNetInstall, $switchIp, $enableDecryption, $enableRename;
-    return json_encode(array(
+    global $gameDir, $allowedExtensions, $contentUrl, $version, $enableNetInstall, $switchIp, $enableDecryption, $enableRename, $netInstallSrc, $keyFile;
+    $configArr = array(
+        "gameDir" => $gameDir,
+        "allowedExtensions" => $allowedExtensions,
         "contentUrl" => $contentUrl,
         "version" => $version,
         "enableNetInstall" => $enableNetInstall,
         "enableRename" => $enableRename,
         "enableRomInfo" => $enableDecryption,
-        "switchIp" => $switchIp
-    ));
+        "switchIp" => $switchIp,
+        "netInstallSrc" => $netInstallSrc,
+        "keyFile" => $keyFile
+    );
+    logMessage('--- Configuration ---');
+    logMessage(print_r($configArr, true));
+    return json_encode($configArr);
 }
 
 function outputTitles($forceUpdate = false)
@@ -230,24 +250,31 @@ function outputTitles($forceUpdate = false)
         $titles = matchTitleIds(getFileList($gameDir));
         $output = array();
         foreach ($titles['titles'] as $titleId => $title) {
+            // logMessage("Processing {$title['path']}");
             $latestVersion = 0;
             $updateTitleId = substr_replace($titleId, "800", -3);
             if (array_key_exists($updateTitleId, $titlesJson)) {
-				if($titlesJson[$updateTitleId]["version"] != null){
-					$latestVersion = $titlesJson[$updateTitleId]["version"];
-				}
-				
+                if($titlesJson[$updateTitleId]["version"] != null){
+                    $latestVersion = $titlesJson[$updateTitleId]["version"];
+                }
             }
-            $realeaseDate = DateTime::createFromFormat('Ynd', $titlesJson[$titleId]["releaseDate"]);
-            $latestVersionDate = $realeaseDate->format('Y-m-d');
-            if (array_key_exists(strtolower($titleId), $versionsJson)) {
-                $latestVersionDate = $versionsJson[strtolower($titleId)][$latestVersion];
+
+            if (! $titlesJson[$titleId]["releaseDate"]) {
+                logMessage("[WARNING] Tinfoil titles.json is missing release date info for {$title['path']}");
             }
+            else {
+                $releaseDate = DateTime::createFromFormat('Ynd', $titlesJson[$titleId]["releaseDate"]);
+                $latestVersionDate = $releaseDate->format('Y-m-d');
+                if (array_key_exists(strtolower($titleId), $versionsJson)) {
+                    $latestVersionDate = $versionsJson[strtolower($titleId)][$latestVersion];
+                }
+            }
+
             $game = array(
                 "path" => $title["path"],
                 "fileType" => guessFileType($gameDir . "/" . $title["path"]),
-                "name" => $titlesJson[$titleId]["name"],
-                "thumb" => $titlesJson[$titleId]["iconUrl"],
+                "name" => $titlesJson[$titleId]["name"]?:$title["path"],
+                "thumb" => $titlesJson[$titleId]["iconUrl"]?:"/img/questionmark.png",
                 "banner" => $titlesJson[$titleId]["bannerUrl"],
                 "intro" => $titlesJson[$titleId]["intro"],
                 "latest_version" => $latestVersion,
@@ -257,9 +284,19 @@ function outputTitles($forceUpdate = false)
             );
             $updates = array();
             foreach ($title["updates"] as $updateVersion => $update) {
+                if (! array_key_exists(strtolower($titleId), $versionsJson)) {
+                    logMessage("[WARN] Failed to find entry for {$titlesJson[$titleId]['name']} [$titleId] in Tinfoil versions.json.");
+                    $updateDate = "unknown";
+                }
+                else if (! array_key_exists($updateVersion, $versionsJson[strtolower($titleId)])) {
+                    logMessage("[WARN] Failed to find release date for {$titlesJson[$titleId]['name']} [$titleId] v$updateVersion in Tinfoil versions.json.");
+                    $updateDate = "unknown";
+                }
+                else { $updateDate = $versionsJson[strtolower($titleId)][$updateVersion]; }
+                
                 $updates[(int)$updateVersion] = array(
                     "path" => $update["path"],
-                    "date" => $versionsJson[strtolower($titleId)][$updateVersion],
+                    "date" => $updateDate,
                     "size_real" => getFileSize($gameDir . "/" . $update["path"])
                 );
             }
@@ -280,6 +317,7 @@ function outputTitles($forceUpdate = false)
             'titles' => $output,
             'unmatched' => $titles['unmatched']
         ));
+        logMessage("Writing game list to cache.");
         file_put_contents(CACHE_DIR . "/games.json", $json);
     }
     return $json;
