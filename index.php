@@ -308,22 +308,25 @@ function outputTitles($forceUpdate = false)
 				
             }
 			
-            $realeaseDate = DateTime::createFromFormat('Ymd', sprintf("%s", $titlesJson[strtoupper($titleId)]["releaseDate"]));
             $latestVersionDate = "";
-			if($realeaseDate instanceof DateTime){
-				$latestVersionDate = $realeaseDate->format('Y-m-d');
-			}
-            if (array_key_exists(strtoupper(strtoupper($titleId)), $versionsJson)) {
-                $latestVersionDate = $versionsJson[strtoupper($titleId)][$latestVersion];
+			if (! $titlesJson[$titleId]["releaseDate"]) {
+                logMessage("[WARNING] Tinfoil titles.json is missing release date info for {$title['path']}");
             }
-			
-			
+            else {
+                $releaseDate = DateTime::createFromFormat('Ymd', sprintf("%s", $titlesJson[strtoupper($titleId)]["releaseDate"]));
+			    if($releaseDate instanceof DateTime){
+                    $latestVersionDate = $releaseDate->format('Y-m-d');
+                }
+                if (array_key_exists(strtoupper(strtoupper($titleId)), $versionsJson)) {
+                    $latestVersionDate = $versionsJson[strtoupper($titleId)][$latestVersion];
+                }
+			}
 			
             $game = array(
                 "path" => $title["path"],
                 "fileType" => guessFileType($gameDir . DIRECTORY_SEPARATOR  . $title["path"]),
-                "name" => $titlesJson[strtoupper($titleId)]["name"],
-                "thumb" => $titlesJson[strtoupper($titleId)]["iconUrl"],
+				"name" => $titlesJson[$titleId]["name"]?:$title["path"],
+                "thumb" => $titlesJson[$titleId]["iconUrl"]?:"/img/questionmark.png",
                 "banner" => $titlesJson[strtoupper($titleId)]["bannerUrl"],
                 "intro" => $titlesJson[strtoupper($titleId)]["intro"],
 				"latest_version" => $latestVersion,
@@ -334,10 +337,20 @@ function outputTitles($forceUpdate = false)
             );
             $updates = array();
             foreach ($title["updates"] as $updateVersion => $update) {
-                $updates[(int)$updateVersion] = array(
-                    "path" => $update["path"],
-                    "date" => $versionsJson[strtoupper($titleId)][$updateVersion],
-                    "size_real" => getFileSize($gameDir . DIRECTORY_SEPARATOR . $update["path"])
+				if (! array_key_exists(strtolower($titleId), $versionsJson)) {
+                    logMessage("[WARN] Failed to find entry for {$titlesJson[$titleId]['name']} [$titleId] in Tinfoil versions.json.");
+                    $updateDate = "unknown";
+                }
+                else if (! array_key_exists($updateVersion, $versionsJson[strtolower($titleId)])) {
+                    logMessage("[WARN] Failed to find release date for {$titlesJson[$titleId]['name']} [$titleId] v$updateVersion in Tinfoil versions.json.");
+                    $updateDate = "unknown";
+                }
+				else {
+					$updates[(int)$updateVersion] = array(
+						"path" => $update["path"],
+						"date" => $versionsJson[strtolower($titleId)][$updateVersion];
+						"size_real" => getFileSize($gameDir . DIRECTORY_SEPARATOR . $update["path"])
+					}
                 );
             }
             $game['updates'] = $updates;
