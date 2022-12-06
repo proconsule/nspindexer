@@ -146,7 +146,7 @@ function matchTitleIds($files)
     foreach ($files as $key => $file) {
 
         // check if we have a Base TitleId (0100XXXXXXXXY000, with Y being an even number)
-        if (preg_match('/(?<=\[)' . REGEX_TITLEID_BASE . '(?=])/i', $file, $titleIdMatches) === 1) {
+         if (preg_match('/(?<=\[)' . REGEX_TITLEID_BASE . '(?=])/', strtoupper($file), $titleIdMatches) === 1) {
             $titleId = strtoupper($titleIdMatches[0]);
             $titles[$titleId] = array(
                 "path" => $file,
