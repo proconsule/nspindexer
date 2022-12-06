@@ -485,14 +485,14 @@ function renameRom($oldName, $preview = true)
         }
         $baseTitleName = "";
         if (array_key_exists($baseTitleId, $titlesJson)) {
-            $baseTitleName = preg_replace("/[^[:alnum:][:space:]_-]/u", '', $titlesJson[$baseTitleId]['name']);
+            $baseTitleName = preg_replace("/[^[:alnum:][:space:]_-+]/u", '', $titlesJson[$baseTitleId]['name']);
         } else {
             $error = true;
         }
         $dlcNameNice = "";
         if ($titleIdType == 'dlc') {
             if (array_key_exists($titleId, $titlesJson)) {
-                $dlcName = preg_replace("/[^[:alnum:][:space:]_-]/u", '', $titlesJson[$titleId]['name']);
+                $dlcName = preg_replace("/[^[:alnum:][:space:]_-+]/u", '', $titlesJson[$titleId]['name']);
                 $dlcNameNice = "(" . trim(str_replace($baseTitleName, '', $dlcName)) . ") ";
             } else {
                 $error = true;
