@@ -195,6 +195,7 @@ function confirmRename(oldName, newName) {
                 text: 'Yes',
                 btnClass: 'btn-success',
                 action: function (btn) {
+		    oldName = encodeURIComponent(oldName);
                     $.getJSON("index.php?rename=" + oldName, function (data) {
                         if (data.int === 0) {
                             $('button[data-path="' + oldName + '"]').parent().parent().remove();
