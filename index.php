@@ -348,10 +348,10 @@ function outputTitles($forceUpdate = false)
 				else {
 					$updates[(int)$updateVersion] = array(
 						"path" => $update["path"],
-						"date" => $versionsJson[strtolower($titleId)][$updateVersion];
+						"date" => $versionsJson[strtolower($titleId)][$updateVersion],
 						"size_real" => getFileSize($gameDir . DIRECTORY_SEPARATOR . $update["path"])
-					}
-                );
+					);
+                }
             }
             $game['updates'] = $updates;
             $dlcs = array();
